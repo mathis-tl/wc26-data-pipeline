@@ -1,0 +1,31 @@
+# Secrets
+.env
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# DuckDB (rebuilt from raw by dbt)
+*.duckdb
+*.duckdb.wal
+
+# dbt (Phase 2)
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+
+# Evidence build output (Phase 3)
+dashboard/.evidence/
+dashboard/node_modules/
+dashboard/build/
+
+# Tooling
+graphify-out/
+.DS_Store
+
+# NOTE: data/raw/ is intentionally VERSIONED (small Parquet files,
+# daily commits are the audit trail that the pipeline ran during the tournament).
