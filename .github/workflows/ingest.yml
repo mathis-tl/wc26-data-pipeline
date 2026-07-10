@@ -1,0 +1,43 @@
+name: Daily raw ingestion
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # 06:00 UTC — after the previous day's matches end in North America
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ingest
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Run ingestion
+        env:
+          FOOTBALL_DATA_API_KEY: ${{ secrets.FOOTBALL_DATA_API_KEY }}
+        run: uv run python -m ingestion
+
+      - name: Commit and push raw data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/raw
+          if git diff --cached --quiet; then
+            echo "No raw changes to commit."
+          else
+            git commit -m "data: raw ingestion $(date -u +%F)"
+            git push
+          fi
