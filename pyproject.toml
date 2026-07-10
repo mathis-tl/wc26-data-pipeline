@@ -1,0 +1,26 @@
+[project]
+name = "wc26-data-pipeline"
+version = "0.1.0"
+description = "World Cup 2026 data pipeline — ELT with Python, dbt-duckdb and Evidence, orchestrated by GitHub Actions"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.28",
+    "pyarrow>=20.0",
+    "python-dotenv>=1.1",
+    "tenacity>=9.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "respx>=0.22",
+    "ruff>=0.12",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
