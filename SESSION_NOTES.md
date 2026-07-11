@@ -1,4 +1,18 @@
-# SESSION_NOTES — 2026-07-10 (Phase 0 + Phase 1)
+# SESSION_NOTES
+
+## Addendum 2026-07-11 — pipeline EN PRODUCTION ✅
+
+- Clé API football-data.org reçue → `.env` local (gitignoré) + secret GitHub `FOOTBALL_DATA_API_KEY`.
+- Client amélioré suivant la recommandation du fournisseur : throttling automatique via les headers `X-Requests-Available-Minute` / `X-RequestCounter-Reset` (19 tests verts).
+- **Smoke test réel réussi** : l'id `WC` couvre bien la WC 2026 sur le free tier → 104 matchs (98 FINISHED, 6 TIMED), 48 lignes de classement. Question ouverte n°1 d'hier : résolue.
+- Repo GitHub public créé : `mathis-tl/wc26-data-pipeline`, tout poussé.
+- **Run CI de bout en bout validé** (`workflow_dispatch`) : ingestion → 104+48 lignes loggées → commit `data: raw ingestion 2026-07-11` poussé par le bot. Le cron quotidien 06:00 UTC est armé.
+- Point mineur relevé en CI : annotation de dépréciation Node 20 sur `actions/checkout@v4` / `setup-uv@v6` — bump à prévoir, non bloquant.
+- Reste côté Mathis : cliquer le lien de vérification e-mail de football-data.org (sinon suppression du compte pour inactivité).
+
+---
+
+# Session 2026-07-10 (Phase 0 + Phase 1)
 
 ## Fait
 
