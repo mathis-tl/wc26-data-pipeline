@@ -141,6 +141,40 @@ def test_persistent_429_gives_up_after_max_attempts():
 
 
 @respx.mock
+def test_exhausted_minute_quota_header_defers_next_request():
+    respx.get(MATCHES_URL).mock(
+        return_value=httpx.Response(
+            200,
+            json=MATCHES_PAYLOAD,
+            headers={"X-Requests-Available-Minute": "0", "X-RequestCounter-Reset": "0.2"},
+        )
+    )
+    with make_client() as client:
+        client.fetch_matches()
+        start = time.monotonic()
+        client.fetch_matches()
+        elapsed = time.monotonic() - start
+    assert elapsed >= 0.15  # deferred until the server-announced counter reset
+
+
+@respx.mock
+def test_remaining_quota_does_not_throttle():
+    respx.get(MATCHES_URL).mock(
+        return_value=httpx.Response(
+            200,
+            json=MATCHES_PAYLOAD,
+            headers={"X-Requests-Available-Minute": "7", "X-RequestCounter-Reset": "42"},
+        )
+    )
+    with make_client() as client:
+        start = time.monotonic()
+        client.fetch_matches()
+        client.fetch_matches()
+        elapsed = time.monotonic() - start
+    assert elapsed < 0.1
+
+
+@respx.mock
 def test_rate_limit_spaces_out_consecutive_requests():
     respx.get(MATCHES_URL).mock(return_value=httpx.Response(200, json=MATCHES_PAYLOAD))
     with make_client(min_interval_s=0.2) as client:

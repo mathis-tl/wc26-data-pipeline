@@ -95,6 +95,7 @@ class FootballDataClient:
         self.backoff_base_s = backoff_base_s
         self.max_backoff_s = max_backoff_s
         self._last_request_at: float | None = None
+        self._throttle_until: float | None = None
         self._client = httpx.Client(
             base_url=base_url,
             headers={"X-Auth-Token": self.api_key},
@@ -111,13 +112,33 @@ class FootballDataClient:
         self._client.close()
 
     def _respect_rate_limit(self) -> None:
-        if self._last_request_at is None:
-            return
-        elapsed = time.monotonic() - self._last_request_at
-        remaining = self.min_interval_s - elapsed
+        now = time.monotonic()
+        wait_until = now
+        if self._last_request_at is not None:
+            wait_until = max(wait_until, self._last_request_at + self.min_interval_s)
+        if self._throttle_until is not None:
+            wait_until = max(wait_until, self._throttle_until)
+        remaining = wait_until - now
         if remaining > 0:
             logger.debug("rate limit: sleeping %.1fs", remaining)
             time.sleep(remaining)
+
+    def _note_server_throttle(self, response: httpx.Response) -> None:
+        """football-data.org reports the remaining minute quota in response
+        headers; when it hits 0, defer the next request until the counter
+        resets instead of blindly hitting the rate limiter."""
+        available = response.headers.get("X-Requests-Available-Minute")
+        if available is None:
+            return
+        try:
+            if int(available) > 0:
+                return
+            reset_s = response.headers.get("X-RequestCounter-Reset")
+            wait_s = float(reset_s) if reset_s is not None else self.min_interval_s
+        except ValueError:
+            return
+        self._throttle_until = time.monotonic() + wait_s
+        logger.warning("minute quota exhausted, next request deferred by %.0fs", wait_s)
 
     @retry(
         retry=retry_if_exception_type((httpx.TransportError, RateLimitedError, ServerError)),
@@ -129,6 +150,7 @@ class FootballDataClient:
         self._respect_rate_limit()
         self._last_request_at = time.monotonic()
         response = self._client.get(path, params=params)
+        self._note_server_throttle(response)
         if response.status_code == 429:
             retry_after = response.headers.get("Retry-After")
             raise RateLimitedError(
