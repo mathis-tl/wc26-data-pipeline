@@ -1,0 +1,14 @@
+version: 2
+
+data_tests:
+  - name: assert_computed_standings_match_official
+    description: >
+      The pipeline's end-to-end integrity check: reconciles the group
+      standings computed from raw match results (fct_group_standings) against
+      the official standings published by the API (stg_standings, latest
+      snapshot). A full outer anti-join returns every team missing on either
+      side or diverging on points, goal difference, goals for or position —
+      one returned row fails the build. Because the two sides travel the
+      whole pipeline through independent endpoints, a pass certifies
+      ingestion, staging normalization (group codes, casts), snapshot
+      filtering and the FIFA ranking logic in one assertion.

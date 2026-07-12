@@ -1,0 +1,94 @@
+version: 2
+
+models:
+  - name: stg_matches
+    description: >
+      Cleaned matches: nested structs flattened, timestamps cast from VARCHAR,
+      group normalized to a single-letter group_code. Grain: one row per
+      (match_id, extraction_date) — snapshot history is preserved, marts pick
+      the latest snapshot.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - match_id
+            - extraction_date
+    columns:
+      - name: match_id
+        data_tests:
+          - not_null
+      - name: kickoff_at
+        description: >
+          Cast from the VARCHAR utcDate; a NULL here means the API changed its
+          date format — fail loudly rather than propagate silently.
+        data_tests:
+          - not_null
+      - name: last_updated_at
+        data_tests:
+          - not_null
+      - name: status
+        data_tests:
+          - accepted_values:
+              values:
+                - SCHEDULED
+                - TIMED
+                - IN_PLAY
+                - PAUSED
+                - EXTRA_TIME
+                - PENALTY_SHOOTOUT
+                - FINISHED
+                - SUSPENDED
+                - POSTPONED
+                - CANCELLED
+                - AWARDED
+      - name: stage
+        data_tests:
+          - not_null
+          - accepted_values:
+              values:
+                - GROUP_STAGE
+                - LAST_32
+                - LAST_16
+                - QUARTER_FINALS
+                - SEMI_FINALS
+                - THIRD_PLACE
+                - FINAL
+      - name: group_code
+        description: Canonical group letter (A-L); NULL for knockout matches.
+        data_tests:
+          - accepted_values:
+              values: [A, B, C, D, E, F, G, H, I, J, K, L]
+      - name: extraction_date
+        data_tests:
+          - not_null
+
+  - name: stg_standings
+    description: >
+      Cleaned official standings: team struct flattened, group normalized to
+      the same canonical group_code as stg_matches. Grain: one row per
+      (team_id, extraction_date).
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - team_id
+            - extraction_date
+    columns:
+      - name: team_id
+        data_tests:
+          - not_null
+      - name: team_name
+        data_tests:
+          - not_null
+      - name: group_code
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [A, B, C, D, E, F, G, H, I, J, K, L]
+      - name: position
+        data_tests:
+          - not_null
+      - name: points
+        data_tests:
+          - not_null
+      - name: extraction_date
+        data_tests:
+          - not_null

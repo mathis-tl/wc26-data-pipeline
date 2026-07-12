@@ -25,7 +25,7 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv sync --frozen
+        run: uv sync --frozen --group dbt
 
       - name: Run ingestion
         env:
@@ -54,6 +54,14 @@ jobs:
               --body "Automated daily raw archive (main requires PRs; auto-merged by the ingestion workflow)."
             gh pr merge "$BRANCH" --squash --delete-branch
           fi
+
+      # Raw is archived above BEFORE dbt runs: a modeling failure must never
+      # cost a day of raw capture. The disposable DuckDB warehouse is rebuilt
+      # here on every run and never committed.
+      - name: dbt build
+        run: |
+          uv run dbt deps --project-dir dbt --profiles-dir dbt
+          uv run dbt build --project-dir dbt --profiles-dir dbt
 
       - name: Open issue on failure
         if: failure()

@@ -1,0 +1,16 @@
+version: 2
+
+models:
+  - name: int_matches_latest
+    description: >
+      One row per match — the latest extraction_date snapshot. All match-based
+      marts read from here so latest-snapshot filtering exists in exactly one
+      place.
+    data_tests:
+      - row_count_equals:
+          value: 104
+    columns:
+      - name: match_id
+        data_tests:
+          - unique
+          - not_null
