@@ -17,6 +17,10 @@ dev = [
     "respx>=0.22",
     "ruff>=0.12",
 ]
+dbt = [
+    "dbt-core>=1.10",
+    "dbt-duckdb>=1.9",
+]
 
 [tool.ruff]
 line-length = 100
