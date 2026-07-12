@@ -1,0 +1,10 @@
+# Local DuckDB profile — no secrets. The warehouse file is disposable and
+# gitignored; every run rebuilds it from data/raw/.
+# Run dbt from the repo root: uv run dbt <cmd> --project-dir dbt --profiles-dir dbt
+wc26:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: data/warehouse.duckdb
+      threads: 4

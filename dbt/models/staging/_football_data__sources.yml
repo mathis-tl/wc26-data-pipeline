@@ -1,0 +1,26 @@
+version: 2
+
+sources:
+  - name: football_data
+    description: >
+      Raw layer: football-data.org API responses archived as-is by the daily
+      ingestion workflow. Parquet files partitioned by extraction date
+      (Hive-style), nested structs preserved. union_by_name is mandatory to
+      survive schema drift between partitions.
+    schema: main
+    meta:
+      external_location: >-
+        read_parquet('data/raw/football_data/{name}/*/*.parquet',
+        hive_partitioning=true, union_by_name=true)
+    tables:
+      - name: matches
+        description: >
+          One row per match per extraction_date. Fixtures and results share
+          this dataset (distinguished by `status`). Nested structs: homeTeam,
+          awayTeam, score (fullTime/halfTime/extraTime/penalties), referees.
+          utcDate and lastUpdated arrive as VARCHAR and are cast in staging.
+      - name: standings
+        description: >
+          One row per standings table entry per extraction_date, with the
+          group context nested under `standing`. Official positions used by
+          the reconciliation test against fct_group_standings.
