@@ -1,5 +1,24 @@
 # SESSION_NOTES
 
+## Session 2026-07-12 — Phase 2 : modélisation dbt ✅
+
+### Fait
+- **Workflow git durci** : branche `feat/dbt-phase-2`, ruleset `protect-main` (PR obligatoire, force-push/suppression interdits, admin en bypass), alerte `if: failure()` qui ouvre une issue horodatée (testée en réel : issue #1 ouverte puis fermée), actions bumpées (`checkout@v7`, `setup-uv@v8.3.2`).
+- **Init dbt** : dbt-core 1.11 + dbt-duckdb 1.10 (groupe uv dédié), warehouse DuckDB jetable gitignoré, sources en `external_location` avec `hive_partitioning` + `union_by_name` (obligatoire). Validé : 208 lignes matches / 96 standings sur 2 partitions.
+- **Staging** : `stg_matches` + `stg_standings` (views) — structs dépliés, timestamps castés, `group_code` canonique (piège `GROUP_A` vs `Group A` neutralisé, jointure vérifiée). 17 tests verts, volumétrie = source.
+- **Marts** : `int_matches_latest` (dernier snapshot centralisé, 104), `dim_teams` (48 exactement), `fct_matches` (104 exactement, relationships), `fct_group_standings` — critères FIFA 1-3 + **couche h2h** (4-6) + fair-play documenté indisponible (7) + fallback `team_name` déterministe (8). **2 unit tests dbt** (égalité parfaite tranchée par h2h ; égalité circulaire → alphabétique).
+- **Test de réconciliation** `assert_computed_standings_match_official` : full outer anti-join calculé vs officiel — **48/48**, détection de divergence vérifiée par sabotage (+1 point → ligne fautive renvoyée).
+- **Intégration** : `dbt build` dans le workflow quotidien (le raw est publié AVANT dbt — un échec de modélisation ne coûte jamais un jour de capture), CI de PR (ruff + pytest + dbt build), badges README, `dbt docs generate` OK en local.
+- `dbt build` complet : **46/46 nœuds verts**.
+
+### Écart au brief (à arbitrer si besoin)
+- **Bypass bot impossible** : GitHub refuse l'app `github-actions` comme bypass actor d'un ruleset sur un repo personnel (API, confirmé ×3) et l'ajout UI n'a pas abouti. Solution en place : **le bot publie le raw via une mini-PR auto-fusionnée** (squash) — conforme à la règle PR, validé en réel (PR #3). Conséquence : une PR de données par jour dans l'historique.
+
+### Questions ouvertes
+1. Le sous-classement h2h est non récursif (un seul niveau, conforme au brief) ; la vraie règle FIFA réapplique récursivement les critères sur le sous-ensemble restant. À traiter au backfill historique si des cas réels l'exigent ?
+2. `row_count_equals` fige 104/48 pour l'édition 2026 — à paramétrer par édition lors du backfill.
+3. Publication des dbt docs (GitHub Pages vs Vercel) — phase ultérieure.
+
 ## Addendum 2026-07-11 — pipeline EN PRODUCTION ✅
 
 - Clé API football-data.org reçue → `.env` local (gitignoré) + secret GitHub `FOOTBALL_DATA_API_KEY`.
