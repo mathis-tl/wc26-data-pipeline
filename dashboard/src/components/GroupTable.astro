@@ -1,0 +1,107 @@
+---
+import Crest from "./Crest.astro";
+
+interface Row {
+  position: number;
+  team_id: number;
+  team_name: string;
+  team_tla: string | null;
+  crest: string | null;
+  played: number;
+  won: number;
+  draw: number;
+  lost: number;
+  points: number;
+  goals_for: number;
+  goals_against: number;
+  goal_diff: number;
+  qualified: boolean;
+  best_third: boolean;
+}
+
+const { group } = Astro.props as { group: { group_code: string; standings: Row[] } };
+const diff = (n: number) => (n > 0 ? `+${n}` : String(n));
+---
+
+<section class="grp">
+  <h3 class="grp__title display">Groupe {group.group_code}</h3>
+  <table class="grp__table">
+    <thead>
+      <tr class="mono">
+        <th class="col-pos" scope="col"><span class="sr-only">Position</span>#</th>
+        <th class="col-team" scope="col">Équipe</th>
+        <th class="col-num" scope="col" title="Joués">J</th>
+        <th class="col-num hide-sm" scope="col" title="Victoires">V</th>
+        <th class="col-num hide-sm" scope="col" title="Nuls">N</th>
+        <th class="col-num hide-sm" scope="col" title="Défaites">D</th>
+        <th class="col-num hide-sm" scope="col" title="Buts pour">BP</th>
+        <th class="col-num hide-sm" scope="col" title="Buts contre">BC</th>
+        <th class="col-num" scope="col" title="Différence de buts">Diff</th>
+        <th class="col-num col-pts" scope="col" title="Points">Pts</th>
+      </tr>
+    </thead>
+    <tbody>
+      {group.standings.map((r) => (
+        <tr class:list={["row", { qual: r.qualified, third: r.best_third, out: !r.qualified }]}>
+          <td class="col-pos mono">
+            <span class="posmark" aria-hidden="true"></span>{r.position}
+          </td>
+          <th class="col-team" scope="row">
+            <span class="teamcell">
+              <Crest url={r.crest} tla={r.team_tla} size={20} />
+              <span class="teamcell__name">{r.team_name}</span>
+            </span>
+          </th>
+          <td class="col-num mono">{r.played}</td>
+          <td class="col-num mono hide-sm">{r.won}</td>
+          <td class="col-num mono hide-sm">{r.draw}</td>
+          <td class="col-num mono hide-sm">{r.lost}</td>
+          <td class="col-num mono hide-sm">{r.goals_for}</td>
+          <td class="col-num mono hide-sm">{r.goals_against}</td>
+          <td class="col-num mono">{diff(r.goal_diff)}</td>
+          <td class="col-num col-pts mono">{r.points}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</section>
+
+<style>
+  .grp { break-inside: avoid; }
+  .grp__title {
+    font-size: 1.35rem; font-weight: 460; letter-spacing: -0.01em;
+    padding-bottom: 0.5rem; margin-bottom: 0; border-bottom: 2px solid var(--ink);
+  }
+  .grp__table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  thead th {
+    font-size: var(--mono-xs); font-weight: 500; letter-spacing: 0.06em;
+    color: var(--ink-faint); text-transform: uppercase; text-align: right;
+    padding: 0.55rem 0.35rem; border-bottom: 1px solid var(--line);
+  }
+  thead th.col-pos, thead th.col-team { text-align: left; }
+  .row td, .row th { padding: 0.5rem 0.35rem; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  .col-pos { width: 2.1rem; }
+  .col-num { text-align: right; font-variant-numeric: tabular-nums; width: 2.1rem; color: var(--ink-soft); }
+  .col-pts { color: var(--ink); font-weight: 600; width: 2.6rem; }
+  .col-team { text-align: left; font-weight: 400; }
+  .teamcell { display: flex; align-items: center; gap: 0.55rem; min-width: 0; }
+  .teamcell__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.98rem; }
+
+  /* qualification encoding — the accent means "advancing", nothing else */
+  .posmark {
+    display: inline-block; width: 3px; height: 1.05em; margin-right: 0.5rem;
+    vertical-align: -0.15em; background: transparent;
+  }
+  .row.qual .posmark { background: var(--pitch); }
+  .row.third .posmark { background: repeating-linear-gradient(
+      -45deg, var(--pitch), var(--pitch) 2px, transparent 2px, transparent 4px); }
+  .row.qual { background: var(--pitch-tint); }
+  .row.qual .col-pos, .row.qual .col-pts { color: var(--pitch); }
+  .row.out { color: var(--ink-faint); }
+  .row.out .teamcell__name { color: var(--ink-soft); }
+
+  @media (max-width: 460px) {
+    .hide-sm { display: none; }
+    .grp__table { font-size: 0.95rem; }
+  }
+</style>
