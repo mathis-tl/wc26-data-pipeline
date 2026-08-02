@@ -1,5 +1,27 @@
 # SESSION_NOTES
 
+## Session Phase 3 — dashboard public (Astro) ✅ (mergé PR #26)
+
+### Décisions d'architecture
+- **Evidence abandonné** (acté avec le cerveau) au profit d'un front **custom Astro** (0 JS par défaut) pour une identité distinctive. Archi 100% statique conservée : marts DuckDB → export JSON commité → build Astro → Vercel (intégration Git).
+- **Pont données** : `dashboard/scripts/export_marts.py` (DuckDB → JSON). Le front ne dépend JAMAIS de Python/dbt pour builder — il lit les JSON commités (`dashboard/src/data/`).
+
+### Fait
+- **Direction artistique** (skill `frontend-design` officiel installé, méthode 2 passes) : hybride éditorial + terminal. Papier `#f0ede4` + encre `#17150f`, **un seul accent** vert « pelouse sous projecteurs » `#0c5a3a` (terracotta évité), **Fraunces + IBM Plex Mono** self-hostées. Signature = le **bandeau live-feed** (fraîcheur réelle du pipeline en écran de scoreboard). Photos en **duotone vert/papier** (CSS blend).
+- **4 pages** : Accueil (chiffres géants + count-up, derniers/prochains matchs, bande duotone) · Groupes (12 tables recalculées, qualif encodée dans l'accent : plein=top2, hachuré=meilleur 3e ; note **réconcilié 48/48**) · Phase finale (bracket, entonnoir horizontal desktop / empilé mobile) · Méthode (pipeline en séquence numérotée, test de réconciliation en 3 phrases, stack + repo).
+- **Intégration** : le workflow quotidien enchaîne `dbt build` → export JSON → publie **raw + JSON dans une seule PR auto** (label `data`) ; le raw reste publié même si dbt/export échoue (gate final re-échoue le job → issue). CI + job `frontend` (build Astro sans réseau). `vercel.json` + badges.
+- **Qualité** : contraste **WCAG AA** partout (ink-faint assombri en `#645e4c`), titres sémantiques, tables `<th scope>`, fontes subset self-host, `prefers-reduced-motion` respecté, contenu **visible sans JS** (`html.js` gate), **zéro débordement horizontal à 390px** (helper puppeteer `scripts/shoot.mjs` : scrollW==clientW sur les 4 pages). Vérifié visuellement desktop + mobile.
+- **Maintenance (tâche zéro)** : carte Graphify reconstruite proprement (AST-only, plus de 56 arêtes orphelines). Micro-chantiers : **aucun test dbt déprécié** (déjà en `data_tests:` depuis Phase 2, WARN=0) ; README commandes de repro + note filtre `is:pr -label:data` ; label `data` sur les PR du bot.
+
+### À faire par Mathis (dernier maillon)
+- **Connecter le repo à Vercel** (compte perso) : New Project → import `wc26-data-pipeline` → **Root Directory = `dashboard`** (framework Astro auto-détecté) → Deploy. Chaque merge sur `main` (code OU données du matin) redéploiera. Aucune CLI ni token en CI.
+- **Crédits photos** : footer en placeholder « à compléter » — renseigner auteur+source avant diffusion large (une des photos est une archive 2002, légende neutralisée en « image d'illustration »).
+
+### Écarts / points ouverts
+- Aperçu Artifact non produit : Mathis a vu les 4 pages en captures inline (desktop+mobile) ; le vrai aperçu interactif = le preview deploy Vercel.
+- Bracket sans connecteurs (la donnée ne garantit pas les liens tour-à-tour) — colonnes par tour, honnête.
+- Graphify : passe sémantique complète encore à refaire (coupée par la limite de session) — AST-only en place, cohérent.
+
 ## Session 2026-07-12 — Phase 2 : modélisation dbt ✅
 
 ### Fait
