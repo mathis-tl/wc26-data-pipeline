@@ -1,0 +1,162 @@
+---
+import Base from "../layouts/Base.astro";
+import metadata from "../data/metadata.json";
+import { SITE } from "../lib/site";
+
+const stages = [
+  { n: "01", label: "Source", tool: "football-data.org",
+    text: "Une API publique, plafonnée à dix requêtes par minute. Le client Python respecte cette limite en lisant les en-têtes de quota renvoyés par le serveur." },
+  { n: "02", label: "Ingestion", tool: "Python · httpx",
+    text: "Chaque nuit à 06:00 UTC, un job récupère résultats et classements et les archive sans les toucher. L'opération est idempotente : la rejouer ne crée jamais de doublon." },
+  { n: "03", label: "Couche brute", tool: "Parquet horodaté",
+    text: "La donnée exactement telle que l'API l'a renvoyée, versionnée dans Git. C'est le filet de sécurité : tout peut être reconstruit d'ici sans rappeler l'API." },
+  { n: "04", label: "Transformation", tool: "dbt · DuckDB",
+    text: "Nettoyage, typage, puis reconstruction des classements avec les règles de départage de la FIFA. Chaque build exécute 46 nœuds — modèles et tests — et échoue au moindre écart." },
+  { n: "05", label: "Export", tool: "JSON",
+    text: "Les tables finales sont figées en quelques fichiers JSON. Le site ne dépend jamais de Python ni de dbt pour se construire." },
+  { n: "06", label: "Publication", tool: "Astro · Vercel",
+    text: "Le site statique est régénéré et redéployé. Le commit de données du matin suffit à publier une nouvelle version — sans aucune intervention." },
+];
+
+const figures = [
+  { v: "1", u: "run / jour", d: "06:00 UTC, en automatique" },
+  { v: `${metadata.dbt_nodes_total}`, u: "nœuds dbt", d: "modèles + tests, verts à chaque build" },
+  { v: metadata.reconciliation, u: "réconcilié", d: "calcul vs classement officiel" },
+  { v: "0 €", u: "/ mois", d: "APIs, calcul et hébergement gratuits" },
+];
+---
+
+<Base title="Méthode" description="Comment ce site se fabrique : un pipeline de données automatisé, de l'API au dashboard, avec un test de réconciliation de bout en bout.">
+  <section class="section">
+    <div class="wrap">
+      <p class="eyebrow">Méthode</p>
+      <h1 class="h1 intro__title">Personne ne met ce site à jour.</h1>
+      <p class="lede measure intro__lede">
+        Ce dashboard est le dernier maillon d'un pipeline de données qui tourne
+        seul chaque matin. Rien n'est saisi à la main : ce que vous lisez est le
+        produit d'une chaîne automatisée, de l'API jusqu'à la page.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <p class="eyebrow eyebrow--seq"><span class="seq">/</span> Le pipeline</p>
+      <ol class="pipeline">
+        {stages.map((s) => (
+          <li class="stage reveal">
+            <div class="stage__n mono">{s.n}</div>
+            <div class="stage__body">
+              <p class="stage__head">
+                <span class="stage__label">{s.label}</span>
+                <span class="stage__tool mono">{s.tool}</span>
+              </p>
+              <p class="stage__text prose">{s.text}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap recon-wrap">
+      <p class="eyebrow eyebrow--seq"><span class="seq">/</span> Le test qui compte</p>
+      <h2 class="h2 recon__h">La preuve que les chiffres sont justes</h2>
+      <div class="recon__body prose measure">
+        <p>
+          Les classements de groupes affichés ici ne sont pas recopiés depuis
+          l'API : ils sont recalculés à partir des seuls résultats des matchs.
+        </p>
+        <p>
+          Un test compare alors, ligne à ligne, ce classement recalculé au
+          classement officiel publié par la source — points, différence de buts,
+          buts marqués, position.
+        </p>
+        <p>
+          La moindre divergence fait échouer tout le pipeline. Aujourd'hui, les
+          deux coïncident sur <strong class="pitch">{metadata.reconciliation}</strong> équipes.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <p class="eyebrow eyebrow--seq"><span class="seq">/</span> En chiffres</p>
+      <div class="figures">
+        {figures.map((f) => (
+          <div class="fig">
+            <div class="fig__v display">{f.v}<span class="fig__u mono">{f.u}</span></div>
+            <div class="fig__d mono">{f.d}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap stack-wrap">
+      <p class="eyebrow eyebrow--seq"><span class="seq">/</span> Stack &amp; code</p>
+      <ul class="stack mono">
+        {SITE.stack.map((t) => <li>{t}</li>)}
+      </ul>
+      <p class="stack__cta">
+        Le code, les tests et l'historique des runs sont publics&nbsp;:
+        <a href={SITE.repo} rel="noopener">{SITE.repo.replace("https://", "")}</a>.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .intro__title { margin-top: 1.2rem; }
+  .intro__lede { margin-top: 1.2rem; }
+
+  .pipeline { list-style: none; margin: 2rem 0 0; padding: 0; max-width: 46rem; }
+  .stage { display: grid; grid-template-columns: 3.5rem 1fr; gap: 1.25rem; padding-bottom: 2rem; position: relative; }
+  .stage::before {
+    content: ""; position: absolute; left: 1.05rem; top: 2.4rem; bottom: -0.2rem;
+    width: 1px; background: var(--line-strong);
+  }
+  .stage:last-child { padding-bottom: 0; }
+  .stage:last-child::before { display: none; }
+  .stage__n {
+    width: 2.2rem; height: 2.2rem; display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--pitch); color: var(--pitch); font-size: var(--mono-sm); font-weight: 600;
+    background: var(--paper); z-index: 1;
+  }
+  .stage__head { display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.4rem; }
+  .stage__label { font-size: 1.2rem; font-weight: 500; }
+  .stage__tool { font-size: var(--mono-sm); color: var(--pitch); letter-spacing: 0.02em; }
+  .stage__text { color: var(--ink-soft); font-size: 1rem; }
+
+  .recon__h { margin-top: 1.1rem; }
+  .recon__body { margin-top: 1.1rem; }
+  .recon__body strong { font-weight: 600; }
+
+  .figures {
+    margin-top: 1.8rem; display: grid; grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--line-strong);
+  }
+  .fig { padding: 1.3rem 1rem 1.2rem 0; border-right: 1px solid var(--line); }
+  .fig:last-child { border-right: none; }
+  .fig__v { font-size: clamp(2.4rem, 5vw, 3.4rem); line-height: 1; font-weight: 380; display: flex; align-items: baseline; gap: 0.4rem; flex-wrap: wrap; }
+  .fig__u { font-size: var(--mono-sm); color: var(--ink-faint); font-weight: 400; letter-spacing: 0.04em; }
+  .fig__d { margin-top: 0.7rem; font-size: var(--mono-xs); letter-spacing: 0.04em; color: var(--ink-soft); text-transform: uppercase; }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 1.6rem 0 0; padding: 0; list-style: none; }
+  .stack li {
+    font-size: var(--mono-sm); padding: 0.35rem 0.7rem;
+    border: 1px solid var(--line-strong); color: var(--ink-soft);
+  }
+  .stack__cta { margin-top: 1.6rem; font-size: 1.05rem; }
+  .stack__cta a { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line-strong); }
+  .stack__cta a:hover { text-decoration-color: var(--pitch); }
+
+  @media (max-width: 640px) {
+    .figures { grid-template-columns: repeat(2, 1fr); }
+    .fig:nth-child(2) { border-right: none; }
+    .fig:nth-child(1), .fig:nth-child(2) { border-bottom: 1px solid var(--line); }
+  }
+</style>
