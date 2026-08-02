@@ -12,7 +12,7 @@
   --paper-sunk:   #e2ddce;
   --ink:          #17150f; /* near-black, faintly warm */
   --ink-soft:     #4d4838;
-  --ink-faint:    #8a8474;
+  --ink-faint:    #645e4c; /* darkened to clear WCAG AA (4.5:1) on all paper tints */
   --line:         #d5cfc0;
   --line-strong:  #b9b2a0;
 
