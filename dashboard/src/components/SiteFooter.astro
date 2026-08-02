@@ -1,0 +1,56 @@
+---
+import metadata from "../data/metadata.json";
+import { SITE } from "../lib/site";
+import { stamp } from "../lib/format";
+---
+
+<footer class="site-footer">
+  <div class="wrap site-footer__inner">
+    <div class="site-footer__col">
+      <p class="eyebrow eyebrow--seq">Données</p>
+      <ul class="fnlist mono">
+        {SITE.dataSources.map((s) => (
+          <li><a href={s.url} rel="noopener">{s.name}</a> — {s.role}</li>
+        ))}
+        <li>instantané&nbsp;: <span class="mono">{stamp(metadata.last_ingestion)}</span></li>
+      </ul>
+    </div>
+    <div class="site-footer__col">
+      <p class="eyebrow eyebrow--seq">Projet</p>
+      <ul class="fnlist mono">
+        <li><a href={SITE.repo} rel="noopener">Code source (GitHub)</a></li>
+        <li>{SITE.stack.join(" · ")}</li>
+      </ul>
+    </div>
+    <div class="site-footer__col">
+      <p class="eyebrow eyebrow--seq">Crédits photos</p>
+      <ul class="fnlist mono">
+        <li class="pending">À compléter avant mise en ligne</li>
+      </ul>
+    </div>
+  </div>
+  <div class="wrap site-footer__base mono">
+    <span>{SITE.author} — {new Date().getUTCFullYear()}</span>
+    <span>Site statique · rebuild à chaque run du pipeline</span>
+  </div>
+</footer>
+
+<style>
+  .site-footer { border-top: 1px solid var(--line); background: var(--paper-sunk); }
+  .site-footer__inner {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 2rem; padding-block: 3rem 2rem;
+  }
+  .fnlist { list-style: none; padding: 0; margin: 0.9rem 0 0; font-size: var(--mono-sm); line-height: 1.9; color: var(--ink-soft); }
+  .fnlist a { text-decoration: none; border-bottom: 1px solid var(--line-strong); }
+  .fnlist a:hover { border-bottom-color: var(--pitch); color: var(--ink); }
+  .pending { color: var(--ink-faint); }
+  .site-footer__base {
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
+    padding-block: 1.2rem; border-top: 1px solid var(--line);
+    font-size: var(--mono-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint);
+  }
+  @media (max-width: 640px) {
+    .site-footer__inner { grid-template-columns: 1fr; gap: 1.75rem; }
+  }
+</style>

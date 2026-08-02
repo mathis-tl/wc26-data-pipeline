@@ -1,0 +1,60 @@
+---
+const { path = "/" } = Astro.props;
+const nav = [
+  { href: "/", label: "Accueil" },
+  { href: "/groupes", label: "Groupes" },
+  { href: "/bracket", label: "Phase finale" },
+  { href: "/methode", label: "Méthode" },
+];
+const isActive = (href: string) =>
+  href === "/" ? path === "/" : path.startsWith(href);
+---
+
+<header class="site-header">
+  <div class="wrap site-header__inner">
+    <a class="brand" href="/">
+      <span class="brand__mark display">CM 26</span>
+      <span class="brand__sub mono">rapport du tournoi</span>
+    </a>
+    <nav aria-label="Navigation principale">
+      <ul class="nav mono">
+        {nav.map((item) => (
+          <li>
+            <a href={item.href} aria-current={isActive(item.href) ? "page" : undefined}>
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header { border-bottom: 1px solid var(--line); background: var(--paper); }
+  .site-header__inner {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; padding-block: 0.9rem; min-height: 3.75rem;
+  }
+  .brand { display: inline-flex; align-items: baseline; gap: 0.6rem; text-decoration: none; }
+  .brand__mark { font-size: 1.5rem; font-weight: 500; letter-spacing: -0.01em; line-height: 1; }
+  .brand__sub { font-size: var(--mono-xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
+  .nav { display: flex; gap: clamp(0.9rem, 3vw, 2rem); list-style: none; padding: 0; margin: 0; }
+  .nav a {
+    text-decoration: none; font-size: var(--mono-sm); letter-spacing: 0.04em;
+    color: var(--ink-soft); padding-block: 0.35rem; display: inline-block;
+    border-bottom: 2px solid transparent;
+  }
+  .nav a:hover { color: var(--ink); }
+  .nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--pitch); }
+  @media (max-width: 620px) {
+    .brand__sub { display: none; }
+    .site-header__inner { min-height: 3.25rem; padding-block: 0.7rem; }
+    .brand__mark { font-size: 1.3rem; }
+    .nav { gap: 0.85rem; }
+    .nav a { font-size: var(--mono-xs); letter-spacing: 0.02em; }
+  }
+  @media (max-width: 380px) {
+    .nav { gap: 0.6rem; }
+  }
+</style>

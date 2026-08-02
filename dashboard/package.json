@@ -1,0 +1,20 @@
+{
+  "name": "wc26-dashboard",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@fontsource-variable/fraunces": "^5.1.0",
+    "@fontsource/ibm-plex-mono": "^5.1.0",
+    "astro": "^5.13.0"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^25.4.0"
+  }
+}

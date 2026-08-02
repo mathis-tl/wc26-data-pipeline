@@ -1,0 +1,138 @@
+---
+import Base from "../layouts/Base.astro";
+import MatchRow from "../components/MatchRow.astro";
+import DuotonePhoto from "../components/DuotonePhoto.astro";
+import metrics from "../data/key_metrics.json";
+import latest from "../data/latest_results.json";
+import upcoming from "../data/upcoming_matches.json";
+
+const stats = [
+  { value: metrics.matches_played, total: metrics.matches_total, label: "matchs joués" },
+  { value: metrics.goals_scored, label: "buts inscrits" },
+  { value: metrics.teams, label: "équipes" },
+  { value: metrics.avg_goals_per_match, label: "buts / match", decimal: true },
+];
+---
+
+<Base>
+  <!-- HERO — the tournament as a live readout (the thesis) -->
+  <section class="section hero">
+    <div class="wrap">
+      <p class="eyebrow">États-Unis · Canada · Mexique — 48 équipes</p>
+      <h1 class="display hero__title">
+        Le Mondial,<br />recalculé chaque&nbsp;matin.
+      </h1>
+      <p class="lede measure hero__lede">
+        Chaque nuit, un pipeline de données récupère les résultats, reconstruit
+        les classements avec les règles de départage de la FIFA, et les confronte
+        au classement officiel. Ce que vous lisez ici est ce que la machine a
+        produit — sans intervention.
+      </p>
+
+      <div class="scoreboard" role="list">
+        {stats.map((s) => (
+          <div class="stat" role="listitem">
+            <div class="stat__value display">
+              <span class="mono-num" data-count={String(s.decimal ? s.value.toFixed(2) : s.value)}>
+                {s.decimal ? s.value.toFixed(2) : s.value}
+              </span>{s.total ? <span class="stat__total mono">/{s.total}</span> : null}
+            </div>
+            <div class="stat__label mono">{s.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- LATEST RESULTS -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section__head">
+        <p class="eyebrow">Derniers résultats</p>
+        <a class="section__link mono" href="/bracket">Phase finale →</a>
+      </div>
+      <div class="matchgrid reveal">
+        {latest.map((m) => <MatchRow match={m} showStage={true} />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- DUOTONE BAND -->
+  <section class="section band">
+    <div class="wrap">
+      <DuotonePhoto
+        src="/photos/semifinal.avif"
+        alt="Célébration sous les projecteurs d'un stade"
+        caption="Sous les projecteurs — image d'illustration"
+      />
+    </div>
+  </section>
+
+  <!-- UPCOMING -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section__head">
+        <p class="eyebrow">Prochains matchs</p>
+        <a class="section__link mono" href="/groupes">Tous les groupes →</a>
+      </div>
+      {upcoming.length ? (
+        <div class="matchgrid reveal">
+          {upcoming.map((m) => <MatchRow match={m} showStage={true} />)}
+        </div>
+      ) : (
+        <p class="lede measure">Le tournoi est terminé — tous les matchs ont été joués.</p>
+      )}
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero { padding-top: clamp(2.5rem, 6vw, 4.5rem); }
+  .hero__title { margin-top: 1.4rem; font-size: var(--h1); }
+  .hero__lede { margin-top: 1.5rem; }
+
+  .scoreboard {
+    margin-top: clamp(2.5rem, 6vw, 4rem);
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--line-strong);
+  }
+  .stat {
+    padding: 1.4rem 1rem 1.2rem 0;
+    border-right: 1px solid var(--line);
+  }
+  .stat:last-child { border-right: none; }
+  .stat__value {
+    font-size: var(--giant); line-height: 0.92; letter-spacing: -0.03em;
+    font-weight: 360; display: flex; align-items: baseline; gap: 0.15em;
+  }
+  .mono-num { font-family: var(--serif); font-variant-numeric: lining-nums tabular-nums; }
+  .stat__total { font-size: 0.32em; color: var(--ink-faint); font-weight: 400; align-self: flex-end; margin-bottom: 0.6em; }
+  .stat__label {
+    margin-top: 0.7rem; font-size: var(--mono-sm); letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-soft);
+  }
+
+  .section__head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 1rem; margin-bottom: 1.4rem;
+  }
+  .section__link { font-size: var(--mono-sm); text-decoration: none; color: var(--pitch); }
+  .section__link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+  .matchgrid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    column-gap: clamp(2rem, 5vw, 4rem);
+    border-top: 1px solid var(--line);
+  }
+  .band { padding-block: clamp(2.5rem, 6vw, 4rem); }
+
+  @media (max-width: 720px) {
+    .scoreboard { grid-template-columns: repeat(2, 1fr); }
+    .stat:nth-child(2) { border-right: none; }
+    .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 1px solid var(--line); }
+    .matchgrid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 420px) {
+    .stat { padding-right: 0.6rem; }
+  }
+</style>

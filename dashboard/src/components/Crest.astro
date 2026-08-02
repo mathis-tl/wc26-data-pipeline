@@ -1,0 +1,39 @@
+---
+// Team crest. Uses the API-provided URL (per brief); falls back to the TLA
+// badge if the remote image is missing so a dead CDN never leaves a blank.
+const { url, tla, size = 22 } = Astro.props as {
+  url: string | null;
+  tla: string | null;
+  size?: number;
+};
+---
+{url ? (
+  <img
+    class="crest"
+    src={url}
+    alt=""
+    width={size}
+    height={size}
+    loading="lazy"
+    decoding="async"
+    onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'crest crest--fallback',textContent:this.dataset.tla||'??'}))"
+    data-tla={tla ?? ""}
+  />
+) : (
+  <span class="crest crest--fallback">{tla ?? "??"}</span>
+)}
+
+<style>
+  .crest {
+    flex: none;
+    width: 1.375rem; height: 1.375rem;
+    object-fit: contain;
+    border-radius: 2px;
+  }
+  .crest--fallback {
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 0.5rem; font-weight: 600; letter-spacing: 0.02em;
+    background: var(--paper-sunk); color: var(--ink-soft);
+    border: 1px solid var(--line-strong);
+  }
+</style>
