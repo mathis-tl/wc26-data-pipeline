@@ -32,36 +32,53 @@ jobs:
           FOOTBALL_DATA_API_KEY: ${{ secrets.FOOTBALL_DATA_API_KEY }}
         run: uv run python -m ingestion
 
-      - name: Publish raw data via auto-merged PR
+      # dbt and the export are allowed to fail without aborting the job, so the
+      # raw archive is still published below (a modeling failure never costs a
+      # day of capture). The gate step at the end re-fails the job if either
+      # broke, which triggers the failure issue.
+      - name: dbt build
+        id: dbt
+        continue-on-error: true
+        run: |
+          uv run dbt deps --project-dir dbt --profiles-dir dbt
+          uv run dbt build --project-dir dbt --profiles-dir dbt
+
+      - name: Export marts to JSON
+        id: export
+        if: steps.dbt.outcome == 'success'
+        continue-on-error: true
+        run: uv run python dashboard/scripts/export_marts.py
+
+      - name: Publish raw data and dashboard JSON via auto-merged PR
         # main requires PRs (protect-main ruleset) and the Actions app cannot
-        # be a bypass actor on a personal repo, so the bot ships its data
-        # through a PR it merges itself.
+        # be a bypass actor on a personal repo, so the bot ships its data —
+        # raw archive plus the dashboard's JSON export — through one PR it
+        # merges itself. Merging into main triggers the Vercel redeploy.
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/raw
+          git add data/raw dashboard/src/data
           if git diff --cached --quiet; then
-            echo "No raw changes to commit."
+            echo "No data changes to commit."
           else
             BRANCH="data/ingestion-$(date -u +%Y%m%d-%H%M%S)"
             git checkout -b "$BRANCH"
             git commit -m "data: raw ingestion $(date -u +%F)"
             git push origin "$BRANCH"
-            gh pr create --base main --head "$BRANCH" \
+            gh pr create --base main --head "$BRANCH" --label data \
               --title "data: raw ingestion $(date -u +%F)" \
-              --body "Automated daily raw archive (main requires PRs; auto-merged by the ingestion workflow)."
+              --body "Automated daily archive: raw Parquet + dashboard JSON export (main requires PRs; auto-merged by the ingestion workflow)."
             gh pr merge "$BRANCH" --squash --delete-branch
           fi
 
-      # Raw is archived above BEFORE dbt runs: a modeling failure must never
-      # cost a day of raw capture. The disposable DuckDB warehouse is rebuilt
-      # here on every run and never committed.
-      - name: dbt build
+      - name: Fail if modeling or export broke
+        if: steps.dbt.outcome == 'failure' || steps.export.outcome == 'failure'
         run: |
-          uv run dbt deps --project-dir dbt --profiles-dir dbt
-          uv run dbt build --project-dir dbt --profiles-dir dbt
+          echo "dbt=${{ steps.dbt.outcome }} export=${{ steps.export.outcome }}"
+          exit 1
 
       - name: Open issue on failure
         if: failure()
