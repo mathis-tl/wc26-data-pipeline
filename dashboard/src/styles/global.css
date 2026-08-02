@@ -1,0 +1,138 @@
+/* ============================================================================
+   WC26 dashboard — design system
+   Editorial + terminal hybrid. Paper & ink, one accent (floodlit pitch green),
+   two faces: Fraunces (display/body) + IBM Plex Mono (all data). The signature
+   is the live-feed status line: the pipeline's rigor rendered as a scoreboard.
+   ========================================================================== */
+
+:root {
+  /* — paper & ink — */
+  --paper:        #f0ede4; /* warm light stone, deliberately cooler than cream */
+  --paper-raised: #e8e4d8;
+  --paper-sunk:   #e2ddce;
+  --ink:          #17150f; /* near-black, faintly warm */
+  --ink-soft:     #4d4838;
+  --ink-faint:    #8a8474;
+  --line:         #d5cfc0;
+  --line-strong:  #b9b2a0;
+
+  /* — the one accent: floodlit pitch green — carries the photo duotone too — */
+  --pitch:        #0c5a3a;
+  --pitch-bright: #137a4f;
+  --pitch-deep:   #072a1c;
+  --pitch-tint:   rgba(12, 90, 58, 0.09);
+  --paper-on-pitch: #eef3ea;
+
+  /* — type — */
+  --serif: "Fraunces Variable", Fraunces, Georgia, "Times New Roman", serif;
+  --mono:  "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* — fluid scale — */
+  --giant: clamp(3.75rem, 11.5vw, 8.5rem);
+  --h1:    clamp(2.3rem, 6vw, 4rem);
+  --h2:    clamp(1.55rem, 3.6vw, 2.35rem);
+  --h3:    1.28rem;
+  --body:  1.0625rem;
+  --small: 0.9375rem;
+  --mono-lg: 0.9375rem;
+  --mono-sm: 0.78rem;
+  --mono-xs: 0.6875rem;
+
+  /* — measure & rhythm — */
+  --measure: 40rem;
+  --wide:    72rem;
+  --gutter:  clamp(1.15rem, 5vw, 3.5rem);
+  --section-gap: clamp(3.5rem, 8vw, 6.5rem);
+}
+
+/* — reset-ish — */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  overflow-x: clip; /* defensive: no element may cause horizontal scroll */
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: var(--body);
+  line-height: 1.65;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+h1, h2, h3, p, figure, ul, ol { margin: 0; }
+
+/* — numeric discipline everywhere data lives — */
+.mono {
+  font-family: var(--mono);
+  font-feature-settings: "tnum" 1, "zero" 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* — eyebrow / section label: mono, spaced, quiet — */
+.eyebrow {
+  font-family: var(--mono);
+  font-size: var(--mono-sm);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.eyebrow::before {
+  content: "";
+  width: 1.6rem;
+  height: 1px;
+  background: var(--line-strong);
+}
+.eyebrow--seq::before { content: none; }
+.eyebrow .seq { color: var(--pitch); }
+
+/* — layout containers — */
+.wrap { width: 100%; max-width: var(--wide); margin-inline: auto; padding-inline: var(--gutter); }
+.measure { max-width: var(--measure); }
+.section { padding-block: var(--section-gap); }
+.section + .section { border-top: 1px solid var(--line); }
+
+/* — display headings — */
+.display {
+  font-family: var(--serif);
+  font-weight: 380;
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+  font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0;
+}
+.h1 { font-size: var(--h1); font-weight: 400; line-height: 1.04; letter-spacing: -0.02em; }
+.h2 { font-size: var(--h2); font-weight: 420; line-height: 1.1; letter-spacing: -0.015em; }
+.h3 { font-size: var(--h3); font-weight: 500; line-height: 1.2; }
+
+.lede { font-size: clamp(1.1rem, 2.2vw, 1.4rem); line-height: 1.5; color: var(--ink-soft); }
+.prose p + p { margin-top: 1.1rem; }
+.prose a { text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
+.prose a:hover { text-decoration-color: var(--pitch); }
+
+/* — accessible focus — */
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--pitch);
+  outline-offset: 3px;
+}
+
+/* — reveal on scroll (one-shot). Content is visible by default; the hidden
+   start state applies ONLY when JS is present (html.js), so no-JS and crawlers
+   always see the content. — */
+.js .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+.js .reveal.is-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .js .reveal { opacity: 1; transform: none; transition: none; }
+  * { scroll-behavior: auto !important; }
+}
+
+/* — utility — */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.pitch { color: var(--pitch); }

@@ -29,3 +29,8 @@ graphify-out/
 
 # NOTE: data/raw/ is intentionally VERSIONED (small Parquet files,
 # daily commits are the audit trail that the pipeline ran during the tournament).
+
+# Astro dashboard
+dashboard/node_modules/
+dashboard/dist/
+dashboard/.astro/

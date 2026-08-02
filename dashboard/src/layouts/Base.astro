@@ -1,0 +1,93 @@
+---
+import "@fontsource-variable/fraunces";
+import "@fontsource/ibm-plex-mono/400.css";
+import "@fontsource/ibm-plex-mono/500.css";
+import "@fontsource/ibm-plex-mono/600.css";
+import "../styles/global.css";
+import StatusLine from "../components/StatusLine.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import { SITE } from "../lib/site";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+const { title, description = SITE.description } = Astro.props;
+const fullTitle = title ? `${title} — CM 2026` : SITE.title;
+const path = Astro.url.pathname;
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="color-scheme" content="light" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script is:inline>
+      /* mark JS available so reveal animations can hide-then-show; without
+         this class the content stays visible (no-JS / crawler safe). */
+      document.documentElement.classList.add("js");
+    </script>
+  </head>
+  <body>
+    <a class="skip mono" href="#main">Aller au contenu</a>
+    <StatusLine />
+    <SiteHeader path={path} />
+    <main id="main">
+      <slot />
+    </main>
+    <SiteFooter />
+
+    <script>
+      // Two motion behaviours, both gated on prefers-reduced-motion:
+      //  1. one-shot scroll reveals
+      //  2. the single orchestrated moment — key numbers count up once
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      if (!reduce && "IntersectionObserver" in window) {
+        const io = new IntersectionObserver((entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) { e.target.classList.add("is-in"); io.unobserve(e.target); }
+          }
+        }, { threshold: 0.15, rootMargin: "0px 0px -8% 0px" });
+        document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+
+        const countUp = (el: Element) => {
+          const target = Number(el.getAttribute("data-count") || "0");
+          const dur = 1100, t0 = performance.now();
+          const decimals = (el.getAttribute("data-count") || "").includes(".") ? 2 : 0;
+          const tick = (t: number) => {
+            const p = Math.min(1, (t - t0) / dur);
+            const eased = 1 - Math.pow(1 - p, 3);
+            el.textContent = (target * eased).toFixed(decimals);
+            if (p < 1) requestAnimationFrame(tick);
+            else el.textContent = target.toFixed(decimals);
+          };
+          requestAnimationFrame(tick);
+        };
+        const nio = new IntersectionObserver((entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) { countUp(e.target); nio.unobserve(e.target); }
+          }
+        }, { threshold: 0.5 });
+        document.querySelectorAll("[data-count]").forEach((el) => nio.observe(el));
+      }
+    </script>
+
+    <style>
+      .skip {
+        position: absolute; left: 0.5rem; top: -3rem; z-index: 20;
+        background: var(--ink); color: var(--paper); padding: 0.5rem 0.85rem;
+        font-size: var(--mono-sm); text-decoration: none; transition: top .15s;
+      }
+      .skip:focus { top: 0.5rem; }
+    </style>
+  </body>
+</html>

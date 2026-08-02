@@ -1,0 +1,67 @@
+---
+// Signature element — the live-feed status line. The pipeline's real freshness
+// metadata rendered like a scoreboard/terminal readout. Not decoration: every
+// field is a true fact about the last automated run.
+import metadata from "../data/metadata.json";
+import { stamp } from "../lib/format";
+
+const ingestion = stamp(metadata.last_ingestion);
+---
+
+<aside class="statusline" aria-label="État du pipeline de données">
+  <div class="wrap statusline__inner mono">
+    <span class="statusline__tag"><span class="dot" aria-hidden="true"></span>FLUX DE DONNÉES</span>
+    <span class="statusline__field">dernière ingestion <b>{ingestion}</b></span>
+    <span class="sep" aria-hidden="true">·</span>
+    <span class="statusline__field">dbt build <b>{metadata.dbt_nodes_passed}/{metadata.dbt_nodes_total}</b> <span class="ok" aria-hidden="true">✓</span></span>
+    <span class="sep" aria-hidden="true">·</span>
+    <span class="statusline__field">réconcilié <b>{metadata.reconciliation}</b></span>
+    <span class="sep" aria-hidden="true">·</span>
+    <span class="statusline__field">source {metadata.source}</span>
+    <span class="cursor" aria-hidden="true"></span>
+  </div>
+</aside>
+
+<style>
+  .statusline {
+    background: var(--pitch-deep);
+    color: var(--paper-on-pitch);
+    border-bottom: 1px solid #0d3b28;
+  }
+  .statusline__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.85rem;
+    padding-block: 0.6rem;
+    font-size: var(--mono-sm);
+    letter-spacing: 0.01em;
+  }
+  .statusline__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #fff;
+    letter-spacing: 0.14em;
+    font-weight: 600;
+  }
+  .dot {
+    width: 0.55rem; height: 0.55rem; border-radius: 50%;
+    background: var(--pitch-bright);
+    box-shadow: 0 0 0 3px rgba(19, 122, 79, 0.28);
+  }
+  .statusline__field { color: rgba(238, 243, 234, 0.72); }
+  .statusline__field b { color: #fff; font-weight: 600; }
+  .ok { color: var(--pitch-bright); }
+  .sep { color: rgba(238, 243, 234, 0.32); }
+  .cursor {
+    width: 0.5rem; height: 1rem; margin-left: 0.1rem;
+    background: var(--pitch-bright);
+    display: inline-block;
+    /* static block — no looping blink, per the motion brief */
+  }
+  @media (max-width: 640px) {
+    .sep { display: none; }
+    .statusline__inner { gap: 0.35rem 0.75rem; }
+  }
+</style>

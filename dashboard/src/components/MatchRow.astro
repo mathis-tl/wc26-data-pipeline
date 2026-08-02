@@ -1,0 +1,85 @@
+---
+import { kickoff, score, penalties, stageLabel } from "../lib/format";
+import Crest from "./Crest.astro";
+
+interface Match {
+  match_id: number;
+  status: string;
+  stage: string;
+  kickoff_at: string | null;
+  home_team_name: string | null;
+  home_team_tla: string | null;
+  home_crest: string | null;
+  away_team_name: string | null;
+  away_team_tla: string | null;
+  away_crest: string | null;
+  full_time_home_goals: number | null;
+  full_time_away_goals: number | null;
+  penalty_home_goals: number | null;
+  penalty_away_goals: number | null;
+  winner: string | null;
+}
+
+const { match, showStage = false } = Astro.props as { match: Match; showStage?: boolean };
+const finished = match.status === "FINISHED";
+const pk =
+  match.penalty_home_goals != null
+    ? penalties(match.penalty_home_goals, match.penalty_away_goals)
+    : null;
+const homeWon = match.winner === "HOME_TEAM";
+const awayWon = match.winner === "AWAY_TEAM";
+const tbd = (n: string | null) => n ?? "à déterminer";
+---
+
+<article class="match">
+  <div class="match__meta mono">
+    {showStage ? <span class="match__stage">{stageLabel(match.stage)}</span> : <span></span>}
+    <span class="match__time">{kickoff(match.kickoff_at)}</span>
+  </div>
+  <div class="match__teams">
+    <div class:list={["team", { win: homeWon, dim: finished && !homeWon }]}>
+      <Crest url={match.home_crest} tla={match.home_team_tla} />
+      <span class="team__name">{tbd(match.home_team_name)}</span>
+    </div>
+    <div class="match__score mono">
+      {finished
+        ? score(match.full_time_home_goals, match.full_time_away_goals)
+        : <span class="vs">v</span>}
+    </div>
+    <div class:list={["team", "team--away", { win: awayWon, dim: finished && !awayWon }]}>
+      <Crest url={match.away_crest} tla={match.away_team_tla} />
+      <span class="team__name">{tbd(match.away_team_name)}</span>
+    </div>
+  </div>
+  {pk ? <p class="match__pk mono">{pk}</p> : null}
+</article>
+
+<style>
+  .match { padding-block: 0.85rem; border-bottom: 1px solid var(--line); }
+  .match__meta {
+    display: flex; justify-content: space-between; gap: 1rem;
+    font-size: var(--mono-xs); letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-faint); margin-bottom: 0.5rem;
+  }
+  .match__stage { color: var(--pitch); }
+  .match__teams {
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 0.75rem;
+  }
+  .team { display: flex; align-items: center; gap: 0.6rem; min-width: 0; }
+  .team--away { flex-direction: row-reverse; text-align: right; }
+  .team__name {
+    font-size: 1.05rem; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .team.win .team__name { font-weight: 500; }
+  .team.dim { color: var(--ink-faint); }
+  .team.win { color: var(--ink); }
+  .match__score {
+    font-size: 1.35rem; font-weight: 600; letter-spacing: 0.02em; min-width: 3.2rem; text-align: center;
+  }
+  .match__score .vs { color: var(--ink-faint); font-weight: 400; font-size: 1rem; }
+  .match__pk { text-align: center; font-size: var(--mono-xs); color: var(--ink-faint); margin-top: 0.3rem; letter-spacing: 0.05em; }
+  @media (max-width: 480px) {
+    .team__name { font-size: 0.95rem; }
+    .match__score { font-size: 1.2rem; min-width: 2.8rem; }
+  }
+</style>
