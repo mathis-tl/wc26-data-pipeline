@@ -86,6 +86,16 @@ const splitSegs = [
     </div>
   </section>
 
+  <!-- EDITORIAL PHOTO (natural, no filter) -->
+  <section class="section band">
+    <div class="wrap">
+      <figure class="photo">
+        <img class="photo__img" src="/photos/wc8.avif" alt="Ferveur des supporters lors de la Coupe du Monde 2026" loading="lazy" decoding="async" />
+        <figcaption class="photo__cap mono">États-Unis · Canada · Mexique — l'été 2026</figcaption>
+      </figure>
+    </div>
+  </section>
+
   <!-- CHARTS -->
   <section class="section" id="chiffres">
     <div class="wrap">
@@ -118,14 +128,18 @@ const splitSegs = [
     <div class="wrap">
       <p class="eyebrow eyebrow--seq"><span class="seq">/</span> Phase de groupes</p>
       <h2 class="h2 sec__title">Les douze groupes</h2>
-      <div class="recon reveal">
-        <p class="recon__label mono">Recalculé, pas recopié</p>
-        <p class="recon__text">
-          Ces classements sont <strong>reconstruits à partir des seuls résultats
-          des matchs</strong>, avec les règles de départage de la FIFA. Un test
-          automatique les confronte chaque jour au classement officiel —
-          <strong class="pitch">réconciliés 48/48</strong>.
-        </p>
+      <div class="groups-aside">
+        <div class="recon reveal">
+          <p class="recon__label mono">Recalculé, pas recopié</p>
+          <p class="recon__text">
+            Ces classements sont <strong>reconstruits à partir des seuls résultats
+            des matchs</strong>, avec les règles de départage de la FIFA. Un test
+            automatique les confronte chaque jour au classement officiel —
+            <strong class="pitch">réconciliés 48/48</strong>.
+          </p>
+        </div>
+        <img class="groups-aside__img" src="/photos/groups.avif"
+             alt="Supporters lors d'un match de poule de la Coupe du Monde 2026" loading="lazy" decoding="async" />
       </div>
       <ul class="legend mono" aria-label="Légende">
         <li><span class="key key--qual" aria-hidden="true"></span>Qualifié (1er–2e)</li>
@@ -135,6 +149,20 @@ const splitSegs = [
       <div class="grid">
         {groups.map((g) => <div class="reveal"><GroupTable group={g} /></div>)}
       </div>
+    </div>
+  </section>
+
+  <!-- PHOTO BAND (duotone) -->
+  <section class="section band">
+    <div class="wrap">
+      <figure class="duo">
+        <div class="duo__frame">
+          <img class="duo__img" src="/photos/wc5.avif" alt="Duel lors d'un match de la Coupe du Monde 2026" loading="lazy" decoding="async" />
+          <span class="duo__wash" aria-hidden="true"></span>
+          <span class="duo__grain" aria-hidden="true"></span>
+        </div>
+        <figcaption class="duo__cap mono">Le tableau final — 32 équipes, un titre</figcaption>
+      </figure>
     </div>
   </section>
 
@@ -230,8 +258,9 @@ const splitSegs = [
   /* champion band */
   .champ { position: relative; isolation: isolate; }
   .champ__media { position: absolute; inset: 0; overflow: hidden; z-index: -1; background: var(--ink); }
-  .champ__img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; filter: grayscale(1) contrast(1.05); mix-blend-mode: multiply; opacity: 0.9; }
-  .champ__wash { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(22,20,15,0.3), rgba(22,20,15,0.72)); }
+  .champ__img { width: 100%; height: 100%; object-fit: cover; object-position: center 28%; filter: grayscale(0.55) contrast(1.05) brightness(1.12); opacity: 0.92; }
+  /* horizontal wash: dark behind the (left-aligned) gold text, the photo opens up on the right */
+  .champ__wash { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(22,20,15,0.9) 0%, rgba(22,20,15,0.62) 42%, rgba(22,20,15,0.28) 100%); }
   .champ__grain { position: absolute; inset: 0; background-image: radial-gradient(rgba(238,243,234,0.06) 0.5px, transparent 0.6px); background-size: 3px 3px; }
   .champ__inner { padding-block: clamp(3rem, 10vw, 6.5rem); color: var(--paper-on-accent); }
   .champ__eyebrow { font-size: var(--mono-sm); letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-bright); }
@@ -256,6 +285,12 @@ const splitSegs = [
 
   /* image band (duotone) */
   .band { padding-block: clamp(2.5rem, 6vw, 4rem); }
+  .photo { margin: 0; }
+  .photo__img { width: 100%; max-height: 30rem; object-fit: cover; border: 1px solid var(--line); }
+  .photo__cap { margin-top: 0.55rem; font-size: var(--mono-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); }
+  .groups-aside { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: clamp(1.5rem, 4vw, 3rem); align-items: center; margin-top: 1.6rem; }
+  .groups-aside__img { width: 100%; height: 100%; max-height: 18rem; object-fit: cover; border: 1px solid var(--line); }
+  @media (max-width: 720px) { .groups-aside { grid-template-columns: 1fr; } .groups-aside__img { max-height: 14rem; order: -1; } }
   .duo__frame { position: relative; overflow: hidden; height: clamp(14rem, 32vw, 24rem); background: var(--ink); isolation: isolate; }
   .duo__img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.12) brightness(1.06); mix-blend-mode: multiply; }
   .duo__wash { position: absolute; inset: 0; z-index: 1; background: var(--paper); mix-blend-mode: screen; opacity: 0.3; }
@@ -276,14 +311,15 @@ const splitSegs = [
   .grid { margin-top: 2rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(20.5rem, 1fr)); gap: clamp(1.75rem, 4vw, 3rem); }
 
   /* bracket */
-  .bracket-scroll { overflow: hidden; margin-top: 1.6rem; }
-  .bracket { display: flex; gap: clamp(1rem, 2vw, 1.75rem); overflow-x: auto; padding-bottom: 1rem; scroll-snap-type: x proximity; }
-  .round { flex: 0 0 15.5rem; min-width: 15.5rem; scroll-snap-align: start; }
+  .bracket-scroll { margin-top: 1.6rem; }
+  /* vertical bracket: rounds stack top-to-bottom, matches flow in a grid per round */
+  .bracket { display: flex; flex-direction: column; gap: clamp(1.75rem, 4vw, 2.75rem); }
+  .round { width: 100%; }
   .round__head { display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 0.6rem; margin-bottom: 0.9rem; border-bottom: 2px solid var(--ink); }
   .round__label { font-size: var(--mono-sm); letter-spacing: 0.08em; text-transform: uppercase; }
   .round__count { font-size: var(--mono-sm); color: var(--ink-faint); }
-  .round__cards { display: flex; flex-direction: column; gap: 0.75rem; }
-  .bracket-hint { margin-top: 0.75rem; font-size: var(--mono-xs); color: var(--ink-faint); letter-spacing: 0.06em; }
+  .round__cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(14.5rem, 1fr)); gap: 0.75rem; }
+  .bracket-hint { display: none; }
 
   /* method */
   .method__diagram { margin-top: 2rem; }
