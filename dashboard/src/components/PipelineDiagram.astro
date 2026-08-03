@@ -37,7 +37,7 @@ const nodes = [
 </div>
 
 <style>
-  .flow { --raw: #6b6f52; --silver: #3f7a63; --gold: var(--pitch); }
+  .flow { --raw: #6b6f52; --silver: #3f7a63; --gold: var(--accent); }
   .flow__track {
     list-style: none; margin: 0; padding: 0;
     display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
@@ -77,8 +77,8 @@ const nodes = [
   .chip--silver::before { background: color-mix(in srgb, var(--silver) 45%, var(--paper)); }
   .chip--gold::before   { background: color-mix(in srgb, var(--gold) 45%, var(--paper)); }
   .flow__badge {
-    font-size: var(--mono-xs); letter-spacing: 0.04em; color: var(--pitch);
-    border: 1px solid color-mix(in srgb, var(--pitch) 35%, var(--paper)); padding: 0.15rem 0.5rem;
+    font-size: var(--mono-xs); letter-spacing: 0.04em; color: var(--accent);
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--paper)); padding: 0.15rem 0.5rem;
   }
 
   /* stack vertically below desktop — the arrows rotate to point down */

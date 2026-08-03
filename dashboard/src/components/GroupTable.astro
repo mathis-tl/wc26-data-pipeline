@@ -92,11 +92,11 @@ const diff = (n: number) => (n > 0 ? `+${n}` : String(n));
     display: inline-block; width: 3px; height: 1.05em; margin-right: 0.5rem;
     vertical-align: -0.15em; background: transparent;
   }
-  .row.qual .posmark { background: var(--pitch); }
+  .row.qual .posmark { background: var(--accent); }
   .row.third .posmark { background: repeating-linear-gradient(
-      -45deg, var(--pitch), var(--pitch) 2px, transparent 2px, transparent 4px); }
-  .row.qual { background: var(--pitch-tint); }
-  .row.qual .col-pos, .row.qual .col-pts { color: var(--pitch); }
+      -45deg, var(--accent), var(--accent) 2px, transparent 2px, transparent 4px); }
+  .row.qual { background: var(--accent-tint); }
+  .row.qual .col-pos, .row.qual .col-pts { color: var(--accent); }
   .row.out { color: var(--ink-faint); }
   .row.out .teamcell__name { color: var(--ink-soft); }
 

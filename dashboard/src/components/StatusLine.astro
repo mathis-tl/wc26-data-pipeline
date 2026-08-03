@@ -24,8 +24,8 @@ const ingestion = stamp(metadata.last_ingestion);
 
 <style>
   .statusline {
-    background: var(--pitch-deep);
-    color: var(--paper-on-pitch);
+    background: var(--accent-deep);
+    color: var(--paper-on-accent);
     border-bottom: 1px solid #0d3b28;
   }
   .statusline__inner {
@@ -47,16 +47,16 @@ const ingestion = stamp(metadata.last_ingestion);
   }
   .dot {
     width: 0.55rem; height: 0.55rem; border-radius: 50%;
-    background: var(--pitch-bright);
+    background: var(--accent-bright);
     box-shadow: 0 0 0 3px rgba(19, 122, 79, 0.28);
   }
   .statusline__field { color: rgba(238, 243, 234, 0.72); }
   .statusline__field b { color: #fff; font-weight: 600; }
-  .ok { color: var(--pitch-bright); }
+  .ok { color: var(--accent-bright); }
   .sep { color: rgba(238, 243, 234, 0.32); }
   .cursor {
     width: 0.5rem; height: 1rem; margin-left: 0.1rem;
-    background: var(--pitch-bright);
+    background: var(--accent-bright);
     display: inline-block;
     /* static block — no looping blink, per the motion brief */
   }

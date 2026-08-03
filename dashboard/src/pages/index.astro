@@ -6,6 +6,7 @@ import PipelineDiagram from "../components/PipelineDiagram.astro";
 import StarSchema from "../components/StarSchema.astro";
 import BarChart from "../components/BarChart.astro";
 import StackedBar from "../components/StackedBar.astro";
+import ReconciliationDiagram from "../components/ReconciliationDiagram.astro";
 
 import metrics from "../data/key_metrics.json";
 import groups from "../data/groups.json";
@@ -30,9 +31,9 @@ const goalItems = goalsByStage
   .map((s) => ({ label: s.label, value: s.goals as number }));
 const scoreItems = scorelines.map((s) => ({ label: s.scoreline, value: s.count }));
 const splitSegs = [
-  { label: "Victoire à domicile", value: split.home_wins, tone: "var(--pitch)" },
+  { label: "Victoire à domicile", value: split.home_wins, tone: "var(--accent)" },
   { label: "Match nul", value: split.draws, tone: "var(--ink-faint)" },
-  { label: "Victoire à l'extérieur", value: split.away_wins, tone: "color-mix(in srgb, var(--pitch) 42%, var(--paper))" },
+  { label: "Victoire à l'extérieur", value: split.away_wins, tone: "var(--teal)" },
 ];
 ---
 
@@ -92,7 +93,7 @@ const splitSegs = [
       <h2 class="h2 sec__title">Ce que disent 104 matchs</h2>
       <div class="charts">
         <div class="reveal"><BarChart caption="Buts par phase" unit="buts" items={goalItems} note="La phase de groupes concentre 72 des 104 matchs." /></div>
-        <div class="reveal"><BarChart caption="Scores les plus fréquents" unit="matchs" items={scoreItems} /></div>
+        <div class="reveal"><BarChart caption="Scores les plus fréquents" unit="matchs" items={scoreItems} accent="var(--teal)" /></div>
         <div class="reveal charts__wide"><StackedBar caption="Issue des matchs (à domicile / nul / à l'extérieur)" segments={splitSegs} /></div>
       </div>
     </div>
@@ -166,11 +167,15 @@ const splitSegs = [
     <div class="wrap">
       <p class="eyebrow eyebrow--seq"><span class="seq">/</span> Comment c'est construit</p>
       <h2 class="h2 sec__title">Le pipeline de données</h2>
-      <p class="lede measure sec__lede">
-        Architecture ELT en médaillon : on garde la donnée brute intacte, puis
-        on transforme dans la base avec du SQL — rejouable à volonté, testé à
-        chaque étape.
-      </p>
+      <div class="media-aside">
+        <p class="lede sec__lede">
+          Architecture ELT en médaillon : on garde la donnée brute intacte, puis
+          on transforme dans la base avec du SQL — rejouable à volonté, testé à
+          chaque étape.
+        </p>
+        <img class="media-aside__img" src="/photos/opening.avif"
+             alt="Ambiance de stade lors de la Coupe du Monde 2026" loading="lazy" decoding="async" />
+      </div>
       <div class="reveal method__diagram"><PipelineDiagram /></div>
 
       <div class="method__cols">
@@ -188,17 +193,20 @@ const splitSegs = [
 
       <div class="method__test">
         <h3 class="h3 method__h">La preuve que les chiffres sont justes</h3>
-        <div class="prose measure">
-          <p>
-            Chaque build exécute <strong>{metadata.dbt_nodes_total} nœuds</strong>
-            — modèles et tests : clés uniques et non nulles, intégrité des
-            relations, et volumétrie qui échoue si une jointure perd une ligne.
-          </p>
-          <p>
-            Le test central compare le classement recalculé au classement
-            officiel, ligne à ligne. La moindre divergence casse le pipeline —
-            aujourd'hui, ils coïncident sur <strong class="pitch">{metadata.reconciliation}</strong> équipes.
-          </p>
+        <div class="method__test-grid">
+          <div class="reveal"><ReconciliationDiagram /></div>
+          <div class="prose method__test-text">
+            <p>
+              Chaque build exécute <strong>{metadata.dbt_nodes_total} nœuds</strong>
+              — modèles et tests : clés uniques et non nulles, intégrité des
+              relations, et volumétrie qui échoue si une jointure perd une ligne.
+            </p>
+            <p>
+              Le test central, lui, confronte deux classements construits
+              séparément. S'ils divergent d'une seule ligne, tout le pipeline
+              s'arrête.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -221,21 +229,21 @@ const splitSegs = [
 
   /* champion band */
   .champ { position: relative; isolation: isolate; }
-  .champ__media { position: absolute; inset: 0; overflow: hidden; z-index: -1; background: var(--pitch-deep); }
+  .champ__media { position: absolute; inset: 0; overflow: hidden; z-index: -1; background: var(--ink); }
   .champ__img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; filter: grayscale(1) contrast(1.05); mix-blend-mode: multiply; opacity: 0.9; }
-  .champ__wash { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7,42,28,0.35), rgba(7,42,28,0.7)); }
+  .champ__wash { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(22,20,15,0.3), rgba(22,20,15,0.72)); }
   .champ__grain { position: absolute; inset: 0; background-image: radial-gradient(rgba(238,243,234,0.06) 0.5px, transparent 0.6px); background-size: 3px 3px; }
-  .champ__inner { padding-block: clamp(3rem, 10vw, 6.5rem); color: var(--paper-on-pitch); }
-  .champ__eyebrow { font-size: var(--mono-sm); letter-spacing: 0.14em; text-transform: uppercase; color: rgba(238,243,234,0.75); }
-  .champ__name { font-size: clamp(3.5rem, 12vw, 8rem); line-height: 0.95; margin-top: 0.5rem; color: #fff; letter-spacing: -0.02em; }
-  .champ__final { margin-top: 1rem; font-size: var(--mono-sm); color: rgba(238,243,234,0.85); letter-spacing: 0.02em; }
+  .champ__inner { padding-block: clamp(3rem, 10vw, 6.5rem); color: var(--paper-on-accent); }
+  .champ__eyebrow { font-size: var(--mono-sm); letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-bright); }
+  .champ__name { font-size: clamp(3.5rem, 12vw, 8rem); line-height: 0.95; margin-top: 0.5rem; color: var(--gold-bright); letter-spacing: -0.03em; }
+  .champ__final { margin-top: 1rem; font-size: var(--mono-sm); color: rgba(246,239,230,0.85); letter-spacing: 0.02em; }
 
   /* scoreboard */
   .scoreboard { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line-strong); }
   .stat { padding: 1.4rem 1rem 1.2rem 0; border-right: 1px solid var(--line); }
   .stat:last-child { border-right: none; }
-  .stat__value { font-size: var(--giant); line-height: 0.92; letter-spacing: -0.03em; font-weight: 360; display: flex; align-items: baseline; gap: 0.15em; }
-  .mono-num { font-family: var(--serif); font-variant-numeric: lining-nums tabular-nums; }
+  .stat__value { font-size: var(--giant); line-height: 0.92; letter-spacing: -0.04em; font-weight: 800; display: flex; align-items: baseline; gap: 0.15em; }
+  .mono-num { font-family: var(--sans); font-variant-numeric: lining-nums tabular-nums; }
   .stat__total { font-size: 0.32em; color: var(--ink-faint); font-weight: 400; align-self: flex-end; margin-bottom: 0.6em; }
   .stat__label { margin-top: 0.7rem; font-size: var(--mono-sm); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
 
@@ -248,22 +256,22 @@ const splitSegs = [
 
   /* image band (duotone) */
   .band { padding-block: clamp(2.5rem, 6vw, 4rem); }
-  .duo__frame { position: relative; overflow: hidden; height: clamp(14rem, 32vw, 24rem); background: var(--pitch); isolation: isolate; }
+  .duo__frame { position: relative; overflow: hidden; height: clamp(14rem, 32vw, 24rem); background: var(--ink); isolation: isolate; }
   .duo__img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.06) brightness(1.02); mix-blend-mode: multiply; }
-  .duo__wash { position: absolute; inset: 0; z-index: 1; background: var(--paper); mix-blend-mode: screen; opacity: 0.6; }
-  .duo__grain { position: absolute; inset: 0; z-index: 2; background-image: radial-gradient(rgba(7,42,28,0.5) 0.5px, transparent 0.6px); background-size: 3px 3px; opacity: 0.18; mix-blend-mode: multiply; }
+  .duo__wash { position: absolute; inset: 0; z-index: 1; background: var(--paper); mix-blend-mode: screen; opacity: 0.55; }
+  .duo__grain { position: absolute; inset: 0; z-index: 2; background-image: radial-gradient(rgba(22,20,15,0.5) 0.5px, transparent 0.6px); background-size: 3px 3px; opacity: 0.16; mix-blend-mode: multiply; }
   .duo__cap { margin-top: 0.55rem; font-size: var(--mono-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); }
 
   /* groups */
-  .recon { margin-top: 1.6rem; padding: 1.4rem 1.5rem; background: var(--paper-raised); border-left: 3px solid var(--pitch); max-width: 46rem; }
+  .recon { margin-top: 1.6rem; padding: 1.4rem 1.5rem; background: var(--paper-raised); border-left: 3px solid var(--accent); max-width: 46rem; }
   .recon__label { font-size: var(--mono-xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 0.5rem; }
   .recon__text { font-size: 1.02rem; line-height: 1.6; }
   .recon__text strong { font-weight: 600; }
   .legend { display: flex; flex-wrap: wrap; gap: 1.4rem; margin-top: 1.6rem; font-size: var(--mono-sm); color: var(--ink-soft); }
   .legend li { display: flex; align-items: center; gap: 0.5rem; }
   .key { width: 0.85rem; height: 0.85rem; display: inline-block; }
-  .key--qual { background: var(--pitch); }
-  .key--third { background: repeating-linear-gradient(-45deg, var(--pitch), var(--pitch) 2px, transparent 2px, transparent 4px); border: 1px solid var(--pitch); }
+  .key--qual { background: var(--accent); }
+  .key--third { background: repeating-linear-gradient(-45deg, var(--accent), var(--accent) 2px, transparent 2px, transparent 4px); border: 1px solid var(--accent); }
   .key--out { background: var(--paper-sunk); border: 1px solid var(--line-strong); }
   .grid { margin-top: 2rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(20.5rem, 1fr)); gap: clamp(1.75rem, 4vw, 3rem); }
 
@@ -280,6 +288,13 @@ const splitSegs = [
   /* method */
   .method__diagram { margin-top: 2rem; }
   .method__cols { margin-top: var(--section-gap); }
+
+  /* natural image beside a paragraph (no duotone filter) */
+  .media-aside { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.5rem, 4vw, 3rem); align-items: center; margin-top: 1.2rem; }
+  .media-aside__img { width: 100%; height: 100%; max-height: 20rem; object-fit: cover; border: 1px solid var(--line); }
+
+  .method__test-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 3rem); align-items: start; margin-top: 1.4rem; }
+  .method__test-text { align-self: center; }
   .method__h { margin-bottom: 0.8rem; }
   .method__p { max-width: 42rem; margin-bottom: 1.6rem; }
   .method__p strong { font-weight: 600; }
@@ -289,10 +304,13 @@ const splitSegs = [
   .stack li { font-size: var(--mono-sm); padding: 0.35rem 0.7rem; border: 1px solid var(--line-strong); color: var(--ink-soft); }
   .stack__cta { margin-top: 1.6rem; font-size: 1.05rem; }
   .stack__cta a { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line-strong); }
-  .stack__cta a:hover { text-decoration-color: var(--pitch); }
+  .stack__cta a:hover { text-decoration-color: var(--accent); }
 
   @media (max-width: 820px) {
     .charts { grid-template-columns: 1fr; }
+    .media-aside { grid-template-columns: 1fr; }
+    .media-aside__img { max-height: 15rem; order: -1; }
+    .method__test-grid { grid-template-columns: 1fr; }
   }
   @media (max-width: 720px) {
     .bracket { flex-direction: column; overflow-x: visible; gap: 2.25rem; }

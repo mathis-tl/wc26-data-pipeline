@@ -8,7 +8,8 @@ const {
   items,
   unit = "",
   note,
-} = Astro.props as { caption: string; items: Item[]; unit?: string; note?: string };
+  accent = "var(--accent)",
+} = Astro.props as { caption: string; items: Item[]; unit?: string; note?: string; accent?: string };
 const max = Math.max(...items.map((i) => i.value), 1);
 ---
 
@@ -22,7 +23,7 @@ const max = Math.max(...items.map((i) => i.value), 1);
       <div class="bar">
         <span class="bar__label mono">{i.label}</span>
         <span class="bar__track" aria-hidden="true">
-          <span class="bar__fill" style={`width:${Math.max(2, (i.value / max) * 100)}%`}></span>
+          <span class="bar__fill" style={`width:${Math.max(2, (i.value / max) * 100)}%;background:${accent}`}></span>
         </span>
         <span class="bar__value mono">{i.display ?? i.value}</span>
       </div>
@@ -40,7 +41,7 @@ const max = Math.max(...items.map((i) => i.value), 1);
   .bar { display: grid; grid-template-columns: 4.5rem 1fr 2.6rem; align-items: center; gap: 0.75rem; }
   .bar__label { font-size: var(--mono-sm); color: var(--ink-soft); letter-spacing: 0.02em; }
   .bar__track { height: 0.85rem; background: var(--paper-sunk); position: relative; }
-  .bar__fill { position: absolute; inset: 0 auto 0 0; background: var(--pitch); }
+  .bar__fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); }
   .bar__value { font-size: var(--mono-sm); text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
   .bars__note { margin-top: 0.9rem; font-size: var(--mono-xs); color: var(--ink-faint); letter-spacing: 0.03em; }
   @media (max-width: 420px) {

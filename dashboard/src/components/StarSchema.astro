@@ -72,7 +72,7 @@ const tables = [
   }
   .tbl { width: 100%; border-collapse: collapse; border: 1px solid var(--line-strong); background: var(--paper); }
   .tbl--dim { background: color-mix(in srgb, #3f7a63 8%, var(--paper)); }
-  .tbl--fct { background: color-mix(in srgb, var(--pitch) 9%, var(--paper)); }
+  .tbl--fct { background: color-mix(in srgb, var(--accent) 9%, var(--paper)); }
   .tbl__name {
     text-align: left; padding: 0.6rem 0.7rem; font-size: 0.95rem; font-weight: 600;
     border-bottom: 1px solid var(--line-strong);
@@ -83,17 +83,17 @@ const tables = [
     border: 1px solid var(--line-strong); color: var(--ink-soft);
   }
   .tbl--dim .tbl__badge { color: #3f7a63; border-color: color-mix(in srgb, #3f7a63 45%, var(--paper)); }
-  .tbl--fct .tbl__badge { color: var(--pitch); border-color: color-mix(in srgb, var(--pitch) 45%, var(--paper)); }
+  .tbl--fct .tbl__badge { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--paper)); }
   .tbl__col { padding: 0.35rem 0.7rem; font-size: 0.82rem; color: var(--ink-soft); border-bottom: 1px solid var(--line); }
   .tbl__key { padding: 0.35rem 0.7rem; text-align: right; font-size: var(--mono-xs); color: var(--ink-faint); border-bottom: 1px solid var(--line); }
   .tbl__key.is-pk { color: var(--ink); font-weight: 600; }
-  .tbl__key.is-fk { color: var(--pitch); }
+  .tbl__key.is-fk { color: var(--accent); }
   .tbl__grain { padding: 0.45rem 0.7rem; font-size: var(--mono-xs); color: var(--ink-faint); letter-spacing: 0.03em; }
 
   .star__rels { list-style: none; margin: 1.4rem 0 0; padding: 0; font-size: var(--mono-sm); line-height: 1.9; color: var(--ink-soft); }
   .star__rels b { color: var(--ink); font-weight: 600; }
   .star__rels span { color: var(--ink-faint); }
-  .star__rels em { color: var(--pitch); font-style: normal; }
+  .star__rels em { color: var(--accent); font-style: normal; }
 
   @media (max-width: 720px) {
     .star__grid { grid-template-columns: 1fr; }

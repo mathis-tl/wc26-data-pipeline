@@ -1,7 +1,8 @@
 /* ============================================================================
    WC26 dashboard — design system
-   Editorial + terminal hybrid. Paper & ink, one accent (floodlit pitch green),
-   two faces: Fraunces (display/body) + IBM Plex Mono (all data). The signature
+   Editorial + broadcast. Paper & ink with the official World Cup 2026 palette:
+   desert-orange accent, Great-Lakes teal, Olympic gold. Two faces: Archivo
+   (grotesque sans, display + body) + IBM Plex Mono (all data). The signature
    is the live-feed status line: the pipeline's rigor rendered as a scoreboard.
    ========================================================================== */
 
@@ -10,24 +11,28 @@ html { scroll-behavior: smooth; }
 
 :root {
   /* — paper & ink — */
-  --paper:        #f0ede4; /* warm light stone, deliberately cooler than cream */
-  --paper-raised: #e8e4d8;
-  --paper-sunk:   #e2ddce;
-  --ink:          #17150f; /* near-black, faintly warm */
-  --ink-soft:     #4d4838;
-  --ink-faint:    #645e4c; /* darkened to clear WCAG AA (4.5:1) on all paper tints */
-  --line:         #d5cfc0;
-  --line-strong:  #b9b2a0;
+  --paper:        #f3f0e9; /* warm near-white */
+  --paper-raised: #eae6db;
+  --paper-sunk:   #e3ded1;
+  --ink:          #16140f; /* near-black (WC26 primary) */
+  --ink-soft:     #4a463b;
+  --ink-faint:    #6a6456; /* clears WCAG AA (4.5:1) on all paper tints */
+  --line:         #d8d2c4;
+  --line-strong:  #bbb4a2;
 
-  /* — the one accent: floodlit pitch green — carries the photo duotone too — */
-  --pitch:        #0c5a3a;
-  --pitch-bright: #137a4f;
-  --pitch-deep:   #072a1c;
-  --pitch-tint:   rgba(12, 90, 58, 0.09);
-  --paper-on-pitch: #eef3ea;
+  /* — WC26 palette — desert orange (primary), Great-Lakes teal, gold — */
+  --accent:        #b8461f; /* desert orange, AA on paper */
+  --accent-bright: #d0562b;
+  --accent-deep:   #2a1109; /* dark, for the status line / champion shadows */
+  --accent-tint:   rgba(184, 70, 31, 0.10);
+  --paper-on-accent: #f6efe6;
+  --teal:          #0d6c72; /* Great Lakes — secondary / charts */
+  --teal-tint:     rgba(13, 108, 114, 0.10);
+  --gold:          #a9812f; /* Olympic gold — champion & highlights (large/deco) */
+  --gold-bright:   #d8b24e;
 
   /* — type — */
-  --serif: "Fraunces Variable", Fraunces, Georgia, "Times New Roman", serif;
+  --sans: "Archivo Variable", "Archivo", "Helvetica Neue", Arial, sans-serif;
   --mono:  "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 
   /* — fluid scale — */
@@ -56,7 +61,7 @@ body {
   overflow-x: clip; /* defensive: no element may cause horizontal scroll */
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-size: var(--body);
   line-height: 1.65;
   font-optical-sizing: auto;
@@ -92,7 +97,7 @@ h1, h2, h3, p, figure, ul, ol { margin: 0; }
   background: var(--line-strong);
 }
 .eyebrow--seq::before { content: none; }
-.eyebrow .seq { color: var(--pitch); }
+.eyebrow .seq { color: var(--accent); }
 
 /* — layout containers — */
 .wrap { width: 100%; max-width: var(--wide); margin-inline: auto; padding-inline: var(--gutter); }
@@ -100,26 +105,25 @@ h1, h2, h3, p, figure, ul, ol { margin: 0; }
 .section { padding-block: var(--section-gap); }
 .section + .section { border-top: 1px solid var(--line); }
 
-/* — display headings — */
+/* — display headings — grotesque, tight, confident — */
 .display {
-  font-family: var(--serif);
-  font-weight: 380;
-  line-height: 1.02;
-  letter-spacing: -0.015em;
-  font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0;
+  font-family: var(--sans);
+  font-weight: 700;
+  line-height: 1.0;
+  letter-spacing: -0.02em;
 }
-.h1 { font-size: var(--h1); font-weight: 400; line-height: 1.04; letter-spacing: -0.02em; }
-.h2 { font-size: var(--h2); font-weight: 420; line-height: 1.1; letter-spacing: -0.015em; }
-.h3 { font-size: var(--h3); font-weight: 500; line-height: 1.2; }
+.h1 { font-size: var(--h1); font-weight: 700; line-height: 1.02; letter-spacing: -0.03em; }
+.h2 { font-size: var(--h2); font-weight: 650; line-height: 1.08; letter-spacing: -0.02em; }
+.h3 { font-size: var(--h3); font-weight: 600; line-height: 1.2; letter-spacing: -0.01em; }
 
 .lede { font-size: clamp(1.1rem, 2.2vw, 1.4rem); line-height: 1.5; color: var(--ink-soft); }
 .prose p + p { margin-top: 1.1rem; }
 .prose a { text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
-.prose a:hover { text-decoration-color: var(--pitch); }
+.prose a:hover { text-decoration-color: var(--accent); }
 
 /* — accessible focus — */
 :where(a, button, [tabindex]):focus-visible {
-  outline: 2px solid var(--pitch);
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
@@ -138,4 +142,4 @@ h1, h2, h3, p, figure, ul, ol { margin: 0; }
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
-.pitch { color: var(--pitch); }
+.pitch { color: var(--accent); }
