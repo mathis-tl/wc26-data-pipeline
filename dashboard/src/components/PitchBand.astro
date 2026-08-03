@@ -1,0 +1,61 @@
+---
+// Editorial band rendered entirely in CSS — a stylised pitch (mowing stripes,
+// halfway line, centre circle) in the site's green. No third-party imagery, so
+// nothing here carries a licensing question. Drop-in replacement for a duotone
+// photo when a licensed one isn't available.
+const { caption } = Astro.props as { caption?: string };
+---
+
+<figure class="pitchband">
+  <div class="pitchband__field" role="img" aria-label="Illustration d'un terrain de football">
+    <span class="pitchband__line" aria-hidden="true"></span>
+    <span class="pitchband__circle" aria-hidden="true"></span>
+    <span class="pitchband__spot" aria-hidden="true"></span>
+    <span class="pitchband__grain" aria-hidden="true"></span>
+  </div>
+  {caption ? <figcaption class="pitchband__cap mono">{caption}</figcaption> : null}
+</figure>
+
+<style>
+  .pitchband { margin: 0; }
+  .pitchband__field {
+    position: relative; overflow: hidden;
+    height: clamp(14rem, 32vw, 23rem);
+    background: var(--pitch-deep);
+    /* mowing stripes: hard-stop repeating pattern of two close greens (no blend) */
+    background-image: repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.022) 0,
+      rgba(255, 255, 255, 0.022) 8%,
+      rgba(0, 0, 0, 0.03) 8%,
+      rgba(0, 0, 0, 0.03) 16%
+    );
+    isolation: isolate;
+  }
+  /* halfway line */
+  .pitchband__line {
+    position: absolute; top: 0; bottom: 0; left: 50%; width: 1px;
+    background: rgba(238, 243, 234, 0.28);
+  }
+  /* centre circle */
+  .pitchband__circle {
+    position: absolute; top: 50%; left: 50%;
+    width: clamp(7rem, 16vw, 11rem); aspect-ratio: 1; border-radius: 50%;
+    border: 1px solid rgba(238, 243, 234, 0.28);
+    transform: translate(-50%, -50%);
+  }
+  /* centre spot */
+  .pitchband__spot {
+    position: absolute; top: 50%; left: 50%; width: 5px; height: 5px; border-radius: 50%;
+    background: rgba(238, 243, 234, 0.4); transform: translate(-50%, -50%);
+  }
+  .pitchband__grain {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image: radial-gradient(rgba(238, 243, 234, 0.05) 0.5px, transparent 0.6px);
+    background-size: 3px 3px;
+  }
+  .pitchband__cap {
+    font-size: var(--mono-xs); letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--ink-faint); margin-top: 0.55rem;
+  }
+</style>

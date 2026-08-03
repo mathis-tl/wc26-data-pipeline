@@ -1,7 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import MatchRow from "../components/MatchRow.astro";
-import DuotonePhoto from "../components/DuotonePhoto.astro";
+import PitchBand from "../components/PitchBand.astro";
 import metrics from "../data/key_metrics.json";
 import latest from "../data/latest_results.json";
 import upcoming from "../data/upcoming_matches.json";
@@ -57,14 +57,10 @@ const stats = [
     </div>
   </section>
 
-  <!-- DUOTONE BAND -->
+  <!-- EDITORIAL BAND (CSS pitch — no third-party imagery) -->
   <section class="section band">
     <div class="wrap">
-      <DuotonePhoto
-        src="/photos/semifinal.avif"
-        alt="Célébration sous les projecteurs d'un stade"
-        caption="Sous les projecteurs — image d'illustration"
-      />
+      <PitchBand caption="16 villes · 3 pays · 104 matchs" />
     </div>
   </section>
 
