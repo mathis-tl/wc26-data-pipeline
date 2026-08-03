@@ -1,0 +1,49 @@
+---
+// Minimal horizontal bar chart in the site palette (single accent, mono
+// labels, tabular values). CSS bars — no chart library, no external request.
+// Accessible: the values are real text, wrapped in a figure with a caption.
+interface Item { label: string; value: number; display?: string }
+const {
+  caption,
+  items,
+  unit = "",
+  note,
+} = Astro.props as { caption: string; items: Item[]; unit?: string; note?: string };
+const max = Math.max(...items.map((i) => i.value), 1);
+---
+
+<figure class="bars">
+  <figcaption class="bars__cap">
+    <span class="bars__title h3">{caption}</span>
+    {unit ? <span class="bars__unit mono">{unit}</span> : null}
+  </figcaption>
+  <div class="bars__rows">
+    {items.map((i) => (
+      <div class="bar">
+        <span class="bar__label mono">{i.label}</span>
+        <span class="bar__track" aria-hidden="true">
+          <span class="bar__fill" style={`width:${Math.max(2, (i.value / max) * 100)}%`}></span>
+        </span>
+        <span class="bar__value mono">{i.display ?? i.value}</span>
+      </div>
+    ))}
+  </div>
+  {note ? <p class="bars__note mono">{note}</p> : null}
+</figure>
+
+<style>
+  .bars { margin: 0; }
+  .bars__cap { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding-bottom: 0.75rem; margin-bottom: 1rem; border-bottom: 2px solid var(--ink); }
+  .bars__title { font-weight: 500; }
+  .bars__unit { font-size: var(--mono-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); }
+  .bars__rows { display: flex; flex-direction: column; gap: 0.55rem; }
+  .bar { display: grid; grid-template-columns: 4.5rem 1fr 2.6rem; align-items: center; gap: 0.75rem; }
+  .bar__label { font-size: var(--mono-sm); color: var(--ink-soft); letter-spacing: 0.02em; }
+  .bar__track { height: 0.85rem; background: var(--paper-sunk); position: relative; }
+  .bar__fill { position: absolute; inset: 0 auto 0 0; background: var(--pitch); }
+  .bar__value { font-size: var(--mono-sm); text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .bars__note { margin-top: 0.9rem; font-size: var(--mono-xs); color: var(--ink-faint); letter-spacing: 0.03em; }
+  @media (max-width: 420px) {
+    .bar { grid-template-columns: 3.6rem 1fr 2.2rem; gap: 0.5rem; }
+  }
+</style>

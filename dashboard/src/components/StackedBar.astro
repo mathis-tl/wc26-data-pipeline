@@ -1,0 +1,39 @@
+---
+// A single 100% stacked bar with a legend — compact way to show a split
+// (e.g. home win / draw / away win). Segments use tints of the one accent.
+interface Seg { label: string; value: number; tone: string }
+const { caption, segments } = Astro.props as { caption: string; segments: Seg[] };
+const total = segments.reduce((s, x) => s + x.value, 0) || 1;
+---
+
+<figure class="split">
+  <figcaption class="split__cap">
+    <span class="split__title h3">{caption}</span>
+  </figcaption>
+  <div class="split__bar" role="img" aria-label={segments.map((s) => `${s.label} ${s.value}`).join(", ")}>
+    {segments.map((s) => (
+      <span class="split__seg" style={`width:${(s.value / total) * 100}%;background:${s.tone}`}></span>
+    ))}
+  </div>
+  <ul class="split__legend mono">
+    {segments.map((s) => (
+      <li>
+        <span class="split__key" style={`background:${s.tone}`}></span>
+        {s.label} <b>{s.value}</b> <span class="split__pct">({Math.round((s.value / total) * 100)}%)</span>
+      </li>
+    ))}
+  </ul>
+</figure>
+
+<style>
+  .split { margin: 0; }
+  .split__cap { padding-bottom: 0.75rem; margin-bottom: 1rem; border-bottom: 2px solid var(--ink); }
+  .split__title { font-weight: 500; }
+  .split__bar { display: flex; height: 1.4rem; overflow: hidden; border: 1px solid var(--line-strong); }
+  .split__seg { height: 100%; }
+  .split__legend { list-style: none; display: flex; flex-wrap: wrap; gap: 0.5rem 1.4rem; margin: 1rem 0 0; padding: 0; font-size: var(--mono-sm); color: var(--ink-soft); }
+  .split__legend li { display: flex; align-items: center; gap: 0.5rem; }
+  .split__key { width: 0.85rem; height: 0.85rem; }
+  .split__legend b { color: var(--ink); font-weight: 600; }
+  .split__pct { color: var(--ink-faint); }
+</style>

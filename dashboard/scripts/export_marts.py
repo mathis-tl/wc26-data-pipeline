@@ -214,6 +214,88 @@ def export() -> None:
     ]
     _write("bracket.json", bracket)
 
+    # --- goals by stage (bar chart: the tournament's goal rhythm) ---
+    goals_by_stage = _rows(
+        con,
+        """
+        select stage,
+               count(*) filter (where status = 'FINISHED')            as matches,
+               sum(coalesce(full_time_home_goals,0)
+                 + coalesce(full_time_away_goals,0))
+                 filter (where status = 'FINISHED')                   as goals,
+               round(
+                 sum(coalesce(full_time_home_goals,0)+coalesce(full_time_away_goals,0))
+                   filter (where status = 'FINISHED')
+                 / nullif(count(*) filter (where status = 'FINISHED'),0), 2) as avg_goals
+        from main.fct_matches
+        group by stage
+        """,
+    )
+    order = {s: i for i, s in enumerate(
+        ["GROUP_STAGE", "LAST_32", "LAST_16", "QUARTER_FINALS",
+         "SEMI_FINALS", "THIRD_PLACE", "FINAL"])}
+    stage_fr = {
+        "GROUP_STAGE": "Groupes", "LAST_32": "16es", "LAST_16": "8es",
+        "QUARTER_FINALS": "Quarts", "SEMI_FINALS": "Demies",
+        "THIRD_PLACE": "3e place", "FINAL": "Finale",
+    }
+    goals_by_stage = [
+        {**r, "label": stage_fr.get(r["stage"], r["stage"])}
+        for r in sorted(goals_by_stage, key=lambda r: order.get(r["stage"], 99))
+    ]
+    _write("goals_by_stage.json", goals_by_stage)
+
+    # --- scoreline distribution (bar chart: how matches actually end) ---
+    scorelines = _rows(
+        con,
+        """
+        with s as (
+            select
+                greatest(full_time_home_goals, full_time_away_goals) as hi,
+                least(full_time_home_goals, full_time_away_goals)    as lo
+            from main.fct_matches
+            where status = 'FINISHED'
+              and full_time_home_goals is not null
+        )
+        select (hi::text || '–' || lo::text) as scoreline, count(*) as count
+        from s group by 1 order by count desc, scoreline
+        limit 8
+        """,
+    )
+    _write("scorelines.json", scorelines)
+
+    # --- results split (home win / draw / away win among finished) ---
+    split = _rows(
+        con,
+        """
+        select
+            count(*) filter (where full_time_home_goals > full_time_away_goals) as home_wins,
+            count(*) filter (where full_time_home_goals = full_time_away_goals) as draws,
+            count(*) filter (where full_time_home_goals < full_time_away_goals) as away_wins
+        from main.fct_matches
+        where status = 'FINISHED'
+        """,
+    )[0]
+    _write("results_split.json", split)
+
+    # --- champion & final (narrative lead once the final is played) ---
+    final_rows = _rows(
+        con,
+        "select * from match_enriched where stage = 'FINAL' order by kickoff_at desc limit 1",
+    )
+    champion = None
+    if final_rows and final_rows[0]["status"] == "FINISHED":
+        f = final_rows[0]
+        won_home = f["winner"] == "HOME_TEAM"
+        champion = {
+            "team_name": f["home_team_name"] if won_home else f["away_team_name"],
+            "crest": f["home_crest"] if won_home else f["away_crest"],
+            "runner_up": f["away_team_name"] if won_home else f["home_team_name"],
+            "final_score": f"{f['full_time_home_goals']}–{f['full_time_away_goals']}"
+            if won_home else f"{f['full_time_away_goals']}–{f['full_time_home_goals']}",
+        }
+    _write("champion.json", {"final": final_rows[0] if final_rows else None, "champion": champion})
+
     # --- metadata / freshness banner ---
     last_ingestion = con.execute(
         "select max(extracted_at) from main.stg_matches"

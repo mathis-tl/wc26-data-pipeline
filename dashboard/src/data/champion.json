@@ -1,0 +1,30 @@
+{
+  "final": {
+    "match_id": 537390,
+    "kickoff_at": "2026-07-19 19:00:00",
+    "status": "FINISHED",
+    "stage": "FINAL",
+    "group_code": null,
+    "matchday": null,
+    "home_team_id": 760,
+    "home_team_name": "Spain",
+    "home_team_tla": "ESP",
+    "home_crest": "https://crests.football-data.org/760.svg",
+    "away_team_id": 762,
+    "away_team_name": "Argentina",
+    "away_team_tla": "ARG",
+    "away_crest": "https://crests.football-data.org/762.png",
+    "full_time_home_goals": 1,
+    "full_time_away_goals": 0,
+    "penalty_home_goals": null,
+    "penalty_away_goals": null,
+    "winner": "HOME_TEAM",
+    "duration": "EXTRA_TIME"
+  },
+  "champion": {
+    "team_name": "Spain",
+    "crest": "https://crests.football-data.org/760.svg",
+    "runner_up": "Argentina",
+    "final_score": "1–0"
+  }
+}

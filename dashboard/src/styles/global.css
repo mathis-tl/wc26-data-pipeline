@@ -5,6 +5,9 @@
    is the live-feed status line: the pipeline's rigor rendered as a scoreboard.
    ========================================================================== */
 
+html { scroll-behavior: smooth; }
+[id] { scroll-margin-top: 1.5rem; }
+
 :root {
   /* — paper & ink — */
   --paper:        #f0ede4; /* warm light stone, deliberately cooler than cream */

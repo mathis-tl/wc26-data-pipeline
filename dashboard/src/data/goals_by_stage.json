@@ -1,0 +1,51 @@
+[
+  {
+    "stage": "GROUP_STAGE",
+    "matches": 72,
+    "goals": 215,
+    "avg_goals": 2.99,
+    "label": "Groupes"
+  },
+  {
+    "stage": "LAST_32",
+    "matches": 16,
+    "goals": 60,
+    "avg_goals": 3.75,
+    "label": "16es"
+  },
+  {
+    "stage": "LAST_16",
+    "matches": 8,
+    "goals": 30,
+    "avg_goals": 3.75,
+    "label": "8es"
+  },
+  {
+    "stage": "QUARTER_FINALS",
+    "matches": 4,
+    "goals": 12,
+    "avg_goals": 3.0,
+    "label": "Quarts"
+  },
+  {
+    "stage": "SEMI_FINALS",
+    "matches": 2,
+    "goals": 5,
+    "avg_goals": 2.5,
+    "label": "Demies"
+  },
+  {
+    "stage": "THIRD_PLACE",
+    "matches": 1,
+    "goals": 10,
+    "avg_goals": 10.0,
+    "label": "3e place"
+  },
+  {
+    "stage": "FINAL",
+    "matches": 1,
+    "goals": 1,
+    "avg_goals": 1.0,
+    "label": "Finale"
+  }
+]
