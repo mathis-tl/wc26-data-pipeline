@@ -1,0 +1,101 @@
+---
+// The marts as a star schema — one dimension and two fact tables, drawn as
+// tables with keys so the dimensional model (fact vs dimension, PK/FK) is
+// legible at a glance. This is the interview-facing artefact of the project.
+const tables = [
+  {
+    name: "dim_teams", kind: "dim", grain: "1 ligne / équipe · 48",
+    cols: [
+      { c: "team_id", t: "PK" },
+      { c: "team_name", t: "" },
+      { c: "team_tla", t: "" },
+      { c: "group_code", t: "" },
+    ],
+  },
+  {
+    name: "fct_matches", kind: "fct", grain: "1 ligne / match · 104",
+    cols: [
+      { c: "match_id", t: "PK" },
+      { c: "home_team_id", t: "FK" },
+      { c: "away_team_id", t: "FK" },
+      { c: "full_time_*", t: "" },
+      { c: "stage · winner", t: "" },
+    ],
+  },
+  {
+    name: "fct_group_standings", kind: "fct", grain: "1 ligne / équipe · 48",
+    cols: [
+      { c: "group_code", t: "" },
+      { c: "team_id", t: "FK" },
+      { c: "points · goal_diff", t: "" },
+      { c: "position", t: "" },
+    ],
+  },
+];
+---
+
+<div class="star" role="img"
+     aria-label="Schéma en étoile : la dimension dim_teams reliée aux faits fct_matches et fct_group_standings par des clés étrangères ; fct_group_standings est calculée depuis fct_matches.">
+  <div class="star__grid">
+    {tables.map((tb) => (
+      <table class:list={["tbl", `tbl--${tb.kind}`]}>
+        <thead>
+          <tr>
+            <th class="tbl__name mono" colspan="2">
+              <span class="tbl__badge">{tb.kind === "dim" ? "DIM" : "FAIT"}</span>{tb.name}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {tb.cols.map((col) => (
+            <tr>
+              <td class="tbl__col mono">{col.c}</td>
+              <td class:list={["tbl__key mono", { "is-pk": col.t === "PK", "is-fk": col.t === "FK" }]}>{col.t}</td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot><tr><td class="tbl__grain mono" colspan="2">{tb.grain}</td></tr></tfoot>
+      </table>
+    ))}
+  </div>
+  <ul class="star__rels mono">
+    <li><b>fct_matches.home/away_team_id</b> → dim_teams.team_id <span>(FK)</span></li>
+    <li><b>fct_group_standings.team_id</b> → dim_teams.team_id <span>(FK)</span></li>
+    <li><b>fct_group_standings</b> est <em>calculée</em> depuis fct_matches, puis réconciliée avec l'officiel</li>
+  </ul>
+</div>
+
+<style>
+  .star__grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2.5vw, 2rem);
+    align-items: start;
+  }
+  .tbl { width: 100%; border-collapse: collapse; border: 1px solid var(--line-strong); background: var(--paper); }
+  .tbl--dim { background: color-mix(in srgb, #3f7a63 8%, var(--paper)); }
+  .tbl--fct { background: color-mix(in srgb, var(--pitch) 9%, var(--paper)); }
+  .tbl__name {
+    text-align: left; padding: 0.6rem 0.7rem; font-size: 0.95rem; font-weight: 600;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .tbl__badge {
+    display: inline-block; font-size: var(--mono-xs); letter-spacing: 0.08em;
+    padding: 0.05rem 0.35rem; margin-right: 0.5rem; vertical-align: 0.08em;
+    border: 1px solid var(--line-strong); color: var(--ink-soft);
+  }
+  .tbl--dim .tbl__badge { color: #3f7a63; border-color: color-mix(in srgb, #3f7a63 45%, var(--paper)); }
+  .tbl--fct .tbl__badge { color: var(--pitch); border-color: color-mix(in srgb, var(--pitch) 45%, var(--paper)); }
+  .tbl__col { padding: 0.35rem 0.7rem; font-size: 0.82rem; color: var(--ink-soft); border-bottom: 1px solid var(--line); }
+  .tbl__key { padding: 0.35rem 0.7rem; text-align: right; font-size: var(--mono-xs); color: var(--ink-faint); border-bottom: 1px solid var(--line); }
+  .tbl__key.is-pk { color: var(--ink); font-weight: 600; }
+  .tbl__key.is-fk { color: var(--pitch); }
+  .tbl__grain { padding: 0.45rem 0.7rem; font-size: var(--mono-xs); color: var(--ink-faint); letter-spacing: 0.03em; }
+
+  .star__rels { list-style: none; margin: 1.4rem 0 0; padding: 0; font-size: var(--mono-sm); line-height: 1.9; color: var(--ink-soft); }
+  .star__rels b { color: var(--ink); font-weight: 600; }
+  .star__rels span { color: var(--ink-faint); }
+  .star__rels em { color: var(--pitch); font-style: normal; }
+
+  @media (max-width: 720px) {
+    .star__grid { grid-template-columns: 1fr; }
+  }
+</style>

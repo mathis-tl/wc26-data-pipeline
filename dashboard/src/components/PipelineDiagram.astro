@@ -1,0 +1,91 @@
+---
+// Architecture diagram — the medallion data flow, drawn in CSS. Doubles as the
+// site's main illustration and its core explanation: source → raw → staging →
+// marts → export → site, with the bronze/silver/gold layers grouped and tinted.
+const { compact = false } = Astro.props as { compact?: boolean };
+
+const nodes = [
+  { key: "src",     kind: "io",    tag: "Source",     label: "football-data.org", note: "API · 10 req/min" },
+  { key: "ingest",  kind: "io",    tag: "Ingestion",  label: "Python · httpx",    note: "idempotent, horodaté" },
+  { key: "raw",     kind: "raw",   tag: "Raw · bronze", label: "Parquet",         note: "brut, versionné, jamais modifié" },
+  { key: "staging", kind: "silver",tag: "Staging · silver", label: "dbt · vues",  note: "typage, group_code normalisé" },
+  { key: "marts",   kind: "gold",  tag: "Marts · gold", label: "schéma en étoile", note: "fct_ / dim_ · règles FIFA" },
+  { key: "export",  kind: "io",    tag: "Export",     label: "JSON",              note: "figé, commité" },
+  { key: "site",    kind: "io",    tag: "Publication",label: "Astro · Vercel",    note: "statique, redéployé" },
+];
+---
+
+<div class:list={["flow", { "flow--compact": compact }]} role="img"
+     aria-label="Schéma du pipeline : football-data.org, ingestion Python, couche brute Parquet, staging dbt, marts en étoile, export JSON, site Astro sur Vercel.">
+  <ol class="flow__track">
+    {nodes.map((n, i) => (
+      <li class:list={["node", `node--${n.kind}`]}>
+        <span class="node__tag mono">{n.tag}</span>
+        <span class="node__label">{n.label}</span>
+        {!compact && <span class="node__note mono">{n.note}</span>}
+        {i < nodes.length - 1 && <span class="node__arrow mono" aria-hidden="true">→</span>}
+      </li>
+    ))}
+  </ol>
+  <p class="flow__legend mono">
+    <span class="chip chip--raw">brut</span>
+    <span class="chip chip--silver">nettoyé</span>
+    <span class="chip chip--gold">modélisé</span>
+    <span class="flow__badge">46 tests ✓</span>
+    <span class="flow__badge">réconcilié 48/48</span>
+  </p>
+</div>
+
+<style>
+  .flow { --raw: #6b6f52; --silver: #3f7a63; --gold: var(--pitch); }
+  .flow__track {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+    gap: 0; border: 1px solid var(--line-strong);
+  }
+  .node {
+    position: relative; padding: 1rem 1.1rem 1.1rem;
+    border-right: 1px solid var(--line);
+    background: var(--paper);
+  }
+  .node:last-child { border-right: none; }
+  .node--raw    { background: color-mix(in srgb, var(--raw) 10%, var(--paper)); }
+  .node--silver { background: color-mix(in srgb, var(--silver) 11%, var(--paper)); }
+  .node--gold   { background: color-mix(in srgb, var(--gold) 12%, var(--paper)); }
+  .node__tag {
+    display: block; font-size: var(--mono-xs); letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 0.35rem;
+  }
+  .node--raw .node__tag    { color: var(--raw); }
+  .node--silver .node__tag { color: var(--silver); }
+  .node--gold .node__tag   { color: var(--gold); }
+  .node__label { display: block; font-size: 1.05rem; font-weight: 500; line-height: 1.2; }
+  .node__note { display: block; margin-top: 0.45rem; font-size: var(--mono-xs); color: var(--ink-soft); line-height: 1.4; }
+  .node__arrow {
+    position: absolute; right: -0.55rem; top: 1.1rem; z-index: 2;
+    color: var(--ink-faint); background: var(--paper);
+    width: 1.1rem; text-align: center;
+  }
+
+  .flow__legend {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.9rem;
+    margin: 1rem 0 0; font-size: var(--mono-xs);
+  }
+  .chip { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--ink-soft); letter-spacing: 0.04em; }
+  .chip::before { content: ""; width: 0.7rem; height: 0.7rem; border: 1px solid var(--line-strong); }
+  .chip--raw::before    { background: color-mix(in srgb, var(--raw) 45%, var(--paper)); }
+  .chip--silver::before { background: color-mix(in srgb, var(--silver) 45%, var(--paper)); }
+  .chip--gold::before   { background: color-mix(in srgb, var(--gold) 45%, var(--paper)); }
+  .flow__badge {
+    font-size: var(--mono-xs); letter-spacing: 0.04em; color: var(--pitch);
+    border: 1px solid color-mix(in srgb, var(--pitch) 35%, var(--paper)); padding: 0.15rem 0.5rem;
+  }
+
+  /* stack vertically below desktop — the arrows rotate to point down */
+  @media (max-width: 820px) {
+    .flow__track { grid-auto-flow: row; grid-auto-columns: auto; }
+    .node { border-right: none; border-bottom: 1px solid var(--line); padding: 0.85rem 1rem; }
+    .node:last-child { border-bottom: none; }
+    .node__arrow { right: auto; left: 1rem; top: auto; bottom: -0.55rem; transform: rotate(90deg); }
+  }
+</style>

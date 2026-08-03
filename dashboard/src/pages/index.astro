@@ -1,7 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import MatchRow from "../components/MatchRow.astro";
-import PitchBand from "../components/PitchBand.astro";
+import PipelineDiagram from "../components/PipelineDiagram.astro";
 import metrics from "../data/key_metrics.json";
 import latest from "../data/latest_results.json";
 import upcoming from "../data/upcoming_matches.json";
@@ -57,10 +57,19 @@ const stats = [
     </div>
   </section>
 
-  <!-- EDITORIAL BAND (CSS pitch — no third-party imagery) -->
-  <section class="section band">
+  <!-- HOW IT WORKS — signals the data-engineering nature up front -->
+  <section class="section">
     <div class="wrap">
-      <PitchBand caption="16 villes · 3 pays · 104 matchs" />
+      <div class="section__head">
+        <p class="eyebrow">D'où viennent ces chiffres</p>
+        <a class="section__link mono" href="/methode">La méthode en détail →</a>
+      </div>
+      <p class="lede measure howto__lede">
+        Un pipeline de données automatisé, de l'API au dashboard. Les
+        classements sont <strong>recalculés</strong> depuis les résultats bruts,
+        testés, puis réconciliés avec l'officiel — chaque matin, sans intervention.
+      </p>
+      <div class="howto__diagram reveal"><PipelineDiagram /></div>
     </div>
   </section>
 
@@ -120,7 +129,9 @@ const stats = [
     column-gap: clamp(2rem, 5vw, 4rem);
     border-top: 1px solid var(--line);
   }
-  .band { padding-block: clamp(2.5rem, 6vw, 4rem); }
+  .howto__lede { margin-top: 1.2rem; }
+  .howto__lede strong { color: var(--ink); font-weight: 600; }
+  .howto__diagram { margin-top: clamp(1.8rem, 4vw, 2.6rem); }
 
   @media (max-width: 720px) {
     .scoreboard { grid-template-columns: repeat(2, 1fr); }

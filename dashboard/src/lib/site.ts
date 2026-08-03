@@ -7,7 +7,7 @@ export const SITE = {
     "pipeline de données automatisé. Classements recalculés depuis les " +
     "résultats bruts et réconciliés avec l'officiel.",
   repo: "https://github.com/mathis-tl/wc26-data-pipeline",
-  author: "Mathis Tellé",
+  author: "Mathis Telle",
   dataSources: [
     { name: "football-data.org", role: "résultats & classements", url: "https://www.football-data.org" },
   ],
