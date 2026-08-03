@@ -54,6 +54,10 @@ def count_standings_rows(payload: dict) -> int:
     return sum(len(group.get("table", [])) for group in payload.get("standings", []))
 
 
+def count_scorers(payload: dict) -> int:
+    return len(payload.get("scorers", []))
+
+
 def _wait_respecting_retry_after(retry_state) -> float:
     """Honor a 429 Retry-After header, otherwise exponential backoff."""
     client: FootballDataClient = retry_state.args[0]
@@ -174,4 +178,11 @@ class FootballDataClient:
         path = f"/competitions/{self.competition}/standings"
         payload = self._get(path, params=params or None)
         logger.info("GET %s -> %d standings rows", path, count_standings_rows(payload))
+        return payload
+
+    def fetch_scorers(self, limit: int = 30, **params) -> dict:
+        """World Cup top scorers (player, team, goals, assists, penalties)."""
+        path = f"/competitions/{self.competition}/scorers"
+        payload = self._get(path, params={"limit": limit, **params})
+        logger.info("GET %s -> %d scorer rows", path, count_scorers(payload))
         return payload

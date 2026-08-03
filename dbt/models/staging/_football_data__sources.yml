@@ -24,3 +24,8 @@ sources:
           One row per standings table entry per extraction_date, with the
           group context nested under `standing`. Official positions used by
           the reconciliation test against fct_group_standings.
+      - name: scorers
+        description: >
+          One row per top scorer per extraction_date. Nested structs: player
+          (name, nationality) and team (name, tla, crest), plus goals,
+          assists, penalties, playedMatches.

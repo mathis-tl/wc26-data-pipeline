@@ -12,7 +12,12 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from ingestion.client import FootballDataClient
-from ingestion.storage import matches_to_rows, standings_to_rows, write_raw_parquet
+from ingestion.storage import (
+    matches_to_rows,
+    scorers_to_rows,
+    standings_to_rows,
+    write_raw_parquet,
+)
 
 logger = logging.getLogger("ingestion")
 
@@ -30,6 +35,7 @@ def main() -> int:
     with FootballDataClient() as client:
         matches_payload = client.fetch_matches()
         standings_payload = client.fetch_standings()
+        scorers_payload = client.fetch_scorers()
 
     written = [
         write_raw_parquet(
@@ -41,6 +47,12 @@ def main() -> int:
         write_raw_parquet(
             standings_to_rows(standings_payload),
             dataset="standings",
+            root=RAW_ROOT,
+            extracted_at=extracted_at,
+        ),
+        write_raw_parquet(
+            scorers_to_rows(scorers_payload),
+            dataset="scorers",
             root=RAW_ROOT,
             extracted_at=extracted_at,
         ),

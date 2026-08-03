@@ -296,6 +296,19 @@ def export() -> None:
         }
     _write("champion.json", {"final": final_rows[0] if final_rows else None, "champion": champion})
 
+    # --- top scorers ---
+    top_scorers = _rows(
+        con,
+        """
+        select rank, player_name, player_nationality, team_name, team_tla,
+               team_crest_url, played_matches, goals, assists, penalties
+        from main.mart_top_scorers
+        order by rank
+        limit 15
+        """,
+    )
+    _write("top_scorers.json", top_scorers)
+
     # --- metadata / freshness banner ---
     last_ingestion = con.execute(
         "select max(extracted_at) from main.stg_matches"

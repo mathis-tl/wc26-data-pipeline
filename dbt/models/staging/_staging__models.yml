@@ -92,3 +92,26 @@ models:
       - name: extraction_date
         data_tests:
           - not_null
+
+  - name: stg_scorers
+    description: >
+      Cleaned top scorers: player and team structs flattened. Grain: one row
+      per (player_id, extraction_date).
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - player_id
+            - extraction_date
+    columns:
+      - name: player_id
+        data_tests:
+          - not_null
+      - name: player_name
+        data_tests:
+          - not_null
+      - name: goals
+        data_tests:
+          - not_null
+      - name: extraction_date
+        data_tests:
+          - not_null

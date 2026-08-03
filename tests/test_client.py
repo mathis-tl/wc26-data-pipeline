@@ -12,11 +12,13 @@ from ingestion.client import (
     FootballDataClient,
     MissingAPIKeyError,
     count_matches,
+    count_scorers,
     count_standings_rows,
 )
 
 MATCHES_URL = f"{BASE_URL}/competitions/WC/matches"
 STANDINGS_URL = f"{BASE_URL}/competitions/WC/standings"
+SCORERS_URL = f"{BASE_URL}/competitions/WC/scorers"
 
 MATCHES_PAYLOAD = {
     "competition": {"code": "WC"},
@@ -77,6 +79,18 @@ def test_fetch_standings_returns_payload_and_logs_row_count(caplog):
     assert payload == STANDINGS_PAYLOAD
     assert count_standings_rows(payload) == 3
     assert "3 standings rows" in caplog.text
+
+
+@respx.mock
+def test_fetch_scorers_returns_payload_and_logs_row_count(caplog):
+    payload = {"scorers": [{"player": {"name": "X"}, "goals": 5}, {"player": {"name": "Y"}, "goals": 3}]}
+    route = respx.get(SCORERS_URL).mock(return_value=httpx.Response(200, json=payload))
+    with make_client() as client, caplog.at_level(logging.INFO, logger="ingestion.client"):
+        result = client.fetch_scorers()
+    assert result == payload
+    assert count_scorers(result) == 2
+    assert route.calls.last.request.url.params["limit"] == "30"
+    assert "2 scorer rows" in caplog.text
 
 
 @respx.mock

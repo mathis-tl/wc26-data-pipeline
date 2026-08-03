@@ -42,6 +42,11 @@ def standings_to_rows(payload: dict) -> list[dict]:
     return rows
 
 
+def scorers_to_rows(payload: dict) -> list[dict]:
+    """One row per scorer, every API field preserved (player/team as structs)."""
+    return list(payload.get("scorers", []))
+
+
 def write_raw_parquet(
     rows: list[dict],
     *,

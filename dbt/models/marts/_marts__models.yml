@@ -80,6 +80,34 @@ models:
               values: [1, 2, 3, 4]
               quote: false
 
+  - name: mart_top_scorers
+    description: >
+      Tournament top scorers (latest snapshot), ranked by goals with a
+      deterministic tiebreaker (fewer penalties, then assists, then name).
+    data_tests:
+      - row_count_equals:
+          value: 30
+    columns:
+      - name: rank
+        data_tests:
+          - unique
+          - not_null
+      - name: player_id
+        data_tests:
+          - unique
+          - not_null
+      - name: player_name
+        data_tests:
+          - not_null
+      - name: goals
+        data_tests:
+          - not_null
+      - name: team_id
+        data_tests:
+          - relationships:
+              to: ref('dim_teams')
+              field: team_id
+
 unit_tests:
   - name: head_to_head_breaks_perfect_tie
     description: >

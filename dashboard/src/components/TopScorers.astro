@@ -1,0 +1,56 @@
+---
+import Crest from "./Crest.astro";
+interface Scorer {
+  rank: number; player_name: string; player_nationality: string | null;
+  team_name: string | null; team_tla: string | null; team_crest_url: string | null;
+  played_matches: number | null; goals: number; assists: number; penalties: number;
+}
+const { scorers } = Astro.props as { scorers: Scorer[] };
+const max = Math.max(...scorers.map((s) => s.goals), 1);
+---
+
+<ol class="scorers">
+  {scorers.map((s) => (
+    <li class:list={["scorer", { "scorer--boot": s.rank === 1 }]}>
+      <span class="scorer__rank mono">{s.rank}</span>
+      <Crest url={s.team_crest_url} tla={s.team_tla} size={20} />
+      <span class="scorer__name">
+        {s.player_name}
+        {s.rank === 1 && <span class="scorer__boot mono">Soulier d'or</span>}
+      </span>
+      <span class="scorer__team mono">{s.team_tla ?? s.team_name}</span>
+      <span class="scorer__bar" aria-hidden="true">
+        <span class="scorer__fill" style={`width:${Math.max(4, (s.goals / max) * 100)}%`}></span>
+      </span>
+      <span class="scorer__goals mono"><b>{s.goals}</b><span class="scorer__sub"> · {s.assists} pd</span></span>
+    </li>
+  ))}
+</ol>
+
+<style>
+  .scorers { list-style: none; margin: 1.6rem 0 0; padding: 0; border-top: 1px solid var(--line); }
+  .scorer {
+    display: grid;
+    grid-template-columns: 1.6rem 1.375rem minmax(0, 1fr) 2.6rem minmax(4rem, 9rem) 4.6rem;
+    align-items: center; gap: 0.7rem;
+    padding: 0.55rem 0; border-bottom: 1px solid var(--line);
+  }
+  .scorer__rank { font-size: var(--mono-sm); color: var(--ink-faint); text-align: right; font-variant-numeric: tabular-nums; }
+  .scorer__name { font-size: 1.02rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: baseline; gap: 0.6rem; }
+  .scorer__boot { font-size: var(--mono-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold); flex: none; }
+  .scorer__team { font-size: var(--mono-xs); color: var(--ink-faint); letter-spacing: 0.05em; }
+  .scorer__bar { height: 0.7rem; background: var(--paper-sunk); position: relative; }
+  .scorer__fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); }
+  .scorer__goals { text-align: right; font-size: var(--mono-sm); font-variant-numeric: tabular-nums; }
+  .scorer__goals b { font-size: 1.05rem; font-weight: 700; }
+  .scorer__sub { color: var(--ink-faint); }
+  .scorer--boot .scorer__rank { color: var(--gold); font-weight: 600; }
+  .scorer--boot .scorer__fill { background: var(--gold); }
+
+  @media (max-width: 560px) {
+    .scorer { grid-template-columns: 1.3rem 1.2rem minmax(0, 1fr) 3.4rem; gap: 0.6rem; }
+    .scorer__bar { display: none; }
+    .scorer__team { display: none; }
+    .scorer__boot { display: none; }
+  }
+</style>
