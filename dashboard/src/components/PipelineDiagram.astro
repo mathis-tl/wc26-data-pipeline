@@ -10,6 +10,7 @@ const nodes = [
   { key: "raw",     kind: "raw",   tag: "Raw · bronze", label: "Parquet",         note: "brut, versionné, jamais modifié" },
   { key: "staging", kind: "silver",tag: "Staging · silver", label: "dbt · vues",  note: "typage, group_code normalisé" },
   { key: "marts",   kind: "gold",  tag: "Marts · gold", label: "schéma en étoile", note: "fct_ / dim_ · règles FIFA" },
+  { key: "model",   kind: "io",    tag: "Analyse",    label: "modèle Poisson",    note: "forces, simulation" },
   { key: "export",  kind: "io",    tag: "Export",     label: "JSON",              note: "figé, commité" },
   { key: "site",    kind: "io",    tag: "Publication",label: "Astro · Vercel",    note: "statique, redéployé" },
 ];

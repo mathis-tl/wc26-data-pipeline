@@ -12,6 +12,7 @@ import ScatterPlot from "../components/ScatterPlot.astro";
 import ProgressionHeatmap from "../components/ProgressionHeatmap.astro";
 import Dumbbell from "../components/Dumbbell.astro";
 import SpainPath from "../components/SpainPath.astro";
+import CodeBlock from "../components/CodeBlock.astro";
 
 import metrics from "../data/key_metrics.json";
 import topScorers from "../data/top_scorers.json";
@@ -435,6 +436,52 @@ const dumbbellItems = [...teamStrength]
         </div>
       </div>
 
+      <div class="undercapot">
+        <h3 class="h3 method__h">Le modèle, à nu</h3>
+        <p class="prose measure method__p">
+          Toute l'analyse repose sur un modèle de buts. Pour chaque match, on suppose
+          que le nombre de buts d'une équipe suit une loi de Poisson dont la moyenne
+          dépend de son attaque, de la défense adverse et du terrain.
+        </p>
+        <div class="formula">
+          <code class="formula__eq mono">log E[buts<sub>i</sub>] = attaque<sub>i</sub> − défense<sub>j</sub> + terrain·(domicile)</code>
+          <code class="formula__eq mono">buts<sub>i</sub> ~ Poisson( E[buts<sub>i</sub>] )</code>
+          <ul class="formula__legend mono">
+            <li><b>attaque<sub>i</sub></b> — force offensive de l'équipe i</li>
+            <li><b>défense<sub>j</sub></b> — solidité de l'adversaire j</li>
+            <li><b>terrain</b> — avantage du terrain (≈ 0 aux phases finales, neutres)</li>
+          </ul>
+        </div>
+        <p class="prose measure method__p">
+          On ajuste ces forces par <strong>maximum de vraisemblance</strong> sur les
+          {modelMeta.n_matches} résultats, avec une pénalité (ridge) qui garde le modèle
+          stable malgré le peu de matchs par équipe. Le cœur du calcul&nbsp;:
+        </p>
+        <CodeBlock file="analytics/model.py" lang="python">def fit(matches, ridge=0.05):
+    <i># une force d'attaque et de défense par equipe, + avantage terrain</i>
+    def nll(theta):                       <i># -log vraisemblance de Poisson</i>
+        att, dfn, hadv = unpack(theta)
+        eta_h = hadv + att[h] - dfn[a]    <i># log E[buts] domicile</i>
+        eta_a =        att[a] - dfn[h]    <i># log E[buts] exterieur</i>
+        loss = sum(exp(eta_h) - gh*eta_h) + sum(exp(eta_a) - ga*eta_a)
+        <b>return</b> loss + ridge * (sum(att**2) + sum(dfn**2))   <i># penalite</i>
+    res = minimize(nll, theta0, method=<span class="s">"L-BFGS-B"</span>)
+    <b>return</b> PoissonModel(attack=..., defense=..., home_adv=...)</CodeBlock>
+        <p class="prose measure method__p method__p--after">
+          De ces forces découle tout le reste&nbsp;: buts et points attendus,
+          probabilité de chaque match, et la simulation Monte-Carlo qui rejoue le
+          tournoi 10 000 fois depuis les 16es pour estimer les chances de titre.
+        </p>
+        <div class="limits">
+          <p class="limits__label mono">Ce que le modèle ne fait pas</p>
+          <ul class="limits__list">
+            <li>Il ne mesure <b>ni la possession ni les tirs</b> — ces données n'existent pas pour ce tournoi.</li>
+            <li>Avec ~7 matchs par équipe, les forces estimées restent <b>incertaines</b>&nbsp;: un éclairage, pas un oracle.</li>
+            <li>Les « buts attendus » sont <b>modélisés</b> à partir des scores&nbsp;; ce n'est pas du xG de tracking.</li>
+          </ul>
+        </div>
+      </div>
+
       <ul class="stack mono">
         <li>Python</li><li>httpx</li><li>DuckDB</li><li>dbt</li>
         <li>Astro</li><li>GitHub Actions</li><li>Vercel</li>
@@ -560,6 +607,18 @@ const dumbbellItems = [...teamStrength]
 
   .method__test-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 3rem); align-items: start; margin-top: 1.4rem; }
   .method__test-text { align-self: center; }
+  .undercapot { margin-top: var(--section-gap); }
+  .formula { margin: 1.5rem 0; padding: 1.3rem 1.5rem; background: var(--paper-raised); border-left: 3px solid var(--teal); max-width: 42rem; }
+  .formula__eq { display: block; font-size: 1.05rem; color: var(--ink); margin-bottom: 0.5rem; letter-spacing: 0.01em; }
+  .formula__eq sub { font-size: 0.7em; }
+  .formula__legend { list-style: none; margin: 0.9rem 0 0; padding: 0.9rem 0 0; border-top: 1px solid var(--line); font-size: var(--mono-sm); color: var(--ink-soft); line-height: 1.9; }
+  .formula__legend b { color: var(--ink); font-weight: 600; }
+  .method__p--after { margin-top: 1.4rem; }
+  .limits { margin-top: 1.8rem; max-width: 42rem; }
+  .limits__label { font-size: var(--mono-xs); letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.7rem; }
+  .limits__list { margin: 0; padding-left: 1.1rem; font-size: 1rem; line-height: 1.6; color: var(--ink-soft); }
+  .limits__list li { margin-bottom: 0.4rem; }
+  .limits__list b { color: var(--ink); font-weight: 600; }
   .method__h { margin-bottom: 0.8rem; }
   .method__p { max-width: 42rem; margin-bottom: 1.6rem; }
   .method__p strong { font-weight: 600; }
