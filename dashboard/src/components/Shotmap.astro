@@ -1,0 +1,45 @@
+---
+// Real shot map (SofaScore): every Spain shot in a match, placed on the pitch,
+// sized by its xG. The goal is gold. Real event data, source #2.
+interface Shot { x: number | null; y: number | null; xg: number; goal: boolean; spain: boolean; player: string | null }
+const { opponent, shots } = Astro.props as { opponent: string; shots: Shot[] };
+const mine = shots.filter((s) => s.spain && s.x != null && s.y != null);
+const totalXg = mine.reduce((a, s) => a + s.xg, 0);
+const goals = mine.filter((s) => s.goal).length;
+// SofaScore coords: 0–100. Plot the attacking half (x ≥ 50) toward the right goal.
+const W = 100, H = 64;
+const px = (x: number) => 4 + ((Math.max(50, x) - 50) / 50) * (W - 8);
+const py = (y: number) => 2 + (y / 100) * (H - 4);
+const r = (xg: number) => 1 + Math.sqrt(xg) * 5;
+---
+
+<figure class="shotmap">
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" preserveAspectRatio="xMidYMid meet"
+       aria-label={`Carte des tirs de l'Espagne contre ${opponent}, chaque cercle dimensionné par son xG.`}>
+    <rect x="1" y="1" width={W - 2} height={H - 2} class="pitch" />
+    <line x1={W / 2} y1="1" x2={W / 2} y2={H - 1} class="pitchline" />
+    <rect x={W - 18} y={(H - 40) / 2} width="17" height="40" class="pitchline" fill="none" />
+    <rect x={W - 7} y={(H - 18) / 2} width="6" height="18" class="pitchline" fill="none" />
+    {mine.map((s) => (
+      <circle cx={px(s.x!)} cy={py(s.y!)} r={r(s.xg)}
+        class:list={["shot", { goal: s.goal }]}>
+        <title>{s.player} · xG {s.xg.toFixed(2)}{s.goal ? " · BUT" : ""}</title>
+      </circle>
+    ))}
+  </svg>
+  <figcaption class="shotmap__cap mono">
+    Tirs de l'Espagne en finale · <b>{mine.length} tirs</b> · xG cumulé <b>{totalXg.toFixed(2)}</b> ·
+    {` ${goals} but`} · taille ∝ xG · <span class="g">or = but</span>
+  </figcaption>
+</figure>
+
+<style>
+  .shotmap svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--accent) 8%, var(--paper)); border: 1px solid var(--line); }
+  .pitch { fill: none; stroke: var(--line-strong); stroke-width: 0.3; }
+  .pitchline { stroke: var(--line-strong); stroke-width: 0.3; }
+  .shot { fill: color-mix(in srgb, var(--accent) 55%, var(--paper)); stroke: var(--accent); stroke-width: 0.3; }
+  .shot.goal { fill: var(--gold); stroke: var(--ink); stroke-width: 0.4; }
+  .shotmap__cap { margin-top: 0.6rem; font-size: var(--mono-xs); color: var(--ink-faint); line-height: 1.5; }
+  .shotmap__cap b { color: var(--ink-soft); }
+  .shotmap__cap .g { color: var(--gold); }
+</style>

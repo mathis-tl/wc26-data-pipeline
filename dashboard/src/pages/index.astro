@@ -13,8 +13,11 @@ import ProgressionHeatmap from "../components/ProgressionHeatmap.astro";
 import Dumbbell from "../components/Dumbbell.astro";
 import SpainPath from "../components/SpainPath.astro";
 import CodeBlock from "../components/CodeBlock.astro";
+import Shotmap from "../components/Shotmap.astro";
 
 import metrics from "../data/key_metrics.json";
+import spainReal from "../data/spain_real.json";
+import spainFinalShots from "../data/spain_final_shots.json";
 import topScorers from "../data/top_scorers.json";
 import spainCase from "../data/spain_case.json";
 import teamStrength from "../data/team_strength.json";
@@ -136,14 +139,16 @@ const dumbbellItems = [...teamStrength]
           trancher&nbsp;?
         </p>
         <p>
-          Un obstacle d'abord. On n'a ni la possession, ni les tirs, ni le xG de
-          tracking&nbsp;: la source ne donne que des scores, et aucune base n'a les
-          événements de <em>ce</em> Mondial. Plutôt que d'inventer ces chiffres, on
-          fait ce qu'un modèle sait tirer des 104 résultats&nbsp;: estimer la
-          <strong>force réelle</strong> de chaque équipe — sa capacité à marquer et à
-          ne pas encaisser — <strong>corrigée de la qualité des adversaires</strong>.
-          Battre le Brésil et battre une équipe de fond de classement ne pèsent pas
-          pareil. Tout ce qui suit en découle.
+          Un obstacle d'abord&nbsp;: notre source principale ne donne que des
+          scores — ni possession, ni tirs, ni xG. On répond en deux temps. Pour
+          <strong>les 48 équipes</strong>, on estime la <strong>force réelle</strong>
+          de chacune à partir des 104 résultats, avec un modèle&nbsp;: sa capacité à
+          marquer et à ne pas encaisser, <strong>corrigée de la qualité des
+          adversaires</strong> — battre le Brésil ne vaut pas battre un dernier de
+          groupe. Puis, pour <strong>l'Espagne</strong>, on est allé chercher les
+          <em>vraies</em> données match par match — possession, tirs, xG — via une
+          seconde source (SofaScore), réconciliée avec la première. Modèle pour la
+          largeur, réel pour la démonstration.
         </p>
       </div>
 
@@ -247,6 +252,45 @@ const dumbbellItems = [...teamStrength]
         <ProgressionHeatmap levels={titleProgression.levels} teams={titleProgression.teams} />
       </div>
 
+      <div class="analyse__block reveal">
+        <h3 class="h3 analyse__h">Les chiffres réels le confirment</h3>
+        <div class="prose measure analyse__p">
+          <p>
+            Jusqu'ici, tout venait du modèle. Pour l'Espagne, on a désormais les
+            <em>vraies</em> données (SofaScore) — et elles n'atténuent pas le verdict,
+            elles l'enfoncent. Sur ses huit matchs, l'Espagne a monopolisé le ballon
+            (<strong>51 à 74 % de possession</strong>) et noyé ses adversaires sous les
+            occasions. En finale&nbsp;: 65 % de possession, <strong>20 tirs à 2</strong>,
+            un <strong>xG réel de 2,29 contre 0,22</strong>.
+          </p>
+        </div>
+        <p class="figlabel mono">Fig. 6 — Espagne, données réelles par match (SofaScore) · xG du modèle en regard</p>
+        <div class="realtab mono">
+          <div class="realtab__row realtab__head">
+            <span>Adversaire</span><span>Poss.</span><span>xG</span><span>xG adv.</span><span>Tirs</span><span class="hide-sm">xG modèle</span>
+          </div>
+          {spainReal.map((r) => (
+            <div class="realtab__row">
+              <span class="realtab__opp">{r.opponent}</span>
+              <span>{r.possession}%</span>
+              <span class="b">{r.xg_for}</span>
+              <span>{r.xg_against}</span>
+              <span>{r.shots}</span>
+              <span class="hide-sm dim">{r.model_xg_for}</span>
+            </div>
+          ))}
+        </div>
+        <div class="prose measure analyse__p analyse__p--after">
+          <p>
+            Au passage, le modèle tient la route&nbsp;: son xG estimé suit de près le
+            xG réel — une validation indépendante. Et la carte de tirs de la finale
+            résume tout&nbsp;: un mur de frappes espagnoles, une poignée argentines.
+          </p>
+        </div>
+        <p class="figlabel mono">Fig. 7 — Carte des tirs de l'Espagne · finale (données réelles)</p>
+        <Shotmap opponent={spainFinalShots.opponent} shots={spainFinalShots.shots} />
+      </div>
+
       <div class="verdict reveal">
         <p class="verdict__label mono">Le verdict</p>
         <p class="verdict__text">
@@ -260,10 +304,12 @@ const dumbbellItems = [...teamStrength]
       </div>
 
       <p class="analyse__method mono">
-        Méthode — modèle de buts (Poisson) ajusté par maximum de vraisemblance sur
-        {` ${modelMeta.n_matches}`} résultats. On ne mesure <b>pas</b> la possession,
-        les tirs ni le xG de tracking (absents des données)&nbsp;: les « buts
-        attendus » sont <b>modélisés</b>, pas observés. Détail du modèle plus bas.
+        Méthode — deux sources. <b>football-data.org</b> (scores) alimente le modèle
+        de buts (Poisson, maximum de vraisemblance sur {` ${modelMeta.n_matches}`}
+        résultats) pour les 48 équipes&nbsp;: là, les « buts attendus » sont
+        <b>modélisés</b>. Pour l'Espagne, <b>SofaScore</b> (source #2, réconciliée par
+        équipe + date) fournit la possession, les tirs et le <b>xG réel</b> observé.
+        Chaque chiffre est étiqueté selon son origine. Détail du modèle plus bas.
       </p>
     </div>
   </section>
@@ -458,24 +504,64 @@ const dumbbellItems = [...teamStrength]
           stable malgré le peu de matchs par équipe. Le cœur du calcul&nbsp;:
         </p>
         <CodeBlock file="analytics/model.py" lang="python">def fit(matches, ridge=0.05):
-    <i># une force d'attaque et de défense par equipe, + avantage terrain</i>
-    def nll(theta):                       <i># -log vraisemblance de Poisson</i>
-        att, dfn, hadv = unpack(theta)
-        eta_h = hadv + att[h] - dfn[a]    <i># log E[buts] domicile</i>
-        eta_a =        att[a] - dfn[h]    <i># log E[buts] exterieur</i>
-        loss = sum(exp(eta_h) - gh*eta_h) + sum(exp(eta_a) - ga*eta_a)
-        <b>return</b> loss + ridge * (sum(att**2) + sum(dfn**2))   <i># penalite</i>
-    res = minimize(nll, theta0, method=<span class="s">"L-BFGS-B"</span>)
-    <b>return</b> PoissonModel(attack=..., defense=..., home_adv=...)</CodeBlock>
+&#32;&#32;&#32;&#32;<i># une force d'attaque et de défense par equipe, + avantage terrain</i>
+&#32;&#32;&#32;&#32;def nll(theta):                       <i># -log vraisemblance de Poisson</i>
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;att, dfn, hadv = unpack(theta)
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;eta_h = hadv + att[h] - dfn[a]    <i># log E[buts] domicile</i>
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;eta_a =        att[a] - dfn[h]    <i># log E[buts] exterieur</i>
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;loss = sum(exp(eta_h) - gh*eta_h) + sum(exp(eta_a) - ga*eta_a)
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<b>return</b> loss + ridge * (sum(att**2) + sum(dfn**2))   <i># penalite</i>
+&#32;&#32;&#32;&#32;res = minimize(nll, theta0, method=<span class="s">"L-BFGS-B"</span>)
+&#32;&#32;&#32;&#32;<b>return</b> PoissonModel(attack=..., defense=..., home_adv=...)</CodeBlock>
         <p class="prose measure method__p method__p--after">
-          De ces forces découle tout le reste&nbsp;: buts et points attendus,
-          probabilité de chaque match, et la simulation Monte-Carlo qui rejoue le
-          tournoi 10 000 fois depuis les 16es pour estimer les chances de titre.
+          De ces forces découlent des buts et des points attendus, match par match.
+          Reste la question du titre&nbsp;: elle est plus retorse qu'il n'y paraît.
+        </p>
+
+        <h3 class="h3 method__h">Rejouer le tournoi 10&nbsp;000 fois</h3>
+        <p class="prose measure method__p">
+          Le format à élimination directe pose un problème concret&nbsp;: notre
+          source ne donne que des matchs, pas un arbre. Rien n'indique explicitement
+          que le vainqueur du 8e « France&nbsp;– Croatie » affronte le vainqueur de
+          « Espagne&nbsp;– Portugal » en quart. On <strong>reconstruit le tableau
+          a posteriori</strong>, en reliant chaque match d'un tour aux deux matchs du
+          tour précédent dont les vainqueurs y figurent — une jointure sur
+          l'identité du gagnant, tour par tour, jusqu'à la finale.
+        </p>
+        <p class="prose measure method__p">
+          Le tableau reconstruit, on le rejoue. À chaque nœud, la probabilité qu'une
+          équipe passe est <code class="mono">P(victoire) + P(nul)/2</code> — en
+          phase finale les nuls se tranchent aux tirs au but, on les répartit donc à
+          parts égales plutôt que de les ignorer. On tire un nombre aléatoire, on
+          fait avancer le vainqueur d'un tour, et on recommence — en partant de la
+          finale et en descendant récursivement jusqu'aux feuilles, les 16es.
+          <strong>10&nbsp;000 tournois</strong> simulés, une graine fixe
+          (<span class="mono">seed=42</span>) pour que le résultat soit reproductible
+          d'un run à l'autre.
+        </p>
+        <CodeBlock file="analytics/simulate.py" lang="python">def play(node_id, rng):
+&#32;&#32;&#32;&#32;node = nodes[node_id]
+&#32;&#32;&#32;&#32;<b>if</b> node[<span class="s">"children"</span>] <b>is None</b>:      <i># feuille (16e) : pas d'enfants</i>
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;a, b = node[<span class="s">"teams"</span>]
+&#32;&#32;&#32;&#32;<b>else</b>:                                    <i># sinon : on joue d'abord les deux tours precedents</i>
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;a = play(node[<span class="s">"children"</span>][0], rng)
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;b = play(node[<span class="s">"children"</span>][1], rng)
+&#32;&#32;&#32;&#32;u = rng.random()
+&#32;&#32;&#32;&#32;<b>return</b> a <b>if</b> u &lt; wp[(a, b)] <b>else</b> b      <i># wp = P(a bat b), nul reparti 50/50</i>
+
+counts = dict.fromkeys(teams, 0)
+<b>for</b> _ <b>in</b> range(10_000):                     <i># 10 000 tirages, en cascade jusqu'aux 16es</i>
+&#32;&#32;&#32;&#32;counts[play(final_id, rng)] += 1</CodeBlock>
+        <p class="prose measure method__p method__p--after">
+          Chaque simulation n'enregistre pas que le champion&nbsp;: elle retient
+          aussi le tour le plus loin atteint par chaque équipe, ce qui donne la
+          probabilité <em>d'atteindre</em> chaque tour (Fig.&nbsp;5) et pas seulement
+          celle de tout gagner.
         </p>
         <div class="limits">
           <p class="limits__label mono">Ce que le modèle ne fait pas</p>
           <ul class="limits__list">
-            <li>Il ne mesure <b>ni la possession ni les tirs</b> — ces données n'existent pas pour ce tournoi.</li>
+            <li>Le modèle <b>ne mesure pas les tirs</b>, il les déduit des scores. Les vraies stats (SofaScore) ne couvrent que l'Espagne&nbsp;: le quota gratuit (50 req/mois) interdit les 104 matchs.</li>
             <li>Avec ~7 matchs par équipe, les forces estimées restent <b>incertaines</b>&nbsp;: un éclairage, pas un oracle.</li>
             <li>Les « buts attendus » sont <b>modélisés</b> à partir des scores&nbsp;; ce n'est pas du xG de tracking.</li>
           </ul>
@@ -544,6 +630,14 @@ const dumbbellItems = [...teamStrength]
   .xtable__row span:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
   .xtable__head { font-size: var(--mono-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); }
   .xtable .b { font-weight: 700; }
+  .realtab { max-width: 40rem; border-top: 2px solid var(--ink); font-size: var(--mono-sm); }
+  .realtab__row { display: grid; grid-template-columns: 1fr 3rem 2.6rem 3.4rem 2.6rem 4rem; gap: 0.5rem; padding: 0.5rem 0; border-bottom: 1px solid var(--line); align-items: center; }
+  .realtab__row span:not(.realtab__opp) { text-align: right; font-variant-numeric: tabular-nums; }
+  .realtab__head { font-size: var(--mono-xs); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); }
+  .realtab__opp { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-soft); }
+  .realtab .b { font-weight: 700; color: var(--accent); }
+  .realtab .dim { color: var(--ink-faint); }
+  @media (max-width: 560px) { .realtab__row { grid-template-columns: 1fr 2.5rem 2.4rem 3rem 2.3rem; } .realtab .hide-sm { display: none; } }
   .verdict { margin-top: var(--section-gap); padding: 1.6rem 1.7rem; background: var(--ink); color: var(--paper-on-accent); max-width: 46rem; }
   .verdict__label { font-size: var(--mono-xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-bright); margin-bottom: 0.6rem; }
   .verdict__text { font-size: 1.15rem; line-height: 1.5; }
