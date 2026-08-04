@@ -27,6 +27,9 @@ dashboard/build/
 graphify-out/
 .DS_Store
 
+# Raw source photos (processed once into dashboard/public/photos, which IS versioned)
+/assets/
+
 # NOTE: data/raw/ is intentionally VERSIONED (small Parquet files,
 # daily commits are the audit trail that the pipeline ran during the tournament).
 

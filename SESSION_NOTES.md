@@ -1,5 +1,21 @@
 # SESSION_NOTES
 
+## Session 2026-08-05 — moteur d'analyse, essai long-format, données réelles SofaScore ✅
+
+Session autonome (droits donnés par Mathis en fin de soirée : « termine, je dors, je regarde demain »). Prolonge directement la Phase 3 : le dashboard passe d'un rapport visuel à une **vraie démonstration data science**.
+
+### Fait
+- **Moteur d'analyse (`analytics/`)** : modèle de force Poisson (attaque/défense/avantage terrain) ajusté par maximum de vraisemblance pénalisé (scipy `L-BFGS-B`, ridge=0.05) sur les 104 résultats. Dérive buts/points **modélisés** (jamais appelés xG — honnêteté sur l'absence de données de tir), sur/sous-performance, upsets, et une **simulation Monte-Carlo** (10 000 tirages) du tableau à élimination directe reconstruit à partir des seuls résultats (pas de lien parent/enfant dans la donnée source). `python -m analytics` lit `warehouse.duckdb`, écrit tous les JSON front. Câblé dans le workflow quotidien après l'export (gate d'échec inclus).
+- **Essai long-format « L'Espagne méritait-elle son titre ? »** : section flagship `#analyse`, prose développée (paragraphes rédigés, pas des puces), 7 figures numérotées (scatter attaque×défense, dumbbell points réels/attendus, parcours de l'Espagne, probabilité de titre, heatmap de progression, tableau de stats réelles, carte de tirs), verdict, note méthodo. Section « Le modèle, à nu » dans Méthode : équation Poisson, `fit()` en CodeBlock terminal, **et maintenant aussi `play()`** (la récursion Monte-Carlo) avec l'explication de la reconstruction du tableau — ajouté cette session pour que l'algo de simulation soit expliqué avec le même niveau de détail que l'ajustement du modèle.
+- **Deuxième source de données réelles (SofaScore, via SportApi7/RapidAPI, quota gratuit 50 req/mois)** : `ingestion/sofascore.py` (one-off, tournoi terminé → run une fois, ~13 requêtes consommées, 30 restantes) récupère les 8 matchs de l'Espagne (xG réel, possession, tirs) + les 5 shotmaps des matchs à élimination directe. `analytics/real_stats.py` réconcilie par chronologie (les deux sources n'ont pas d'ID commun) et croise le xG réel avec le xG modélisé — **validation indépendante du modèle**. Nouveau composant `Shotmap.astro` (carte SVG des tirs, taille ∝ xG, but en or). Clé RapidAPI ajoutée à `.env` local avec autorisation explicite de Mathis (« je t'autorise à la mettre dans le .env »), jamais commitée.
+- **Bug de rendu trouvé et corrigé (les deux CodeBlocks)** : Astro/JSX supprime l'indentation en début de ligne quand elle touche directement une frontière de tag (`</i>` suivi d'une nouvelle ligne commençant du texte, ou l'inverse) — ça cassait l'affichage du code Python (indentation perdue, lignes fusionnées). Corrigé en encodant l'indentation sensible avec des entités `&#32;` plutôt que des espaces littéraux ; ça corrige aussi un bug **déjà en production** dans le bloc `fit()` (jamais repéré visuellement avant, la vérification précédente ne portait que sur le débordement horizontal, pas la justesse du code affiché).
+- **Qualité** : `ruff check` propre, 24 tests pytest verts, build Astro propre, `shoot.mjs` confirme zéro débordement horizontal desktop/mobile. Carte Graphify régénérée (passe AST uniquement, cohérent avec la dette déjà connue — 306 nœuds AST, 275 après filtrage, 393 arêtes, 29 communautés ; le health-check signale 51 arêtes aux extrémités pendantes, stable par rapport aux ~56 déjà documentées avant Phase 3 — dette pré-existante liée au mélange code Python/Astro + JSON de données, pas une régression de cette session).
+
+### Écarts / points ouverts
+- Le shotmap et les stats réelles ne couvrent que l'Espagne (contrainte de quota, documentée honnêtement dans la section méthode).
+- Graphify : la passe sémantique complète (docs/markdown) reste différée, comme documenté depuis la Phase 0 — AST-only reste la norme établie du projet.
+- `assets/` (photos sources brutes, déjà traitées dans `dashboard/public/photos`) ajouté au `.gitignore` — n'était pas versionné avant non plus, juste rendu silencieux dans `git status`.
+
 ## Session Phase 3 — dashboard public (Astro) ✅ (mergé PR #26)
 
 ### Décisions d'architecture
