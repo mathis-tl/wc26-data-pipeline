@@ -42,7 +42,7 @@ def reconstruct_bracket(knockout: list[dict]) -> dict:
                 children = tuple(prev.get(t) for t in teams)
                 if any(c is None for c in children):
                     children = None  # incomplete bracket; treat as leaf
-            nodes[m["match_id"]] = {"teams": teams, "children": children}
+            nodes[m["match_id"]] = {"teams": teams, "children": children, "round_idx": i}
     final_id = by_stage["FINAL"][0]["match_id"] if by_stage["FINAL"] else None
     return {"nodes": nodes, "final_id": final_id}
 
@@ -87,3 +87,43 @@ def simulate_title(
         champ = play(final_id, {})
         counts[champ] += 1
     return {t: counts[t] / n_sims for t in teams}
+
+
+# Round levels a team can reach: 0 entered R32, 1 R16, 2 QF, 3 SF, 4 Final, 5 champion.
+ROUND_LEVELS = ["Entrée", "8es", "Quarts", "Demies", "Finale", "Titre"]
+
+
+def simulate_progression(
+    model: PoissonModel, knockout: list[dict], n_sims: int = 10000, seed: int = 42
+) -> dict[int, list[float]]:
+    """For each team, the probability of *reaching* each round (cumulative),
+    from the Round of 32. Index 5 is the title probability."""
+    bracket = reconstruct_bracket(knockout)
+    nodes, final_id = bracket["nodes"], bracket["final_id"]
+    if final_id is None:
+        return {}
+    teams = sorted({t for node in nodes.values() for t in node["teams"] if t is not None})
+    wp = _win_prob_table(model, teams)
+    rng = np.random.default_rng(seed)
+    counts = {t: [0] * len(ROUND_LEVELS) for t in teams}
+
+    def play(node_id: int, reached: dict) -> int:
+        node = nodes[node_id]
+        if node["children"] is None:
+            a, b = node["teams"]
+        else:
+            a = play(node["children"][0], reached)
+            b = play(node["children"][1], reached)
+        w = a if rng.random() < wp.get((a, b), 0.5) else b
+        lvl = node["round_idx"] + 1
+        if lvl > reached[w]:
+            reached[w] = lvl
+        return w
+
+    for _ in range(n_sims):
+        reached = dict.fromkeys(teams, 0)  # everyone entered the Round of 32
+        play(final_id, reached)
+        for t in teams:
+            for level in range(reached[t] + 1):
+                counts[t][level] += 1
+    return {t: [c / n_sims for c in counts[t]] for t in teams}

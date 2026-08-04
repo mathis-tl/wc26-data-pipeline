@@ -1,0 +1,338 @@
+[
+  {
+    "team_name": "Uruguay",
+    "team_tla": "URU",
+    "rating": 0.738,
+    "finish": 0,
+    "highlight": false
+  },
+  {
+    "team_name": "Germany",
+    "team_tla": "GER",
+    "rating": -1.078,
+    "finish": 1,
+    "highlight": false
+  },
+  {
+    "team_name": "Spain",
+    "team_tla": "ESP",
+    "rating": 3.271,
+    "finish": 5,
+    "highlight": true
+  },
+  {
+    "team_name": "Paraguay",
+    "team_tla": "PAR",
+    "rating": -0.47,
+    "finish": 2,
+    "highlight": false
+  },
+  {
+    "team_name": "Argentina",
+    "team_tla": "ARG",
+    "rating": 1.536,
+    "finish": 5,
+    "highlight": false
+  },
+  {
+    "team_name": "Ghana",
+    "team_tla": "GHA",
+    "rating": 0.626,
+    "finish": 1,
+    "highlight": false
+  },
+  {
+    "team_name": "Brazil",
+    "team_tla": "BRA",
+    "rating": 0.779,
+    "finish": 2,
+    "highlight": false
+  },
+  {
+    "team_name": "Portugal",
+    "team_tla": "POR",
+    "rating": 1.289,
+    "finish": 2,
+    "highlight": false
+  },
+  {
+    "team_name": "Japan",
+    "team_tla": "JPN",
+    "rating": 0.348,
+    "finish": 1,
+    "highlight": false
+  },
+  {
+    "team_name": "Mexico",
+    "team_tla": "MEX",
+    "rating": 0.728,
+    "finish": 2,
+    "highlight": false
+  },
+  {
+    "team_name": "England",
+    "team_tla": "ENG",
+    "rating": 1.302,
+    "finish": 4,
+    "highlight": false
+  },
+  {
+    "team_name": "United States",
+    "team_tla": "USA",
+    "rating": 0.161,
+    "finish": 2,
+    "highlight": false
+  },
+  {
+    "team_name": "South Korea",
+    "team_tla": "KOR",
+    "rating": -1.006,
+    "finish": 0,
+    "highlight": false
+  },
+  {
+    "team_name": "France",
+    "team_tla": "FRA",
+    "rating": 1.09,
+    "finish": 4,
+    "highlight": false
+  },
+  {
+    "team_name": "South Africa",
+    "team_tla": "RSA",
+    "rating": -1.073,
+    "finish": 1,
+    "highlight": false
+  },
+  {
+    "team_name": "Algeria",
+    "team_tla": "ALG",
+    "rating": -0.019,
+    "finish": 1,
+    "highlight": false
+  },
+  {
+    "team_name": "Australia",
+    "team_tla": "AUS",
+    "rating": -0.124,
+    "finish": 1,
+    "highlight": false
+  },
+  {
+    "team_name": "New Zealand",
+    "team_tla": "NZL",
+    "rating": 0.143,
+    "finish": 0,
+    "highlight": false
+  },
+  {
+    "team_name": "Switzerland",
+    "team_tla": "SUI",
+    "rating": 0.396,
+    "finish": 3,
+    "highlight": false
+  },
+  {
+    "team_name": "Ecuador",
+    "team_tla": "ECU",
+    "rating": -1.668,
+    "finish": 1,
+    "highlight": false
+  },
+  {
+    "team_name": "Sweden",
+    "team_tla": "SWE",
+    "rating": -0.281,
+    "finish": 1,
+    "highlight": false
+  },
+  {
+    "team_name": "Czechia",
+    "team_tla": "CZE",
+    "rating": -1.473,
+    "finish": 0,
+    "highlight": false
+  },
+  {
+    "team_name": "Croatia",
+    "team_tla": "CRO",
+    "rating": 0.924,
+    "finish": 1,
+    "highlight": false
+  },
+  {
+    "team_name": "Saudi Arabia",
+    "team_tla": "KSA",
+    "rating": -0.23,
+    "finish": 0,
+    "highlight": false
+  },
+  {
+    "team_name": "Tunisia",
+    "team_tla": "TUN",
+    "rating": -1.817,
+    "finish": 0,
+    "highlight": false
+  },
+  {
+    "team_name": "Turkey",
+    "team_tla": "TUR",
+    "rating": -0.687,
+    "finish": 0,
+    "highlight": false
+  },
+  {
+    "team_name": "Senegal",
+    "team_tla": "SEN",
+    "rating": 0.831,
+    "finish": 1,
+    "highlight": false
+  },
+  {
+    "team_name": "Belgium",
+    "team_tla": "BEL",
+    "rating": 1.493,
+    "finish": 3,
+    "highlight": false
+  },
+  {
+    "team_name": "Morocco",
+    "team_tla": "MAR",
+    "rating": 0.766,
+    "finish": 3,
+    "highlight": false
+  },
+  {
+    "team_name": "Austria",
+    "team_tla": "AUT",
+    "rating": 0.399,
+    "finish": 1,
+    "highlight": false
+  },
+  {
+    "team_name": "Colombia",
+    "team_tla": "COL",
+    "rating": 0.676,
+    "finish": 2,
+    "highlight": false
+  },
+  {
+    "team_name": "Egypt",
+    "team_tla": "EGY",
+    "rating": 1.226,
+    "finish": 2,
+    "highlight": false
+  },
+  {
+    "team_name": "Canada",
+    "team_tla": "CAN",
+    "rating": 0.059,
+    "finish": 2,
+    "highlight": false
+  },
+  {
+    "team_name": "Haiti",
+    "team_tla": "HAI",
+    "rating": -0.859,
+    "finish": 0,
+    "highlight": false
+  },
+  {
+    "team_name": "Iran",
+    "team_tla": "IRN",
+    "rating": 0.905,
+    "finish": 0,
+    "highlight": false
+  },
+  {
+    "team_name": "Bosnia-Herzegovina",
+    "team_tla": "BIH",
+    "rating": -0.506,
+    "finish": 1,
+    "highlight": false
+  },
+  {
+    "team_name": "Panama",
+    "team_tla": "PAN",
+    "rating": -1.964,
+    "finish": 0,
+    "highlight": false
+  },
+  {
+    "team_name": "Cape Verde Islands",
+    "team_tla": "CPV",
+    "rating": 1.055,
+    "finish": 1,
+    "highlight": false
+  },
+  {
+    "team_name": "Congo DR",
+    "team_tla": "COD",
+    "rating": 0.546,
+    "finish": 1,
+    "highlight": false
+  },
+  {
+    "team_name": "Ivory Coast",
+    "team_tla": "CIV",
+    "rating": -0.549,
+    "finish": 1,
+    "highlight": false
+  },
+  {
+    "team_name": "Qatar",
+    "team_tla": "QAT",
+    "rating": -1.477,
+    "finish": 0,
+    "highlight": false
+  },
+  {
+    "team_name": "Jordan",
+    "team_tla": "JOR",
+    "rating": -0.451,
+    "finish": 0,
+    "highlight": false
+  },
+  {
+    "team_name": "Iraq",
+    "team_tla": "IRQ",
+    "rating": -1.445,
+    "finish": 0,
+    "highlight": false
+  },
+  {
+    "team_name": "Uzbekistan",
+    "team_tla": "UZB",
+    "rating": -0.858,
+    "finish": 0,
+    "highlight": false
+  },
+  {
+    "team_name": "Netherlands",
+    "team_tla": "NED",
+    "rating": 0.095,
+    "finish": 1,
+    "highlight": false
+  },
+  {
+    "team_name": "Norway",
+    "team_tla": "NOR",
+    "rating": 0.669,
+    "finish": 3,
+    "highlight": false
+  },
+  {
+    "team_name": "Scotland",
+    "team_tla": "SCO",
+    "rating": -1.156,
+    "finish": 0,
+    "highlight": false
+  },
+  {
+    "team_name": "Curaçao",
+    "team_tla": "CUW",
+    "rating": -2.857,
+    "finish": 0,
+    "highlight": false
+  }
+]

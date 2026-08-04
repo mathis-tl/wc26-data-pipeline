@@ -9,12 +9,17 @@ import StackedBar from "../components/StackedBar.astro";
 import ReconciliationDiagram from "../components/ReconciliationDiagram.astro";
 import TopScorers from "../components/TopScorers.astro";
 import ScatterPlot from "../components/ScatterPlot.astro";
+import ProgressionHeatmap from "../components/ProgressionHeatmap.astro";
+import Dumbbell from "../components/Dumbbell.astro";
+import SpainPath from "../components/SpainPath.astro";
 
 import metrics from "../data/key_metrics.json";
 import topScorers from "../data/top_scorers.json";
 import spainCase from "../data/spain_case.json";
 import teamStrength from "../data/team_strength.json";
 import titleOdds from "../data/title_odds.json";
+import titleProgression from "../data/title_progression.json";
+import spainPath from "../data/spain_path.json";
 import modelMeta from "../data/model_meta.json";
 import groups from "../data/groups.json";
 import bracket from "../data/bracket.json";
@@ -58,6 +63,13 @@ const rankBadges = [
   { v: `#${spainCase.rank_attack}`, l: "attaque" },
   { v: `${pct(spainCase.title_prob)} %`, l: "favorite au départ" },
 ];
+// dumbbell: the biggest luck stories among the stronger teams
+const dumbbellItems = [...teamStrength]
+  .filter((t) => t.played >= 3)
+  .sort((a, b) => Math.abs(b.points - b.xpoints) - Math.abs(a.points - a.xpoints))
+  .slice(0, 10)
+  .sort((a, b) => (b.points - b.xpoints) - (a.points - a.xpoints))
+  .map((t) => ({ label: t.team_name, tla: t.team_tla, actual: t.points, expected: t.xpoints }));
 ---
 
 <Base>
@@ -114,12 +126,25 @@ const rankBadges = [
     <div class="wrap">
       <p class="eyebrow eyebrow--seq"><span class="seq">/</span> Analyse · le verdict de la donnée</p>
       <h2 class="h1 analyse__title">L'Espagne méritait-elle son titre&nbsp;?</h2>
-      <p class="lede measure analyse__lede">
-        Championne. Mais était-elle vraiment la meilleure équipe du tournoi&nbsp;?
-        On n'a ni la possession ni les tirs — alors on déduit la <strong>force
-        réelle</strong> de chaque équipe à partir des 104 résultats, avec un modèle
-        statistique corrigé de la qualité des adversaires.
-      </p>
+      <div class="prose measure analyse__lede">
+        <p>
+          L'Espagne a soulevé le trophée. Mais soulever un trophée et <em>être</em>
+          la meilleure équipe, ce n'est pas tout à fait la même chose&nbsp;: un
+          tournoi se joue en sept matchs, à quelques ballons près, et l'histoire du
+          sport est pleine de vainqueurs heureux. Alors&nbsp;: la donnée peut-elle
+          trancher&nbsp;?
+        </p>
+        <p>
+          Un obstacle d'abord. On n'a ni la possession, ni les tirs, ni le xG de
+          tracking&nbsp;: la source ne donne que des scores, et aucune base n'a les
+          événements de <em>ce</em> Mondial. Plutôt que d'inventer ces chiffres, on
+          fait ce qu'un modèle sait tirer des 104 résultats&nbsp;: estimer la
+          <strong>force réelle</strong> de chaque équipe — sa capacité à marquer et à
+          ne pas encaisser — <strong>corrigée de la qualité des adversaires</strong>.
+          Battre le Brésil et battre une équipe de fond de classement ne pèsent pas
+          pareil. Tout ce qui suit en découle.
+        </p>
+      </div>
 
       <div class="rankrow">
         {rankBadges.map((b) => (
@@ -131,56 +156,113 @@ const rankBadges = [
       </div>
 
       <div class="analyse__block reveal">
-        <h3 class="h3 analyse__h">Forte partout&nbsp;? Presque.</h3>
-        <p class="prose measure analyse__p">
-          Sur le nuage attaque × défense, l'Espagne occupe le coin d'élite&nbsp;:
-          <strong>meilleure défense du tournoi</strong> — un seul but encaissé quand
-          le modèle en attendait {spainCase.xga} — et une attaque de haut niveau,
-          même si l'Angleterre a frappé plus fort devant.
-        </p>
+        <h3 class="h3 analyse__h">La meilleure défense, et de loin</h3>
+        <div class="prose measure analyse__p">
+          <p>
+            Le premier réflexe est de séparer ce qu'une équipe fait devant et ce
+            qu'elle fait derrière. Le modèle donne les deux&nbsp;: une force
+            d'attaque et une force de défense par équipe. On les place sur un plan —
+            plus on est à droite, mieux on attaque&nbsp;; plus on est haut, mieux on
+            défend.
+          </p>
+          <p>
+            L'Espagne se détache dans le coin d'élite. <strong>La défense la plus
+            hermétique du tournoi</strong> — un seul but encaissé en sept matchs,
+            quand le modèle en attendait déjà {spainCase.xga} — et une attaque de
+            tout premier plan. Une nuance, honnête&nbsp;: sur la seule attaque,
+            l'Angleterre a frappé plus fort ({`#${spainCase.rank_attack}`} pour
+            l'Espagne). Elle n'était pas la meilleure <em>partout</em>&nbsp;; elle
+            était la mieux équilibrée.
+          </p>
+        </div>
+        <p class="figlabel mono">Fig. 1 — Force d'attaque × force de défense (48 équipes)</p>
         <ScatterPlot points={scatterPts} />
       </div>
 
       <div class="analyse__block reveal">
-        <h3 class="h3 analyse__h">A-t-elle sur-performé&nbsp;?</h3>
-        <p class="prose measure analyse__p">
-          À peine. L'Espagne a pris <strong>{spainCase.points} points</strong> quand
-          son niveau en promettait <strong>{spainCase.xpoints}</strong> (écart
-          +{spainCase.performance}). Elle a gagné parce qu'elle était forte, pas
-          parce qu'elle a eu de la chance.
-        </p>
+        <h3 class="h3 analyse__h">Chance, ou niveau&nbsp;?</h3>
+        <div class="prose measure analyse__p">
+          <p>
+            Gagner beaucoup peut masquer de la réussite. Pour la débusquer, on
+            compare les points <em>réels</em> de chaque équipe à ceux que son niveau
+            de jeu promettait — les <strong>points attendus</strong>, dérivés des
+            probabilités de chaque match. L'écart, c'est la part de chance.
+          </p>
+          <p>
+            L'Espagne a pris <strong>{spainCase.points} points</strong> pour
+            <strong>{spainCase.xpoints} attendus</strong> ({`+${spainCase.performance}`}).
+            Un léger surplus, mais rien d'anormal pour une équipe qui convertit&nbsp;:
+            elle a gagné parce qu'elle était forte, pas parce qu'elle a été chanceuse.
+            D'autres, eux, ont clairement dépassé — ou trahi — leur niveau.
+          </p>
+        </div>
         <div class="xtable mono">
-          <div class="xtable__row xtable__head"><span>&nbsp;</span><span>réel</span><span>attendu</span></div>
+          <div class="xtable__row xtable__head"><span>Espagne</span><span>réel</span><span>attendu</span></div>
           <div class="xtable__row"><span>Points</span><span class="b">{spainCase.points}</span><span>{spainCase.xpoints}</span></div>
           <div class="xtable__row"><span>Buts marqués</span><span class="b">{spainCase.goals_for}</span><span>{spainCase.xgf}</span></div>
           <div class="xtable__row"><span>Buts encaissés</span><span class="b">{spainCase.goals_against}</span><span>{spainCase.xga}</span></div>
         </div>
+        <p class="figlabel mono">Fig. 2 — Points réels vs attendus · l'écart mesure la réussite</p>
+        <div class="analyse__chart"><Dumbbell items={dumbbellItems} /></div>
+      </div>
+
+      <div class="analyse__block reveal">
+        <h3 class="h3 analyse__h">Le parcours d'un favori</h3>
+        <div class="prose measure analyse__p">
+          <p>
+            Être fort ne suffit pas&nbsp;: encore faut-il un tableau qui ne vous
+            crucifie pas. Le modèle donnait l'Espagne favorite dans <em>chacun</em>
+            de ses sept matchs — mais tous n'avaient pas le même relief. Le vrai test
+            fut le 8e de finale contre le Portugal&nbsp;: un pur 50/50, le seul match
+            où le modèle ne la voyait pas au-dessus. Elle l'a passé 1-0, puis n'a plus
+            tremblé.
+          </p>
+        </div>
+        <p class="figlabel mono">Fig. 3 — Le parcours de l'Espagne · probabilité de victoire (modèle) à chaque tour</p>
+        <SpainPath path={spainPath} />
       </div>
 
       <div class="analyse__block reveal">
         <h3 class="h3 analyse__h">Favorite, et de loin</h3>
-        <p class="prose measure analyse__p">
-          En rejouant le tournoi <strong>10 000 fois</strong> depuis les 16es avec ce
-          modèle, l'Espagne sort championne <strong>{pct(spainCase.title_prob)} %</strong>
-          du temps — largement en tête. Le favori a gagné.
-        </p>
-        <div class="analyse__chart"><BarChart caption="Probabilité de titre (simulation Monte-Carlo)" unit="%" items={oddsItems} /></div>
+        <div class="prose measure analyse__p">
+          <p>
+            Reste la question ultime&nbsp;: parmi tous les scénarios possibles, à
+            quelle fréquence ce Mondial finit-il avec l'Espagne en haut&nbsp;? On
+            rejoue le tournoi <strong>10 000 fois</strong> depuis les 16es, chaque
+            match tiré selon les forces du modèle. Verdict&nbsp;: l'Espagne championne
+            <strong> {pct(spainCase.title_prob)} % du temps</strong> — presque un
+            tournoi sur deux, cinq fois plus que son premier poursuivant.
+          </p>
+        </div>
+        <p class="figlabel mono">Fig. 4 — Probabilité de titre (10 000 tournois simulés)</p>
+        <div class="analyse__chart"><BarChart caption="Probabilité de titre" unit="%" items={oddsItems} /></div>
+        <div class="prose measure analyse__p analyse__p--after">
+          <p>
+            On peut suivre la vague tour par tour&nbsp;: à chaque étage, la
+            probabilité que l'équipe soit encore là. L'Espagne domine chaque colonne.
+          </p>
+        </div>
+        <p class="figlabel mono">Fig. 5 — Probabilité d'atteindre chaque tour (simulation)</p>
+        <ProgressionHeatmap levels={titleProgression.levels} teams={titleProgression.teams} />
       </div>
 
       <div class="verdict reveal">
         <p class="verdict__label mono">Le verdict</p>
         <p class="verdict__text">
-          Meilleure équipe globale, meilleure défense, favorite à {pct(spainCase.title_prob)} %&nbsp;:
-          <strong>oui, sur le papier, l'Espagne méritait son titre.</strong> Nuance honnête —
-          6e attaque et un léger surplus de réussite (+{spainCase.performance} pts). Une
+          Meilleure équipe globale, meilleure défense, favorite à
+          {` ${pct(spainCase.title_prob)} %`}&nbsp;: <strong>oui, sur le papier,
+          l'Espagne méritait son titre.</strong> Avec la seule nuance honnête que la
+          donnée impose — une attaque « seulement » {`#${spainCase.rank_attack}`} et
+          un mince surplus de réussite ({`+${spainCase.performance}`} pts). Une
           championne solide, pas un hold-up.
         </p>
       </div>
 
       <p class="analyse__method mono">
-        Méthode — modèle de buts (Poisson) ajusté sur {modelMeta.n_matches} résultats.
-        On ne mesure <b>pas</b> la possession, les tirs ni le xG de tracking (absents des
-        données) : les « buts attendus » sont <b>modélisés</b>, pas observés.
+        Méthode — modèle de buts (Poisson) ajusté par maximum de vraisemblance sur
+        {` ${modelMeta.n_matches}`} résultats. On ne mesure <b>pas</b> la possession,
+        les tirs ni le xG de tracking (absents des données)&nbsp;: les « buts
+        attendus » sont <b>modélisés</b>, pas observés. Détail du modèle plus bas.
       </p>
     </div>
   </section>
@@ -419,6 +501,10 @@ const rankBadges = [
   .verdict__label { font-size: var(--mono-xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-bright); margin-bottom: 0.6rem; }
   .verdict__text { font-size: 1.15rem; line-height: 1.5; }
   .verdict__text strong { color: #fff; font-weight: 700; }
+  .analyse__lede p { font-size: 1.12rem; line-height: 1.7; }
+  .analyse__lede em, .analyse__p em { font-style: italic; }
+  .figlabel { margin: 1.8rem 0 0.75rem; font-size: var(--mono-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); padding-bottom: 0.4rem; border-bottom: 1px solid var(--line); }
+  .analyse__p--after { margin-top: 1.6rem; }
   .analyse__method { margin-top: 1.6rem; font-size: var(--mono-xs); color: var(--ink-faint); line-height: 1.6; max-width: 42rem; }
   @media (max-width: 560px) { .rankrow { grid-template-columns: repeat(2, 1fr); } }
 

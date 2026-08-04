@@ -1,0 +1,142 @@
+{
+  "levels": [
+    "Entrée",
+    "8es",
+    "Quarts",
+    "Demies",
+    "Finale",
+    "Titre"
+  ],
+  "teams": [
+    {
+      "team_name": "Spain",
+      "team_tla": "ESP",
+      "crest": "https://crests.football-data.org/760.svg",
+      "reach": [
+        1.0,
+        0.936,
+        0.749,
+        0.621,
+        0.55,
+        0.461
+      ]
+    },
+    {
+      "team_name": "Belgium",
+      "team_tla": "BEL",
+      "crest": "https://crests.football-data.org/805.svg",
+      "reach": [
+        1.0,
+        0.732,
+        0.662,
+        0.207,
+        0.142,
+        0.089
+      ]
+    },
+    {
+      "team_name": "Argentina",
+      "team_tla": "ARG",
+      "crest": "https://crests.football-data.org/762.png",
+      "reach": [
+        1.0,
+        0.63,
+        0.406,
+        0.307,
+        0.207,
+        0.082
+      ]
+    },
+    {
+      "team_name": "England",
+      "team_tla": "ENG",
+      "crest": "https://crests.football-data.org/770.svg",
+      "reach": [
+        1.0,
+        0.716,
+        0.531,
+        0.398,
+        0.224,
+        0.075
+      ]
+    },
+    {
+      "team_name": "France",
+      "team_tla": "FRA",
+      "crest": "https://crests.football-data.org/773.svg",
+      "reach": [
+        1.0,
+        0.88,
+        0.789,
+        0.555,
+        0.144,
+        0.068
+      ]
+    },
+    {
+      "team_name": "Egypt",
+      "team_tla": "EGY",
+      "crest": "https://crests.football-data.org/825.svg",
+      "reach": [
+        1.0,
+        0.879,
+        0.393,
+        0.287,
+        0.174,
+        0.053
+      ]
+    },
+    {
+      "team_name": "Portugal",
+      "team_tla": "POR",
+      "crest": "https://crests.football-data.org/765.svg",
+      "reach": [
+        1.0,
+        0.604,
+        0.185,
+        0.103,
+        0.063,
+        0.033
+      ]
+    },
+    {
+      "team_name": "Morocco",
+      "team_tla": "MAR",
+      "crest": "https://crests.football-data.org/morocco.svg",
+      "reach": [
+        1.0,
+        0.756,
+        0.563,
+        0.27,
+        0.054,
+        0.022
+      ]
+    },
+    {
+      "team_name": "Cape Verde Islands",
+      "team_tla": "CPV",
+      "crest": "https://crests.football-data.org/cape_verde.svg",
+      "reach": [
+        1.0,
+        0.37,
+        0.183,
+        0.118,
+        0.061,
+        0.019
+      ]
+    },
+    {
+      "team_name": "Mexico",
+      "team_tla": "MEX",
+      "crest": "https://crests.football-data.org/769.svg",
+      "reach": [
+        1.0,
+        0.817,
+        0.304,
+        0.165,
+        0.066,
+        0.018
+      ]
+    }
+  ]
+}

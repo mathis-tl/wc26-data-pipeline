@@ -1,0 +1,74 @@
+[
+  {
+    "stage": "GROUP_STAGE",
+    "opponent": "Cape Verde Islands",
+    "opponent_tla": "CPV",
+    "opponent_crest": "https://crests.football-data.org/cape_verde.svg",
+    "score": "0–0",
+    "result": "N",
+    "win_prob": 0.783
+  },
+  {
+    "stage": "GROUP_STAGE",
+    "opponent": "Saudi Arabia",
+    "opponent_tla": "KSA",
+    "opponent_crest": "https://crests.football-data.org/saudi_arabia.svg",
+    "score": "4–0",
+    "result": "V",
+    "win_prob": 0.878
+  },
+  {
+    "stage": "GROUP_STAGE",
+    "opponent": "Uruguay",
+    "opponent_tla": "URU",
+    "opponent_crest": "https://crests.football-data.org/758.svg",
+    "score": "1–0",
+    "result": "V",
+    "win_prob": 0.806
+  },
+  {
+    "stage": "LAST_32",
+    "opponent": "Austria",
+    "opponent_tla": "AUT",
+    "opponent_crest": "https://crests.football-data.org/816.svg",
+    "score": "3–0",
+    "result": "V",
+    "win_prob": 0.947
+  },
+  {
+    "stage": "LAST_16",
+    "opponent": "Portugal",
+    "opponent_tla": "POR",
+    "opponent_crest": "https://crests.football-data.org/765.svg",
+    "score": "1–0",
+    "result": "V",
+    "win_prob": 0.5
+  },
+  {
+    "stage": "QUARTER_FINALS",
+    "opponent": "Belgium",
+    "opponent_tla": "BEL",
+    "opponent_crest": "https://crests.football-data.org/805.svg",
+    "score": "2–1",
+    "result": "V",
+    "win_prob": 0.729
+  },
+  {
+    "stage": "SEMI_FINALS",
+    "opponent": "France",
+    "opponent_tla": "FRA",
+    "opponent_crest": "https://crests.football-data.org/773.svg",
+    "score": "2–0",
+    "result": "V",
+    "win_prob": 0.72
+  },
+  {
+    "stage": "FINAL",
+    "opponent": "Argentina",
+    "opponent_tla": "ARG",
+    "opponent_crest": "https://crests.football-data.org/762.png",
+    "score": "1–0",
+    "result": "V",
+    "win_prob": 0.693
+  }
+]

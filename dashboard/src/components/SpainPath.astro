@@ -1,0 +1,41 @@
+---
+import Crest from "./Crest.astro";
+import { stageLabel } from "../lib/format";
+interface Step { stage: string; opponent: string; opponent_tla: string | null; opponent_crest: string | null; score: string; result: string; win_prob: number }
+const { path } = Astro.props as { path: Step[] };
+---
+
+<ol class="path">
+  {path.map((s) => (
+    <li class:list={["path__step", { tight: s.win_prob < 0.55 }]}>
+      <span class="path__stage mono">{stageLabel(s.stage)}</span>
+      <span class="path__opp">
+        <Crest url={s.opponent_crest} tla={s.opponent_tla} size={18} />
+        <span class="path__oppname">{s.opponent}</span>
+      </span>
+      <span class="path__score mono">{s.score}</span>
+      <span class="path__prob" aria-hidden="true">
+        <span class="path__fill" style={`width:${Math.round(s.win_prob * 100)}%`}></span>
+      </span>
+      <span class="path__pct mono">{Math.round(s.win_prob * 100)} %</span>
+    </li>
+  ))}
+</ol>
+
+<style>
+  .path { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+  .path__step { display: grid; grid-template-columns: 6rem minmax(0, 1fr) 2.6rem minmax(4rem, 8rem) 2.8rem; gap: 0.7rem; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid var(--line); }
+  .path__stage { font-size: var(--mono-xs); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); }
+  .path__opp { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
+  .path__oppname { font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .path__score { font-size: 1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .path__prob { height: 0.55rem; background: var(--paper-sunk); position: relative; }
+  .path__fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); }
+  .path__pct { text-align: right; font-size: var(--mono-sm); font-variant-numeric: tabular-nums; color: var(--ink-soft); }
+  .path__step.tight .path__fill { background: var(--gold); }
+  .path__step.tight .path__pct { color: var(--gold); font-weight: 600; }
+  @media (max-width: 560px) {
+    .path__step { grid-template-columns: minmax(0, 1fr) 2.4rem 2.8rem; }
+    .path__stage, .path__prob { display: none; }
+  }
+</style>

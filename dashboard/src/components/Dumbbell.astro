@@ -1,0 +1,53 @@
+---
+// Dumbbell: actual vs model-expected points per team. The gap is luck —
+// distance between what a team's play deserved and what it got.
+interface Item { label: string; tla: string | null; actual: number; expected: number }
+const { items, caption } = Astro.props as { items: Item[]; caption?: string };
+const max = Math.max(...items.flatMap((i) => [i.actual, i.expected]), 1);
+const pos = (v: number) => (v / max) * 100;
+---
+
+<figure class="dmb">
+  {caption && <figcaption class="dmb__cap h3">{caption}</figcaption>}
+  <div class="dmb__legend mono">
+    <span><span class="dot dot--exp"></span>attendu (modèle)</span>
+    <span><span class="dot dot--act"></span>réel</span>
+  </div>
+  <div class="dmb__rows">
+    {items.map((i) => {
+      const lo = Math.min(i.actual, i.expected), hi = Math.max(i.actual, i.expected);
+      const lucky = i.actual >= i.expected;
+      return (
+        <div class="dmb__row">
+          <span class="dmb__label mono">{i.tla ?? i.label}</span>
+          <span class="dmb__track" aria-hidden="true">
+            <span class="dmb__bar" style={`left:${pos(lo)}%; right:${100 - pos(hi)}%; background:${lucky ? "var(--accent)" : "var(--teal)"}`}></span>
+            <span class="dmb__dot dmb__dot--exp" style={`left:${pos(i.expected)}%`}></span>
+            <span class="dmb__dot dmb__dot--act" style={`left:${pos(i.actual)}%`}></span>
+          </span>
+          <span class="dmb__delta mono">{i.actual - i.expected >= 0 ? "+" : ""}{(i.actual - i.expected).toFixed(1)}</span>
+        </div>
+      );
+    })}
+  </div>
+</figure>
+
+<style>
+  .dmb { margin: 0; }
+  .dmb__cap { margin-bottom: 0.9rem; font-weight: 600; }
+  .dmb__legend { display: flex; gap: 1.4rem; margin-bottom: 1rem; font-size: var(--mono-xs); color: var(--ink-soft); }
+  .dmb__legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+  .dot { width: 0.7rem; height: 0.7rem; border-radius: 50%; }
+  .dot--exp { background: var(--teal); }
+  .dot--act { background: var(--accent); }
+  .dmb__rows { display: flex; flex-direction: column; gap: 0.55rem; }
+  .dmb__row { display: grid; grid-template-columns: 3rem 1fr 3rem; align-items: center; gap: 0.75rem; }
+  .dmb__label { font-size: var(--mono-sm); color: var(--ink-soft); }
+  .dmb__track { position: relative; height: 0.9rem; }
+  .dmb__track::before { content: ""; position: absolute; inset: 50% 0 auto 0; height: 1px; background: var(--line); }
+  .dmb__bar { position: absolute; top: 50%; height: 2px; transform: translateY(-50%); }
+  .dmb__dot { position: absolute; top: 50%; width: 0.7rem; height: 0.7rem; border-radius: 50%; transform: translate(-50%, -50%); }
+  .dmb__dot--exp { background: var(--teal); }
+  .dmb__dot--act { background: var(--accent); }
+  .dmb__delta { text-align: right; font-size: var(--mono-sm); font-variant-numeric: tabular-nums; color: var(--ink-soft); }
+</style>

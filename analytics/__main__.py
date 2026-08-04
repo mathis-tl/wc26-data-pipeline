@@ -15,7 +15,7 @@ from pathlib import Path
 import duckdb
 
 from analytics.model import PoissonModel, fit, goal_means, outcome_probs
-from analytics.simulate import simulate_title
+from analytics.simulate import ROUND_LEVELS, simulate_progression
 
 logger = logging.getLogger("analytics")
 
@@ -48,7 +48,7 @@ def run() -> None:
     matches = _rows(
         con,
         """
-        select match_id, stage, status, winner,
+        select match_id, stage, status, winner, kickoff_at,
                home_team_id, home_team_name, full_time_home_goals as home_goals,
                away_team_id, away_team_name, full_time_away_goals as away_goals
         from main.fct_matches
@@ -137,16 +137,39 @@ def run() -> None:
     upsets.sort(key=lambda x: x["win_prob"])
     _write("upsets.json", upsets[:8])
 
-    # --- title simulation from the Round of 32 ---
+    # --- title simulation + round-by-round progression from the Round of 32 ---
     knockout = [m for m in matches if m["stage"] in
                 ("LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FINALS", "FINAL")]
-    odds = simulate_title(model, knockout, n_sims=N_SIMS)
+    reach = simulate_progression(model, knockout, n_sims=N_SIMS)
     title = []
-    for t, p in sorted(odds.items(), key=lambda kv: kv[1], reverse=True):
+    for t, levels in sorted(reach.items(), key=lambda kv: kv[1][5], reverse=True):
         name, tla, crest = meta(t)
         title.append({"team_id": t, "team_name": name, "team_tla": tla, "crest": crest,
-                      "title_prob": round(p, 4)})
+                      "title_prob": round(levels[5], 4)})
     _write("title_odds.json", title[:12])
+    _write("title_progression.json", {
+        "levels": ROUND_LEVELS,
+        "teams": [
+            {"team_name": meta(t)[0], "team_tla": meta(t)[1], "crest": meta(t)[2],
+             "reach": [round(x, 3) for x in reach[t]]}
+            for t, _ in sorted(reach.items(), key=lambda kv: kv[1][5], reverse=True)[:10]
+        ],
+    })
+
+    # --- rating vs how far each team actually went ---
+    stage_order = {"GROUP_STAGE": 0, "LAST_32": 1, "LAST_16": 2, "QUARTER_FINALS": 3,
+                   "SEMI_FINALS": 4, "THIRD_PLACE": 4, "FINAL": 5}
+    finish = {t: 0 for t in model.teams}
+    for m in matches:
+        so = stage_order.get(m["stage"], 0)
+        for t in (m["home_team_id"], m["away_team_id"]):
+            if t in finish:
+                finish[t] = max(finish[t], so)
+    _write("rating_vs_finish.json", [
+        {"team_name": meta(t)[0], "team_tla": meta(t)[1], "rating": round(ratings[t], 3),
+         "finish": finish[t], "highlight": (meta(t)[0] or "").lower() == "spain"}
+        for t in model.teams
+    ])
 
     # --- Spain: the narrative headline numbers ---
     spain_id = next((t for t in model.teams if (meta(t)[0] or "").lower() == "spain"), None)
@@ -163,6 +186,28 @@ def run() -> None:
             "points": s["points"], "xpoints": s["xpoints"], "performance": s["performance"],
             "title_prob": s_prob, "title_rank": title_rank,
         })
+        # Spain's route to the title: each match with its model win probability
+        sp_matches = sorted(
+            [m for m in matches
+             if spain_id in (m["home_team_id"], m["away_team_id"]) and m["status"] == "FINISHED"],
+            key=lambda m: m["kickoff_at"] or "",
+        )
+        path = []
+        for m in sp_matches:
+            home = m["home_team_id"] == spain_id
+            opp = m["away_team_id"] if home else m["home_team_id"]
+            lh, la = goal_means(model, m["home_team_id"], m["away_team_id"])
+            p_home, p_draw, p_away = outcome_probs(lh, la)
+            sg = m["home_goals"] if home else m["away_goals"]
+            og = m["away_goals"] if home else m["home_goals"]
+            oname, otla, ocrest = meta(opp)
+            path.append({
+                "stage": m["stage"], "opponent": oname, "opponent_tla": otla,
+                "opponent_crest": ocrest, "score": f"{sg}–{og}",
+                "result": "V" if sg > og else ("N" if sg == og else "D"),
+                "win_prob": round(p_home if home else p_away, 3),
+            })
+        _write("spain_path.json", path)
 
     _write("model_meta.json", {
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
