@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-03T18:17:17+00:00",
-  "last_ingestion": "2026-08-03T18:14:47+00:00",
+  "generated_at": "2026-08-04T08:34:43+00:00",
+  "last_ingestion": "2026-08-04T08:34:18+00:00",
   "source": "football-data.org",
   "competition": "FIFA World Cup 2026",
   "dbt_nodes_passed": 61,
