@@ -25,7 +25,7 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv sync --frozen --group dbt
+        run: uv sync --frozen --group dbt --group analytics
 
       - name: Run ingestion
         env:
@@ -48,6 +48,12 @@ jobs:
         if: steps.dbt.outcome == 'success'
         continue-on-error: true
         run: uv run python dashboard/scripts/export_marts.py
+
+      - name: Run analytics (Poisson model + title simulation)
+        id: analytics
+        if: steps.export.outcome == 'success'
+        continue-on-error: true
+        run: uv run python -m analytics
 
       - name: Publish raw data and dashboard JSON via auto-merged PR
         # main requires PRs (protect-main ruleset) and the Actions app cannot
@@ -74,10 +80,10 @@ jobs:
             gh pr merge "$BRANCH" --squash --delete-branch
           fi
 
-      - name: Fail if modeling or export broke
-        if: steps.dbt.outcome == 'failure' || steps.export.outcome == 'failure'
+      - name: Fail if modeling, export or analytics broke
+        if: steps.dbt.outcome == 'failure' || steps.export.outcome == 'failure' || steps.analytics.outcome == 'failure'
         run: |
-          echo "dbt=${{ steps.dbt.outcome }} export=${{ steps.export.outcome }}"
+          echo "dbt=${{ steps.dbt.outcome }} export=${{ steps.export.outcome }} analytics=${{ steps.analytics.outcome }}"
           exit 1
 
       - name: Open issue on failure

@@ -1,0 +1,86 @@
+[
+  {
+    "team_id": 760,
+    "team_name": "Spain",
+    "team_tla": "ESP",
+    "crest": "https://crests.football-data.org/760.svg",
+    "title_prob": 0.4613
+  },
+  {
+    "team_id": 805,
+    "team_name": "Belgium",
+    "team_tla": "BEL",
+    "crest": "https://crests.football-data.org/805.svg",
+    "title_prob": 0.0893
+  },
+  {
+    "team_id": 762,
+    "team_name": "Argentina",
+    "team_tla": "ARG",
+    "crest": "https://crests.football-data.org/762.png",
+    "title_prob": 0.0824
+  },
+  {
+    "team_id": 770,
+    "team_name": "England",
+    "team_tla": "ENG",
+    "crest": "https://crests.football-data.org/770.svg",
+    "title_prob": 0.075
+  },
+  {
+    "team_id": 773,
+    "team_name": "France",
+    "team_tla": "FRA",
+    "crest": "https://crests.football-data.org/773.svg",
+    "title_prob": 0.0676
+  },
+  {
+    "team_id": 825,
+    "team_name": "Egypt",
+    "team_tla": "EGY",
+    "crest": "https://crests.football-data.org/825.svg",
+    "title_prob": 0.0526
+  },
+  {
+    "team_id": 765,
+    "team_name": "Portugal",
+    "team_tla": "POR",
+    "crest": "https://crests.football-data.org/765.svg",
+    "title_prob": 0.0331
+  },
+  {
+    "team_id": 815,
+    "team_name": "Morocco",
+    "team_tla": "MAR",
+    "crest": "https://crests.football-data.org/morocco.svg",
+    "title_prob": 0.0221
+  },
+  {
+    "team_id": 1930,
+    "team_name": "Cape Verde Islands",
+    "team_tla": "CPV",
+    "crest": "https://crests.football-data.org/cape_verde.svg",
+    "title_prob": 0.0193
+  },
+  {
+    "team_id": 769,
+    "team_name": "Mexico",
+    "team_tla": "MEX",
+    "crest": "https://crests.football-data.org/769.svg",
+    "title_prob": 0.0175
+  },
+  {
+    "team_id": 763,
+    "team_name": "Ghana",
+    "team_tla": "GHA",
+    "crest": "https://crests.football-data.org/ghana.svg",
+    "title_prob": 0.0172
+  },
+  {
+    "team_id": 764,
+    "team_name": "Brazil",
+    "team_tla": "BRA",
+    "crest": "https://crests.football-data.org/764.svg",
+    "title_prob": 0.0157
+  }
+]

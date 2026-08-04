@@ -1,5 +1,6 @@
 ---
 const nav = [
+  { href: "#analyse", label: "Analyse" },
   { href: "#chiffres", label: "Chiffres" },
   { href: "#buteurs", label: "Buteurs" },
   { href: "#groupes", label: "Groupes" },
@@ -41,14 +42,13 @@ const nav = [
   }
   .nav a:hover { color: var(--ink); }
   .nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--accent); }
-  @media (max-width: 620px) {
+  @media (max-width: 680px) {
+    /* brand on row 1, nav wraps full-width on row 2 */
     .brand__sub { display: none; }
-    .site-header__inner { min-height: 3.25rem; padding-block: 0.7rem; }
+    .site-header__inner { flex-wrap: wrap; min-height: 0; padding-block: 0.6rem; row-gap: 0.35rem; }
     .brand__mark { font-size: 1.3rem; }
-    .nav { gap: 0.85rem; }
-    .nav a { font-size: var(--mono-xs); letter-spacing: 0.02em; }
-  }
-  @media (max-width: 380px) {
-    .nav { gap: 0.6rem; }
+    nav { width: 100%; }
+    .nav { flex-wrap: wrap; gap: 0.5rem 0.95rem; }
+    .nav a { font-size: var(--mono-xs); letter-spacing: 0.02em; padding-block: 0.2rem; }
   }
 </style>

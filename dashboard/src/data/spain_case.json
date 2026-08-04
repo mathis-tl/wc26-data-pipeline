@@ -1,0 +1,17 @@
+{
+  "team_name": "Spain",
+  "crest": "https://crests.football-data.org/760.svg",
+  "rank_overall": 1,
+  "rank_attack": 6,
+  "rank_defense": 1,
+  "n_teams": 48,
+  "goals_for": 14,
+  "xgf": 14.66,
+  "goals_against": 1,
+  "xga": 1.32,
+  "points": 22,
+  "xpoints": 19.84,
+  "performance": 2.16,
+  "title_prob": 0.4613,
+  "title_rank": 1
+}

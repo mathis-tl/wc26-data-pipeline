@@ -8,9 +8,14 @@ import BarChart from "../components/BarChart.astro";
 import StackedBar from "../components/StackedBar.astro";
 import ReconciliationDiagram from "../components/ReconciliationDiagram.astro";
 import TopScorers from "../components/TopScorers.astro";
+import ScatterPlot from "../components/ScatterPlot.astro";
 
 import metrics from "../data/key_metrics.json";
 import topScorers from "../data/top_scorers.json";
+import spainCase from "../data/spain_case.json";
+import teamStrength from "../data/team_strength.json";
+import titleOdds from "../data/title_odds.json";
+import modelMeta from "../data/model_meta.json";
 import groups from "../data/groups.json";
 import bracket from "../data/bracket.json";
 import goalsByStage from "../data/goals_by_stage.json";
@@ -36,6 +41,22 @@ const splitSegs = [
   { label: "Victoire à domicile", value: split.home_wins, tone: "var(--accent)" },
   { label: "Match nul", value: split.draws, tone: "var(--ink-faint)" },
   { label: "Victoire à l'extérieur", value: split.away_wins, tone: "var(--teal)" },
+];
+
+// --- "Did Spain deserve it?" analysis ---
+const pct = (p: number) => Math.round(p * 100);
+const scatterPts = teamStrength.map((t) => ({
+  x: t.attack, y: t.defense, label: t.team_name, tla: t.team_tla,
+  highlight: t.team_name === "Spain", show: t.rank_overall <= 5,
+}));
+const oddsItems = titleOdds.slice(0, 8).map((t) => ({
+  label: t.team_tla ?? t.team_name, value: pct(t.title_prob), display: `${pct(t.title_prob)} %`,
+}));
+const rankBadges = [
+  { v: `#${spainCase.rank_overall}`, l: "force globale" },
+  { v: `#${spainCase.rank_defense}`, l: "défense" },
+  { v: `#${spainCase.rank_attack}`, l: "attaque" },
+  { v: `${pct(spainCase.title_prob)} %`, l: "favorite au départ" },
 ];
 ---
 
@@ -85,6 +106,82 @@ const splitSegs = [
           </div>
         ))}
       </div>
+    </div>
+  </section>
+
+  <!-- ANALYSIS — the flagship: did Spain deserve it? -->
+  <section class="section" id="analyse">
+    <div class="wrap">
+      <p class="eyebrow eyebrow--seq"><span class="seq">/</span> Analyse · le verdict de la donnée</p>
+      <h2 class="h1 analyse__title">L'Espagne méritait-elle son titre&nbsp;?</h2>
+      <p class="lede measure analyse__lede">
+        Championne. Mais était-elle vraiment la meilleure équipe du tournoi&nbsp;?
+        On n'a ni la possession ni les tirs — alors on déduit la <strong>force
+        réelle</strong> de chaque équipe à partir des 104 résultats, avec un modèle
+        statistique corrigé de la qualité des adversaires.
+      </p>
+
+      <div class="rankrow">
+        {rankBadges.map((b) => (
+          <div class="rankbadge">
+            <div class="rankbadge__v display">{b.v}</div>
+            <div class="rankbadge__l mono">{b.l}</div>
+          </div>
+        ))}
+      </div>
+
+      <div class="analyse__block reveal">
+        <h3 class="h3 analyse__h">Forte partout&nbsp;? Presque.</h3>
+        <p class="prose measure analyse__p">
+          Sur le nuage attaque × défense, l'Espagne occupe le coin d'élite&nbsp;:
+          <strong>meilleure défense du tournoi</strong> — un seul but encaissé quand
+          le modèle en attendait {spainCase.xga} — et une attaque de haut niveau,
+          même si l'Angleterre a frappé plus fort devant.
+        </p>
+        <ScatterPlot points={scatterPts} />
+      </div>
+
+      <div class="analyse__block reveal">
+        <h3 class="h3 analyse__h">A-t-elle sur-performé&nbsp;?</h3>
+        <p class="prose measure analyse__p">
+          À peine. L'Espagne a pris <strong>{spainCase.points} points</strong> quand
+          son niveau en promettait <strong>{spainCase.xpoints}</strong> (écart
+          +{spainCase.performance}). Elle a gagné parce qu'elle était forte, pas
+          parce qu'elle a eu de la chance.
+        </p>
+        <div class="xtable mono">
+          <div class="xtable__row xtable__head"><span>&nbsp;</span><span>réel</span><span>attendu</span></div>
+          <div class="xtable__row"><span>Points</span><span class="b">{spainCase.points}</span><span>{spainCase.xpoints}</span></div>
+          <div class="xtable__row"><span>Buts marqués</span><span class="b">{spainCase.goals_for}</span><span>{spainCase.xgf}</span></div>
+          <div class="xtable__row"><span>Buts encaissés</span><span class="b">{spainCase.goals_against}</span><span>{spainCase.xga}</span></div>
+        </div>
+      </div>
+
+      <div class="analyse__block reveal">
+        <h3 class="h3 analyse__h">Favorite, et de loin</h3>
+        <p class="prose measure analyse__p">
+          En rejouant le tournoi <strong>10 000 fois</strong> depuis les 16es avec ce
+          modèle, l'Espagne sort championne <strong>{pct(spainCase.title_prob)} %</strong>
+          du temps — largement en tête. Le favori a gagné.
+        </p>
+        <div class="analyse__chart"><BarChart caption="Probabilité de titre (simulation Monte-Carlo)" unit="%" items={oddsItems} /></div>
+      </div>
+
+      <div class="verdict reveal">
+        <p class="verdict__label mono">Le verdict</p>
+        <p class="verdict__text">
+          Meilleure équipe globale, meilleure défense, favorite à {pct(spainCase.title_prob)} %&nbsp;:
+          <strong>oui, sur le papier, l'Espagne méritait son titre.</strong> Nuance honnête —
+          6e attaque et un léger surplus de réussite (+{spainCase.performance} pts). Une
+          championne solide, pas un hold-up.
+        </p>
+      </div>
+
+      <p class="analyse__method mono">
+        Méthode — modèle de buts (Poisson) ajusté sur {modelMeta.n_matches} résultats.
+        On ne mesure <b>pas</b> la possession, les tirs ni le xG de tracking (absents des
+        données) : les « buts attendus » sont <b>modélisés</b>, pas observés.
+      </p>
     </div>
   </section>
 
@@ -299,6 +396,31 @@ const splitSegs = [
   .sec__lede strong { color: var(--ink); font-weight: 600; }
   .section__head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
   .scorers__src { font-size: var(--mono-xs); color: var(--ink-faint); letter-spacing: 0.04em; }
+
+  /* analysis flagship */
+  .analyse__title { margin-top: 1rem; }
+  .analyse__lede { margin-top: 1.2rem; }
+  .analyse__lede strong, .analyse__p strong { color: var(--ink); font-weight: 600; }
+  .rankrow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; margin-top: 2.2rem; background: var(--line); border: 1px solid var(--line); }
+  .rankbadge { background: var(--paper); padding: 1.1rem 1rem; }
+  .rankbadge__v { font-size: clamp(1.9rem, 5vw, 2.8rem); font-weight: 800; line-height: 1; color: var(--accent); }
+  .rankbadge:first-child .rankbadge__v { color: var(--gold); }
+  .rankbadge__l { margin-top: 0.5rem; font-size: var(--mono-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+  .analyse__block { margin-top: var(--section-gap); }
+  .analyse__h { margin-bottom: 0.7rem; }
+  .analyse__p { margin-bottom: 1.4rem; }
+  .analyse__chart { max-width: 34rem; }
+  .xtable { max-width: 26rem; border-top: 2px solid var(--ink); }
+  .xtable__row { display: grid; grid-template-columns: 1fr 4rem 5rem; gap: 0.5rem; padding: 0.55rem 0; border-bottom: 1px solid var(--line); }
+  .xtable__row span:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+  .xtable__head { font-size: var(--mono-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); }
+  .xtable .b { font-weight: 700; }
+  .verdict { margin-top: var(--section-gap); padding: 1.6rem 1.7rem; background: var(--ink); color: var(--paper-on-accent); max-width: 46rem; }
+  .verdict__label { font-size: var(--mono-xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-bright); margin-bottom: 0.6rem; }
+  .verdict__text { font-size: 1.15rem; line-height: 1.5; }
+  .verdict__text strong { color: #fff; font-weight: 700; }
+  .analyse__method { margin-top: 1.6rem; font-size: var(--mono-xs); color: var(--ink-faint); line-height: 1.6; max-width: 42rem; }
+  @media (max-width: 560px) { .rankrow { grid-template-columns: repeat(2, 1fr); } }
 
   /* charts */
   .charts { margin-top: 2rem; display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(2rem, 5vw, 3.5rem) clamp(2rem, 5vw, 4rem); }

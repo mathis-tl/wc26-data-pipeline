@@ -1,0 +1,49 @@
+---
+// Attack × defense scatter of every team, from the Poisson model. The elite
+// corner (top-right) is strong attack AND strong defense. Spain is highlighted.
+// A genuine analytical view — not something a results app shows.
+interface Pt { x: number; y: number; label: string; tla: string | null; highlight?: boolean; show?: boolean }
+const { points, xLabel = "Attaque →", yLabel = "Défense →" } =
+  Astro.props as { points: Pt[]; xLabel?: string; yLabel?: string };
+
+const xs = points.map((p) => p.x), ys = points.map((p) => p.y);
+const pad = 0.15;
+const xmin = Math.min(...xs) - pad, xmax = Math.max(...xs) + pad;
+const ymin = Math.min(...ys) - pad, ymax = Math.max(...ys) + pad;
+const W = 100, H = 66, m = { l: 4, r: 4, t: 5, b: 6 };
+const sx = (x: number) => m.l + ((x - xmin) / (xmax - xmin)) * (W - m.l - m.r);
+const sy = (y: number) => (H - m.b) - ((y - ymin) / (ymax - ymin)) * (H - m.t - m.b);
+const x0 = sx(0), y0 = sy(0); // average-team reference lines
+---
+
+<figure class="scatter">
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" preserveAspectRatio="xMidYMid meet"
+       aria-label="Nuage de points attaque contre défense des équipes ; l'Espagne se situe dans le coin d'élite (forte attaque et forte défense).">
+    <!-- reference lines at the average team -->
+    <line x1={x0} y1={m.t} x2={x0} y2={H - m.b} class="ref" />
+    <line x1={m.l} y1={y0} x2={W - m.r} y2={y0} class="ref" />
+    <text x={W - m.r} y={y0 - 1} class="axis" text-anchor="end">{xLabel}</text>
+    <text x={x0 + 1.2} y={m.t + 2.5} class="axis">{yLabel}</text>
+    {points.map((p) => (
+      <circle cx={sx(p.x)} cy={sy(p.y)} r={p.highlight ? 1.9 : 1} class:list={["dot", { hi: p.highlight }]} />
+    ))}
+    {points.filter((p) => p.show || p.highlight).map((p) => (
+      <text x={sx(p.x) + 2.2} y={sy(p.y) + 0.9} class:list={["lbl", { hi: p.highlight }]}>{p.tla ?? p.label}</text>
+    ))}
+  </svg>
+  <figcaption class="scatter__cap mono">
+    Chaque point = une équipe · position = force d'attaque et de défense estimées (modèle) · lignes = l'équipe moyenne
+  </figcaption>
+</figure>
+
+<style>
+  .scatter { margin: 0; }
+  .scatter svg { width: 100%; height: auto; display: block; background: var(--paper-raised); border: 1px solid var(--line); }
+  .ref { stroke: var(--line-strong); stroke-width: 0.15; stroke-dasharray: 0.6 0.6; }
+  .axis { font-family: var(--mono); font-size: 1.7px; fill: var(--ink-faint); letter-spacing: 0.02em; }
+  .dot { fill: var(--ink-faint); opacity: 0.5; }
+  .dot.hi { fill: var(--gold); opacity: 1; stroke: var(--ink); stroke-width: 0.25; }
+  .lbl { font-family: var(--mono); font-size: 1.7px; fill: var(--ink-soft); }
+  .lbl.hi { fill: var(--ink); font-weight: 700; }
+  .scatter__cap { margin-top: 0.55rem; font-size: var(--mono-xs); color: var(--ink-faint); line-height: 1.5; }
+</style>
