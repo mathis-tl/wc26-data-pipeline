@@ -206,8 +206,17 @@ def run() -> None:
                 "opponent_crest": ocrest, "score": f"{sg}–{og}",
                 "result": "V" if sg > og else ("N" if sg == og else "D"),
                 "win_prob": round(p_home if home else p_away, 3),
+                "model_xg_for": round(lh if home else la, 2),
+                "model_xg_against": round(la if home else lh, 2),
             })
         _write("spain_path.json", path)
+
+        # Merge real SofaScore stats (source #2), reconciled by chronology
+        from analytics.real_stats import load_spain_real
+        real_rows, final_shots = load_spain_real(path)
+        if real_rows is not None:
+            _write("spain_real.json", real_rows)
+            _write("spain_final_shots.json", final_shots)
 
     _write("model_meta.json", {
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),

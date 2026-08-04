@@ -1,0 +1,181 @@
+{
+  "opponent": "Argentina",
+  "shots": [
+    {
+      "x": 9.2,
+      "y": 52.4,
+      "xg": 0.196,
+      "goal": false,
+      "spain": false,
+      "player": "Giuliano Simeone"
+    },
+    {
+      "x": 20,
+      "y": 67.9,
+      "xg": 0.027,
+      "goal": false,
+      "spain": false,
+      "player": "Lionel Messi"
+    },
+    {
+      "x": 8.8,
+      "y": 43.8,
+      "xg": 0.255,
+      "goal": true,
+      "spain": true,
+      "player": "Ferran Torres"
+    },
+    {
+      "x": 26.2,
+      "y": 43.2,
+      "xg": 0.035,
+      "goal": false,
+      "spain": true,
+      "player": "Nico Williams"
+    },
+    {
+      "x": 7.5,
+      "y": 49.3,
+      "xg": 0.255,
+      "goal": false,
+      "spain": true,
+      "player": "Mikel Merino"
+    },
+    {
+      "x": 21.9,
+      "y": 67.7,
+      "xg": 0.017,
+      "goal": false,
+      "spain": true,
+      "player": "Lamine Yamal"
+    },
+    {
+      "x": 7.6,
+      "y": 48.9,
+      "xg": 0.476,
+      "goal": false,
+      "spain": true,
+      "player": "Nico Williams"
+    },
+    {
+      "x": 24,
+      "y": 47,
+      "xg": 0.075,
+      "goal": false,
+      "spain": true,
+      "player": "Lamine Yamal"
+    },
+    {
+      "x": 15.8,
+      "y": 70.6,
+      "xg": 0.055,
+      "goal": false,
+      "spain": true,
+      "player": "Nico Williams"
+    },
+    {
+      "x": 28.2,
+      "y": 54.8,
+      "xg": 0.034,
+      "goal": false,
+      "spain": true,
+      "player": "Rodri"
+    },
+    {
+      "x": 11.7,
+      "y": 59.9,
+      "xg": 0.16,
+      "goal": false,
+      "spain": true,
+      "player": "Ferran Torres"
+    },
+    {
+      "x": 6.7,
+      "y": 44.8,
+      "xg": 0.093,
+      "goal": false,
+      "spain": true,
+      "player": "Aymeric Laporte"
+    },
+    {
+      "x": 21.5,
+      "y": 72,
+      "xg": 0.029,
+      "goal": false,
+      "spain": true,
+      "player": "Pau Cubarsí"
+    },
+    {
+      "x": 18.2,
+      "y": 46.4,
+      "xg": 0.045,
+      "goal": false,
+      "spain": true,
+      "player": "Pedri"
+    },
+    {
+      "x": 8.1,
+      "y": 55,
+      "xg": 0.264,
+      "goal": false,
+      "spain": true,
+      "player": "Ferran Torres"
+    },
+    {
+      "x": 5.2,
+      "y": 53.4,
+      "xg": 0.142,
+      "goal": false,
+      "spain": true,
+      "player": "Dani Olmo"
+    },
+    {
+      "x": 24.3,
+      "y": 52.1,
+      "xg": 0.046,
+      "goal": false,
+      "spain": true,
+      "player": "Dani Olmo"
+    },
+    {
+      "x": 23.6,
+      "y": 73.5,
+      "xg": 0.035,
+      "goal": false,
+      "spain": true,
+      "player": "Lamine Yamal"
+    },
+    {
+      "x": 20,
+      "y": 40.1,
+      "xg": 0.077,
+      "goal": false,
+      "spain": true,
+      "player": "Alex Baena"
+    },
+    {
+      "x": 20,
+      "y": 25.6,
+      "xg": 0.029,
+      "goal": false,
+      "spain": true,
+      "player": "Marc Cucurella"
+    },
+    {
+      "x": 18.9,
+      "y": 54,
+      "xg": 0.062,
+      "goal": false,
+      "spain": true,
+      "player": "Mikel Oyarzabal"
+    },
+    {
+      "x": 6.4,
+      "y": 67.7,
+      "xg": 0.1,
+      "goal": false,
+      "spain": true,
+      "player": "Lamine Yamal"
+    }
+  ]
+}
