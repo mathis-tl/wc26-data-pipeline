@@ -21,6 +21,11 @@ dbt = [
     "dbt-core>=1.10",
     "dbt-duckdb>=1.9",
 ]
+analytics = [
+    "numpy>=2.0",
+    "scipy>=1.13",
+    "duckdb>=1.1",
+]
 
 [tool.ruff]
 line-length = 100
