@@ -48,6 +48,7 @@ html { scroll-behavior: smooth; }
 
   /* — measure & rhythm — */
   --measure: 40rem;
+  --wide-fig: 52rem; /* the one deliberate breakout width, for figures that need real room (7-column heatmap) */
   --wide:    72rem;
   --gutter:  clamp(1.15rem, 5vw, 3.5rem);
   --section-gap: clamp(3.5rem, 8vw, 6.5rem);
@@ -79,7 +80,8 @@ h1, h2, h3, p, figure, ul, ol { margin: 0; }
   font-variant-numeric: tabular-nums;
 }
 
-/* — eyebrow / section label: mono, spaced, quiet — */
+/* — eyebrow / section label: mono, spaced, quiet — one marker, everywhere: the
+   orange "/" (an explicit span in markup), never a decorative rule. — */
 .eyebrow {
   font-family: var(--mono);
   font-size: var(--mono-sm);
@@ -90,13 +92,6 @@ h1, h2, h3, p, figure, ul, ol { margin: 0; }
   align-items: center;
   gap: 0.75rem;
 }
-.eyebrow::before {
-  content: "";
-  width: 1.6rem;
-  height: 1px;
-  background: var(--line-strong);
-}
-.eyebrow--seq::before { content: none; }
 .eyebrow .seq { color: var(--accent); }
 
 /* — layout containers — */

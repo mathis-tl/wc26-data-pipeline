@@ -4,13 +4,18 @@ interface Team { team_name: string; team_tla: string | null; crest: string | nul
 const { levels, teams } = Astro.props as { levels: string[]; teams: Team[] };
 const cell = (p: number) => `background: color-mix(in srgb, var(--accent) ${Math.round(p * 100)}%, var(--paper))`;
 const fg = (p: number) => (p > 0.55 ? "var(--paper-on-accent)" : "var(--ink-soft)");
+/* On a 390px phone, 6 round columns don't fit. Rather than an unlabeled
+   horizontal scroll that silently hides "Titre" (the essay's punchline
+   number), drop the two least load-bearing rounds — matching the real
+   mobile redesigns already given to every other table on the page. */
+const hideOnMobile = new Set([1, 3]); // "8es", "Demies"
 ---
 
 <figure class="heat">
   <div class="heat__grid" role="table" aria-label="Probabilité d'atteindre chaque tour, par équipe">
     <div class="heat__row heat__head mono" role="row">
       <span class="heat__team" role="columnheader">Équipe</span>
-      {levels.map((l) => <span class="heat__cell" role="columnheader">{l}</span>)}
+      {levels.map((l, i) => <span class:list={["heat__cell", { "hide-sm": hideOnMobile.has(i) }]} role="columnheader">{l}</span>)}
     </div>
     {teams.map((t) => (
       <div class:list={["heat__row", { hi: t.team_name === "Spain" }]} role="row">
@@ -18,8 +23,8 @@ const fg = (p: number) => (p > 0.55 ? "var(--paper-on-accent)" : "var(--ink-soft
           <Crest url={t.crest} tla={t.team_tla} size={16} />
           <span class="heat__tla mono">{t.team_tla ?? t.team_name}</span>
         </span>
-        {t.reach.map((p) => (
-          <span class="heat__cell mono" style={`${cell(p)}; color:${fg(p)}`}>{Math.round(p * 100)}</span>
+        {t.reach.map((p, i) => (
+          <span class:list={["heat__cell", "mono", { "hide-sm": hideOnMobile.has(i) }]} style={`${cell(p)}; color:${fg(p)}`}>{Math.round(p * 100)}</span>
         ))}
       </div>
     ))}
@@ -30,7 +35,7 @@ const fg = (p: number) => (p > 0.55 ? "var(--paper-on-accent)" : "var(--ink-soft
 </figure>
 
 <style>
-  .heat { margin: 0; overflow-x: auto; }
+  .heat { margin: 0; max-width: var(--wide-fig); overflow-x: auto; }
   .heat__grid { min-width: 34rem; }
   .heat__row { display: grid; grid-template-columns: 6.5rem repeat(6, 1fr); gap: 2px; margin-bottom: 2px; align-items: center; }
   .heat__head { margin-bottom: 0.4rem; }
@@ -41,4 +46,11 @@ const fg = (p: number) => (p > 0.55 ? "var(--paper-on-accent)" : "var(--ink-soft
   .heat__row.hi .heat__tla { color: var(--ink); font-weight: 700; }
   .heat__row.hi .heat__cell { outline: 1px solid var(--gold); outline-offset: -1px; }
   .heat__cap { margin-top: 0.7rem; font-size: var(--mono-xs); color: var(--ink-faint); line-height: 1.5; }
+  /* 4 columns (Entrée/Quarts/Finale/Titre) fit a phone outright — no scroll needed */
+  @media (max-width: 560px) {
+    .heat { overflow-x: visible; }
+    .heat__grid { min-width: 0; }
+    .heat__row { grid-template-columns: 5rem repeat(4, 1fr); }
+    .heat__cell.hide-sm { display: none; }
+  }
 </style>
