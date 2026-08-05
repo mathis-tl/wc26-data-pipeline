@@ -55,6 +55,9 @@ def run() -> None:
                home_team_id, home_team_name, full_time_home_goals as home_goals,
                away_team_id, away_team_name, full_time_away_goals as away_goals
         from main.fct_matches
+        order by match_id  -- deterministic row order: the MLE fit sums in this
+                           -- order, so identical data yields identical ratings
+                           -- run to run (DuckDB gives no order without this)
         """,
     )
     teams_meta = {

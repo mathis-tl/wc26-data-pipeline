@@ -130,7 +130,7 @@
     "team_name": "France",
     "team_tla": "FRA",
     "crest": "https://crests.football-data.org/773.svg",
-    "attack": 0.756,
+    "attack": 0.757,
     "defense": 0.333,
     "rating": 1.09,
     "rank_overall": 7,
@@ -153,7 +153,7 @@
     "crest": "https://crests.football-data.org/cape_verde.svg",
     "attack": 0.528,
     "defense": 0.527,
-    "rating": 1.054,
+    "rating": 1.055,
     "rank_overall": 8,
     "rank_attack": 16,
     "rank_defense": 8,
@@ -194,7 +194,7 @@
     "team_tla": "IRN",
     "crest": "https://crests.football-data.org/iran.svg",
     "attack": -0.112,
-    "defense": 1.017,
+    "defense": 1.016,
     "rating": 0.905,
     "rank_overall": 10,
     "rank_attack": 31,
@@ -249,7 +249,7 @@
     "points": 10,
     "xpoints": 10.54,
     "performance": -0.54,
-    "sos": -0.047
+    "sos": -0.046
   },
   {
     "team_id": 815,
@@ -299,7 +299,7 @@
     "team_tla": "MEX",
     "crest": "https://crests.football-data.org/769.svg",
     "attack": 0.257,
-    "defense": 0.471,
+    "defense": 0.47,
     "rating": 0.728,
     "rank_overall": 15,
     "rank_attack": 22,
@@ -312,7 +312,7 @@
     "points": 12,
     "xpoints": 11.39,
     "performance": 0.61,
-    "sos": -0.783
+    "sos": -0.784
   },
   {
     "team_id": 818,
@@ -375,7 +375,7 @@
     "points": 4,
     "xpoints": 4.47,
     "performance": -0.47,
-    "sos": 0.235
+    "sos": 0.234
   },
   {
     "team_id": 1934,
@@ -550,7 +550,7 @@
     "team_name": "Algeria",
     "team_tla": "ALG",
     "crest": "https://crests.football-data.org/algeria.svg",
-    "attack": 0.128,
+    "attack": 0.129,
     "defense": -0.148,
     "rating": -0.019,
     "rank_overall": 27,
@@ -585,7 +585,7 @@
     "points": 4,
     "xpoints": 4.67,
     "performance": -0.67,
-    "sos": 0.058
+    "sos": 0.057
   },
   {
     "team_id": 801,
@@ -782,7 +782,7 @@
     "team_tla": "KOR",
     "crest": "https://crests.football-data.org/772.png",
     "attack": -0.905,
-    "defense": -0.101,
+    "defense": -0.102,
     "rating": -1.006,
     "rank_overall": 38,
     "rank_attack": 42,
@@ -802,9 +802,9 @@
     "team_name": "South Africa",
     "team_tla": "RSA",
     "crest": "https://crests.football-data.org/9396.svg",
-    "attack": -1.059,
+    "attack": -1.06,
     "defense": -0.013,
-    "rating": -1.072,
+    "rating": -1.073,
     "rank_overall": 39,
     "rank_attack": 44,
     "rank_defense": 23,
@@ -866,7 +866,7 @@
     "team_tla": "IRQ",
     "crest": "https://crests.football-data.org/iraq.svg",
     "attack": -1.003,
-    "defense": -0.441,
+    "defense": -0.442,
     "rating": -1.445,
     "rank_overall": 42,
     "rank_attack": 43,
@@ -888,7 +888,7 @@
     "crest": "https://crests.football-data.org/798.svg",
     "attack": -0.426,
     "defense": -1.046,
-    "rating": -1.472,
+    "rating": -1.473,
     "rank_overall": 43,
     "rank_attack": 35,
     "rank_defense": 47,
@@ -928,7 +928,7 @@
     "team_name": "Ecuador",
     "team_tla": "ECU",
     "crest": "https://crests.football-data.org/791.svg",
-    "attack": -1.759,
+    "attack": -1.758,
     "defense": 0.09,
     "rating": -1.668,
     "rank_overall": 45,
@@ -972,7 +972,7 @@
     "crest": "https://crests.football-data.org/panama.svg",
     "attack": -2.433,
     "defense": 0.469,
-    "rating": -1.963,
+    "rating": -1.964,
     "rank_overall": 47,
     "rank_attack": 48,
     "rank_defense": 10,

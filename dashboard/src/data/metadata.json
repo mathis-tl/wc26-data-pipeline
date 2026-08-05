@@ -1,9 +1,13 @@
 {
-  "generated_at": "2026-08-05T08:34:13+00:00",
+  "generated_at": "2026-08-05T12:39:44+00:00",
   "last_ingestion": "2026-08-05T08:33:44+00:00",
   "source": "football-data.org",
   "competition": "FIFA World Cup 2026",
-  "dbt_nodes_passed": 61,
-  "dbt_nodes_total": 61,
-  "reconciliation": "48/48"
+  "dbt_nodes_passed": 67,
+  "dbt_nodes_total": 67,
+  "reconciliation": "48/48",
+  "ops": {
+    "runs_total": 0,
+    "runs_ok": 0
+  }
 }
