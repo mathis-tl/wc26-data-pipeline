@@ -12,6 +12,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from ingestion.client import FootballDataClient
+from ingestion.schemas import validate_rows
 from ingestion.storage import (
     matches_to_rows,
     scorers_to_rows,
@@ -35,21 +36,23 @@ def main() -> int:
         standings_payload = client.fetch_standings()
         scorers_payload = client.fetch_scorers()
 
+    # Schema contracts run between fetch and write: a missing or retyped core
+    # field fails the run here, at the boundary, before anything is archived.
     written = [
         write_raw_parquet(
-            matches_to_rows(matches_payload),
+            validate_rows(matches_to_rows(matches_payload), dataset="matches"),
             dataset="matches",
             root=RAW_ROOT,
             extracted_at=extracted_at,
         ),
         write_raw_parquet(
-            standings_to_rows(standings_payload),
+            validate_rows(standings_to_rows(standings_payload), dataset="standings"),
             dataset="standings",
             root=RAW_ROOT,
             extracted_at=extracted_at,
         ),
         write_raw_parquet(
-            scorers_to_rows(scorers_payload),
+            validate_rows(scorers_to_rows(scorers_payload), dataset="scorers"),
             dataset="scorers",
             root=RAW_ROOT,
             extracted_at=extracted_at,
