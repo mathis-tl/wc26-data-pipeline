@@ -12,7 +12,7 @@ const { file, lang = "" } = Astro.props as { file: string; lang?: string };
 </figure>
 
 <style>
-  .code { margin: 0; border: 1px solid var(--accent-deep); background: var(--ink); }
+  .code { margin: 0 auto; max-width: var(--wide-fig); border: 1px solid var(--accent-deep); background: var(--ink); }
   .code__bar { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.9rem; border-bottom: 1px solid #2a2620; color: rgba(246,239,230,0.65); font-size: var(--mono-xs); letter-spacing: 0.04em; }
   .code__file { color: var(--gold-bright); }
   .code__lang { text-transform: uppercase; }

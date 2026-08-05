@@ -7,7 +7,7 @@ import { stamp } from "../lib/format";
 <footer class="site-footer">
   <div class="wrap site-footer__inner">
     <div class="site-footer__col">
-      <p class="eyebrow eyebrow--seq">Données</p>
+      <p class="eyebrow"><span class="seq">/</span> Données</p>
       <ul class="fnlist mono">
         {SITE.dataSources.map((s) => (
           <li><a href={s.url} rel="noopener">{s.name}</a>, {s.role}</li>
@@ -16,14 +16,14 @@ import { stamp } from "../lib/format";
       </ul>
     </div>
     <div class="site-footer__col">
-      <p class="eyebrow eyebrow--seq">Projet</p>
+      <p class="eyebrow"><span class="seq">/</span> Projet</p>
       <ul class="fnlist mono">
         <li><a href={SITE.repo} rel="noopener">Code source (GitHub)</a></li>
         <li>{SITE.stack.join(" · ")}</li>
       </ul>
     </div>
     <div class="site-footer__col">
-      <p class="eyebrow eyebrow--seq">Illustrations</p>
+      <p class="eyebrow"><span class="seq">/</span> Illustrations</p>
       <ul class="fnlist mono">
         <li>Schémas dessinés en CSS</li>
         <li class="pending">Crédits photos à compléter</li>

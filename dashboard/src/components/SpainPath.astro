@@ -23,7 +23,7 @@ const { path } = Astro.props as { path: Step[] };
 </ol>
 
 <style>
-  .path { list-style: none; margin: 0; padding: 0; max-width: var(--measure); border-top: 1px solid var(--line); }
+  .path { list-style: none; margin: 0 auto; padding: 0; max-width: var(--measure); border-top: 1px solid var(--line); }
   .path__step { display: grid; grid-template-columns: 6rem minmax(0, 1fr) 2.6rem minmax(4rem, 8rem) 2.8rem; gap: 0.7rem; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid var(--line); }
   .path__stage { font-size: var(--mono-xs); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); }
   .path__opp { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
