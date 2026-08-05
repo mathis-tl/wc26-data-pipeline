@@ -22,10 +22,10 @@ from scipy.stats import poisson
 
 @dataclass
 class PoissonModel:
-    teams: list[int]                 # team ids, in index order
+    teams: list[int]  # team ids, in index order
     names: dict[int, str]
-    attack: dict[int, float]         # higher = scores more
-    defense: dict[int, float]        # higher = concedes fewer
+    attack: dict[int, float]  # higher = scores more
+    defense: dict[int, float]  # higher = concedes fewer
     home_adv: float
     ridge: float
 
@@ -41,7 +41,8 @@ def fit(matches: list[dict], ridge: float = 0.05) -> PoissonModel:
     home_team_name, away_team_name. Rows with missing goals are ignored.
     """
     rows = [
-        m for m in matches
+        m
+        for m in matches
         if m.get("home_team_id") is not None
         and m.get("away_team_id") is not None
         and m.get("home_goals") is not None
@@ -61,7 +62,7 @@ def fit(matches: list[dict], ridge: float = 0.05) -> PoissonModel:
     ga = np.array([m["away_goals"] for m in rows], dtype=float)
 
     def unpack(theta):
-        return theta[:n], theta[n:2 * n], theta[2 * n]
+        return theta[:n], theta[n : 2 * n], theta[2 * n]
 
     def nll(theta):
         att, dfn, hadv = unpack(theta)
@@ -69,7 +70,7 @@ def fit(matches: list[dict], ridge: float = 0.05) -> PoissonModel:
         eta_a = att[a] - dfn[h]
         # Poisson negative log-likelihood (constant log(g!) dropped) + L2 ridge
         loss = np.sum(np.exp(eta_h) - gh * eta_h) + np.sum(np.exp(eta_a) - ga * eta_a)
-        loss += ridge * (np.sum(att ** 2) + np.sum(dfn ** 2))
+        loss += ridge * (np.sum(att**2) + np.sum(dfn**2))
         return loss
 
     theta0 = np.zeros(2 * n + 1)
@@ -88,7 +89,9 @@ def fit(matches: list[dict], ridge: float = 0.05) -> PoissonModel:
     )
 
 
-def goal_means(model: PoissonModel, home_id: int, away_id: int, neutral: bool = False) -> tuple[float, float]:
+def goal_means(
+    model: PoissonModel, home_id: int, away_id: int, neutral: bool = False
+) -> tuple[float, float]:
     """Expected goals for (home, away). Set neutral=True for knockout venues."""
     hadv = 0.0 if neutral else model.home_adv
     lam_home = np.exp(hadv + model.attack[home_id] - model.defense[away_id])
@@ -102,7 +105,9 @@ def score_matrix(lam_home: float, lam_away: float, max_goals: int = 10) -> np.nd
     return np.outer(ph, pa)
 
 
-def outcome_probs(lam_home: float, lam_away: float, max_goals: int = 10) -> tuple[float, float, float]:
+def outcome_probs(
+    lam_home: float, lam_away: float, max_goals: int = 10
+) -> tuple[float, float, float]:
     """(P home win, P draw, P away win). Normalised so the three sum to 1
     (the score grid is truncated at max_goals, dropping a tiny tail)."""
     m = score_matrix(lam_home, lam_away, max_goals)

@@ -12,7 +12,7 @@ auto-merged PR as the raw archive.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import duckdb
@@ -55,7 +55,7 @@ def _write(name: str, payload) -> None:
 def _rows(con: duckdb.DuckDBPyConnection, sql: str) -> list[dict]:
     cur = con.execute(sql)
     cols = [c[0] for c in cur.description]
-    return [dict(zip(cols, r)) for r in cur.fetchall()]
+    return [dict(zip(cols, r, strict=True)) for r in cur.fetchall()]
 
 
 def _dbt_test_counts() -> tuple[int, int]:
@@ -188,8 +188,7 @@ def export() -> None:
     for row in standings:
         groups.setdefault(row["group_code"], []).append(row)
     groups_payload = [
-        {"group_code": code, "standings": rows}
-        for code, rows in sorted(groups.items())
+        {"group_code": code, "standings": rows} for code, rows in sorted(groups.items())
     ]
     _write("groups.json", groups_payload)
 
@@ -231,13 +230,28 @@ def export() -> None:
         group by stage
         """,
     )
-    order = {s: i for i, s in enumerate(
-        ["GROUP_STAGE", "LAST_32", "LAST_16", "QUARTER_FINALS",
-         "SEMI_FINALS", "THIRD_PLACE", "FINAL"])}
+    order = {
+        s: i
+        for i, s in enumerate(
+            [
+                "GROUP_STAGE",
+                "LAST_32",
+                "LAST_16",
+                "QUARTER_FINALS",
+                "SEMI_FINALS",
+                "THIRD_PLACE",
+                "FINAL",
+            ]
+        )
+    }
     stage_fr = {
-        "GROUP_STAGE": "Groupes", "LAST_32": "16es", "LAST_16": "8es",
-        "QUARTER_FINALS": "Quarts", "SEMI_FINALS": "Demies",
-        "THIRD_PLACE": "3e place", "FINAL": "Finale",
+        "GROUP_STAGE": "Groupes",
+        "LAST_32": "16es",
+        "LAST_16": "8es",
+        "QUARTER_FINALS": "Quarts",
+        "SEMI_FINALS": "Demies",
+        "THIRD_PLACE": "3e place",
+        "FINAL": "Finale",
     }
     goals_by_stage = [
         {**r, "label": stage_fr.get(r["stage"], r["stage"])}
@@ -292,7 +306,8 @@ def export() -> None:
             "crest": f["home_crest"] if won_home else f["away_crest"],
             "runner_up": f["away_team_name"] if won_home else f["home_team_name"],
             "final_score": f"{f['full_time_home_goals']}–{f['full_time_away_goals']}"
-            if won_home else f"{f['full_time_away_goals']}–{f['full_time_home_goals']}",
+            if won_home
+            else f"{f['full_time_away_goals']}–{f['full_time_home_goals']}",
         }
     _write("champion.json", {"final": final_rows[0] if final_rows else None, "champion": champion})
 
@@ -310,15 +325,12 @@ def export() -> None:
     _write("top_scorers.json", top_scorers)
 
     # --- metadata / freshness banner ---
-    last_ingestion = con.execute(
-        "select max(extracted_at) from main.stg_matches"
-    ).fetchone()[0]
+    freshness_row = con.execute("select max(extracted_at) from main.stg_matches").fetchone()
+    last_ingestion = freshness_row[0] if freshness_row else None
     passed, total = _dbt_test_counts()
     metadata = {
-        "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "last_ingestion": last_ingestion.astimezone(timezone.utc).isoformat(
-            timespec="seconds"
-        )
+        "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
+        "last_ingestion": last_ingestion.astimezone(UTC).isoformat(timespec="seconds")
         if last_ingestion
         else None,
         "source": SOURCE,

@@ -1,13 +1,13 @@
 """Tests for the raw Parquet writer — layout, idempotence, row counts."""
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pyarrow.parquet as pq
 
 from ingestion.storage import matches_to_rows, standings_to_rows, write_raw_parquet
 
-EXTRACTED_AT = datetime(2026, 7, 10, 6, 0, 0, tzinfo=timezone.utc)
+EXTRACTED_AT = datetime(2026, 7, 10, 6, 0, 0, tzinfo=UTC)
 
 MATCHES_PAYLOAD = {
     "competition": {"code": "WC"},
@@ -60,7 +60,7 @@ def test_rerun_same_day_replaces_file_idempotently(tmp_path):
     rows = matches_to_rows(MATCHES_PAYLOAD)
     first = write_raw_parquet(rows, dataset="matches", root=tmp_path, extracted_at=EXTRACTED_AT)
     second = write_raw_parquet(rows, dataset="matches", root=tmp_path, extracted_at=EXTRACTED_AT)
-    assert first == second
+    assert first is not None and first == second
     partition_dir = first.parent
     assert [p.name for p in partition_dir.iterdir()] == ["matches.parquet"]
     assert pq.read_metadata(first).num_rows == 2
@@ -73,9 +73,9 @@ def test_different_days_land_in_different_partitions(tmp_path):
         rows,
         dataset="matches",
         root=tmp_path,
-        extracted_at=datetime(2026, 7, 11, 6, 0, 0, tzinfo=timezone.utc),
+        extracted_at=datetime(2026, 7, 11, 6, 0, 0, tzinfo=UTC),
     )
-    assert day1 != day2
+    assert day1 is not None and day2 is not None and day1 != day2
     assert day1.parent.name == "extraction_date=2026-07-10"
     assert day2.parent.name == "extraction_date=2026-07-11"
 

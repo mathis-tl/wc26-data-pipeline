@@ -6,7 +6,7 @@ them as Parquet in data/raw/, partitioned by extraction date.
 
 import logging
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -26,10 +26,8 @@ RAW_ROOT = Path("data/raw")
 
 def main() -> int:
     load_dotenv()
-    logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s"
-    )
-    extracted_at = datetime.now(timezone.utc)
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+    extracted_at = datetime.now(UTC)
     logger.info("ingestion run starting (extracted_at=%s)", extracted_at.isoformat())
 
     with FootballDataClient() as client:
@@ -57,7 +55,11 @@ def main() -> int:
             extracted_at=extracted_at,
         ),
     ]
-    logger.info("ingestion run done: %d/%d datasets written", sum(p is not None for p in written), len(written))
+    logger.info(
+        "ingestion run done: %d/%d datasets written",
+        sum(p is not None for p in written),
+        len(written),
+    )
     return 0
 
 

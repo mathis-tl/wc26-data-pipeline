@@ -59,7 +59,8 @@ def run() -> None:
         # 1 request — Spain's recent matches (all competitions), filter to WC 2026
         events = _get(client, f"/team/{spain_id}/events/last/0")["events"]
         wc = [
-            e for e in events
+            e
+            for e in events
             if e.get("tournament", {}).get("uniqueTournament", {}).get("id") == WC_UNIQUE_TOURNAMENT
             and e.get("season", {}).get("id") == WC_2026_SEASON
         ]
@@ -70,7 +71,7 @@ def run() -> None:
         for e in wc:
             eid = e["id"]
             rnd = e.get("roundInfo", {}).get("name", "")
-            stats[eid] = _get(client, f"/event/{eid}/statistics")   # xG, possession, shots
+            stats[eid] = _get(client, f"/event/{eid}/statistics")  # xG, possession, shots
             if rnd in KNOCKOUT_ROUNDS:
                 shots[eid] = _get(client, f"/event/{eid}/shotmap")  # per-shot xG
         (OUT / "spain_statistics.json").write_text(json.dumps(stats, ensure_ascii=False, indent=2))

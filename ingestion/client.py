@@ -64,9 +64,7 @@ def _wait_respecting_retry_after(retry_state) -> float:
     exc = retry_state.outcome.exception() if retry_state.outcome else None
     if isinstance(exc, RateLimitedError) and exc.retry_after_s is not None:
         return min(exc.retry_after_s, client.max_backoff_s)
-    return wait_exponential(multiplier=client.backoff_base_s, max=client.max_backoff_s)(
-        retry_state
-    )
+    return wait_exponential(multiplier=client.backoff_base_s, max=client.max_backoff_s)(retry_state)
 
 
 class FootballDataClient:

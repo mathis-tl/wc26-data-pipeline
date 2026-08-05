@@ -43,27 +43,36 @@ def load_spain_real(spain_path: list[dict]):
     events.sort(key=lambda e: e.get("startTimestamp", 0))
 
     rows = []
-    for e, step in zip(events, spain_path):
+    # strict: one stats payload per path step is the reconciliation invariant —
+    # a length mismatch means the two sources diverged and must fail loudly.
+    for e, step in zip(events, spain_path, strict=True):
         eid = str(e["id"])
         spain_home = e["homeTeam"]["name"] == "Spain"
         st = stats.get(eid)
         groups = st["statistics"][0]["groups"] if st else []
 
-        def side(name, mine=True):
+        def side(name, mine=True, *, groups=groups, spain_home=spain_home):
             it = _find(groups, name)
             if not it:
                 return None
             want_home = spain_home if mine else (not spain_home)
             return _num(it["home"] if want_home else it["away"])
 
-        rows.append({
-            "stage": step["stage"], "opponent": step["opponent"], "score": step["score"],
-            "possession": side("Ball possession"),
-            "xg_for": side("Expected goals"), "xg_against": side("Expected goals", mine=False),
-            "model_xg_for": step.get("model_xg_for"), "model_xg_against": step.get("model_xg_against"),
-            "shots": side("Total shots"), "sot": side("Shots on target"),
-            "big_chances": side("Big chances"),
-        })
+        rows.append(
+            {
+                "stage": step["stage"],
+                "opponent": step["opponent"],
+                "score": step["score"],
+                "possession": side("Ball possession"),
+                "xg_for": side("Expected goals"),
+                "xg_against": side("Expected goals", mine=False),
+                "model_xg_for": step.get("model_xg_for"),
+                "model_xg_against": step.get("model_xg_against"),
+                "shots": side("Total shots"),
+                "sot": side("Shots on target"),
+                "big_chances": side("Big chances"),
+            }
+        )
 
     # final shot map (last chronological event) — pitch coords + per-shot xG
     final_ev = events[-1]
@@ -72,11 +81,14 @@ def load_spain_real(spain_path: list[dict]):
     shotmap = []
     for s in fs.get("shotmap", []):
         coord = s.get("playerCoordinates") or {}
-        shotmap.append({
-            "x": coord.get("x"), "y": coord.get("y"),
-            "xg": round(_num(s.get("xg")) or 0.0, 3),
-            "goal": s.get("shotType") == "goal",
-            "spain": s.get("isHome") == spain_home,
-            "player": s.get("player", {}).get("name"),
-        })
+        shotmap.append(
+            {
+                "x": coord.get("x"),
+                "y": coord.get("y"),
+                "xg": round(_num(s.get("xg")) or 0.0, 3),
+                "goal": s.get("shotType") == "goal",
+                "spain": s.get("isHome") == spain_home,
+                "player": s.get("player", {}).get("name"),
+            }
+        )
     return rows, {"opponent": spain_path[-1]["opponent"], "shots": shotmap}

@@ -16,10 +16,15 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv sync --frozen --group dbt
+        run: uv sync --frozen --group dbt --group analytics
 
       - name: Lint
-        run: uv run ruff check .
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+
+      - name: Type check
+        run: uv run pyright
 
       - name: Unit tests
         run: uv run pytest -q

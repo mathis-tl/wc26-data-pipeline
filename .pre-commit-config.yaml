@@ -1,0 +1,15 @@
+# Local hooks only — everything runs through uv, no network-installed hook envs,
+# so pre-commit and CI exercise exactly the same toolchain and versions.
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check --fix
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types: [python]

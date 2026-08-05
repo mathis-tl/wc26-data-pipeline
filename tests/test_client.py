@@ -11,6 +11,7 @@ from ingestion.client import (
     BASE_URL,
     FootballDataClient,
     MissingAPIKeyError,
+    RateLimitedError,
     count_matches,
     count_scorers,
     count_standings_rows,
@@ -83,7 +84,9 @@ def test_fetch_standings_returns_payload_and_logs_row_count(caplog):
 
 @respx.mock
 def test_fetch_scorers_returns_payload_and_logs_row_count(caplog):
-    payload = {"scorers": [{"player": {"name": "X"}, "goals": 5}, {"player": {"name": "Y"}, "goals": 3}]}
+    payload = {
+        "scorers": [{"player": {"name": "X"}, "goals": 5}, {"player": {"name": "Y"}, "goals": 3}]
+    }
     route = respx.get(SCORERS_URL).mock(return_value=httpx.Response(200, json=payload))
     with make_client() as client, caplog.at_level(logging.INFO, logger="ingestion.client"):
         result = client.fetch_scorers()
@@ -149,7 +152,7 @@ def test_persistent_429_gives_up_after_max_attempts():
     route = respx.get(MATCHES_URL).mock(
         return_value=httpx.Response(429, headers={"Retry-After": "0"})
     )
-    with make_client() as client, pytest.raises(Exception):
+    with make_client() as client, pytest.raises(RateLimitedError):
         client.fetch_matches()
     assert route.call_count == 5  # MAX_ATTEMPTS
 
