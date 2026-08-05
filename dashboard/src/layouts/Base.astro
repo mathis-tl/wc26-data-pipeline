@@ -14,7 +14,7 @@ interface Props {
   description?: string;
 }
 const { title, description = SITE.description } = Astro.props;
-const fullTitle = title ? `${title} — CM 2026` : SITE.title;
+const fullTitle = title ? `${title} · CM 2026` : SITE.title;
 const path = Astro.url.pathname;
 ---
 

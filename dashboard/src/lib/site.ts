@@ -1,7 +1,7 @@
 // Site-wide constants. Kept out of components so links live in one place.
 
 export const SITE = {
-  title: "Coupe du Monde 2026 — rapport du tournoi",
+  title: "Coupe du Monde 2026 · rapport du tournoi",
   description:
     "Un rapport visuel de la Coupe du Monde 2026, généré chaque jour par un " +
     "pipeline de données automatisé. Classements recalculés depuis les " +
