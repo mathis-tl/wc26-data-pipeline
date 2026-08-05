@@ -10,15 +10,15 @@ html { scroll-behavior: smooth; }
 [id] { scroll-margin-top: 1.5rem; }
 
 :root {
-  /* — paper & ink — */
-  --paper:        #f3f0e9; /* warm near-white */
-  --paper-raised: #eae6db;
-  --paper-sunk:   #e3ded1;
+  /* — paper & ink — near-white with the faintest warmth, not pure #fff — */
+  --paper:        #fafaf7; /* soft white */
+  --paper-raised: #f2f1ec;
+  --paper-sunk:   #eae8e0;
   --ink:          #16140f; /* near-black (WC26 primary) */
   --ink-soft:     #4a463b;
   --ink-faint:    #6a6456; /* clears WCAG AA (4.5:1) on all paper tints */
-  --line:         #d8d2c4;
-  --line-strong:  #bbb4a2;
+  --line:         #e0ddd3;
+  --line-strong:  #c2beb2;
 
   /* — WC26 palette — desert orange (primary), Great-Lakes teal, gold — */
   --accent:        #b8461f; /* desert orange, AA on paper */
@@ -47,9 +47,9 @@ html { scroll-behavior: smooth; }
   --mono-xs: 0.6875rem;
 
   /* — measure & rhythm — */
-  --measure: 40rem;
-  --wide-fig: 52rem; /* the one deliberate breakout width, for figures that need real room (7-column heatmap) */
-  --wide:    72rem;
+  --measure: 44rem;  /* reading column, widened so the centered layout uses more of the screen */
+  --wide-fig: 58rem; /* the deliberate breakout width, for figures that need real room */
+  --wide:    76rem;
   --gutter:  clamp(1.15rem, 5vw, 3.5rem);
   --section-gap: clamp(3.5rem, 8vw, 6.5rem);
 }

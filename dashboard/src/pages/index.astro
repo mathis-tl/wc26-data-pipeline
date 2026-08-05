@@ -15,6 +15,7 @@ import SpainPath from "../components/SpainPath.astro";
 import CodeBlock from "../components/CodeBlock.astro";
 import Shotmap from "../components/Shotmap.astro";
 import EditionTimeline from "../components/EditionTimeline.astro";
+import Crest from "../components/Crest.astro";
 
 import metrics from "../data/key_metrics.json";
 import spainReal from "../data/spain_real.json";
@@ -85,6 +86,12 @@ const dumbbellItems = [...teamStrength]
   .slice(0, 10)
   .sort((a, b) => (b.points - b.xpoints) - (a.points - a.xpoints))
   .map((t) => ({ label: t.team_name, tla: t.team_tla, actual: t.points, expected: t.xpoints }));
+// the model's actual strength values — the top of the table, Spain's lead made concrete
+const ratingRows = teamStrength.slice(0, 8).map((t) => ({
+  rank: t.rank_overall, name: t.team_name, tla: t.team_tla, crest: t.crest,
+  rating: t.rating, attack: t.attack, defense: t.defense, current: t.team_name === "Spain",
+}));
+const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
 ---
 
 <Base>
@@ -172,9 +179,12 @@ const dumbbellItems = [...teamStrength]
           l'absence d'identifiants communs entre elles deux.
         </p>
         <p>
-          Le modèle donne la largeur, sur l'ensemble du plateau. Le réel donne la
-          preuve, sur le seul cas qui nous intéresse ici. Les deux se confirment
-          l'un l'autre du début à la fin de cette page.
+          Le modèle porte l'analyse sur tout le plateau, les 48 équipes&nbsp;: c'est
+          lui qui situe l'Espagne parmi les autres. Les vraies données, elles,
+          n'existent que pour l'Espagne, et jouent un autre rôle&nbsp;: celui de
+          contrôle. Là où les deux se recoupent, sur le cas espagnol, ils disent
+          la même chose, et c'est justement cet accord qui donne confiance dans ce
+          que le modèle raconte du reste du tournoi.
         </p>
       </div>
 
@@ -187,8 +197,14 @@ const dumbbellItems = [...teamStrength]
         ))}
       </div>
 
-      <div class="media-aside analyse__aside reveal">
-        <p class="prose">
+      <div class="media-aside media-aside--flow analyse__aside reveal">
+        <figure class="analyse__aside-fig">
+          <img class="media-aside__img" src="/photos/archive-2002.avif"
+               alt="Célébration d'un sacre mondial, archive 2002" loading="lazy" decoding="async" />
+          <figcaption class="photo__cap mono">Illustration · liesse d'un sacre mondial, Brésil 2002</figcaption>
+        </figure>
+        <div class="prose">
+          <p>
           Cette liesse-là, celle d'un sacre mondial, se ressemble d'une édition à
           l'autre&nbsp;: les mêmes visages qui se cherchent, le même trophée qui
           circule de bras en bras. Ce qui change, en revanche, c'est ce qu'il y a
@@ -197,12 +213,8 @@ const dumbbellItems = [...teamStrength]
           un tableau clément, une semaine de grâce. La suite de cette page tente de
           trancher, chiffre par chiffre, dans lequel des deux camps se range
           l'Espagne 2026.
-        </p>
-        <figure class="analyse__aside-fig">
-          <img class="media-aside__img" src="/photos/archive-2002.avif"
-               alt="Célébration d'un sacre mondial, archive 2002" loading="lazy" decoding="async" />
-          <figcaption class="photo__cap mono">Illustration · liesse d'un sacre mondial, Brésil 2002</figcaption>
-        </figure>
+          </p>
+        </div>
       </div>
 
       <div class="analyse__block reveal">
@@ -242,11 +254,43 @@ const dumbbellItems = [...teamStrength]
         </div>
         <p class="figlabel mono">Fig. 1 · Force d'attaque × force de défense (48 équipes)</p>
         <ScatterPlot points={scatterPts} />
+
+        <p class="prose measure analyse__p analyse__p--after">
+          Le graphique donne les positions&nbsp;; voici les valeurs. La
+          <strong>note de force</strong> ci-dessous additionne l'attaque et la
+          défense d'une équipe sur l'échelle du modèle (0 = équipe moyenne).
+          L'écart est frappant&nbsp;: l'Espagne y pèse <strong>{ratingRows[0].rating.toFixed(2)}</strong>,
+          soit plus du double de son dauphin, un gouffre que le reste du plateau
+          ne connaît nulle part ailleurs.
+        </p>
+        <p class="figlabel mono">Note de force du modèle, le haut du classement</p>
+        <div class="ratetab mono">
+          <div class="ratetab__row ratetab__head">
+            <span>#</span><span>Équipe</span><span>Att.</span><span>Déf.</span><span class="ratetab__val">Note</span>
+          </div>
+          {ratingRows.map((r) => (
+            <div class:list={["ratetab__row", { hi: r.current }]}>
+              <span class="ratetab__rank">{r.rank}</span>
+              <span class="ratetab__team"><Crest url={r.crest} tla={r.tla} size={16} />{r.tla ?? r.name}</span>
+              <span>{r.attack.toFixed(2)}</span>
+              <span>{r.defense.toFixed(2)}</span>
+              <span class="ratetab__val">
+                <span class="ratetab__bar" style={`width:${Math.round((r.rating / ratingMax) * 100)}%`} aria-hidden="true"></span>
+                <b>{r.rating.toFixed(2)}</b>
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div class="analyse__block reveal">
         <h3 class="h3 analyse__h">Chance, ou niveau&nbsp;?</h3>
-        <div class="media-aside">
+        <div class="media-aside media-aside--flow">
+          <figure class="analyse__aside-fig">
+            <img class="media-aside__img" src="/photos/england.avif"
+                 alt="Célébration anglaise lors de la Coupe du Monde 2026" loading="lazy" decoding="async" />
+            <figcaption class="photo__cap mono">Angleterre, l'une des équipes qui a dépassé son niveau attendu</figcaption>
+          </figure>
           <div class="prose analyse__p">
             <p>
               Gagner beaucoup peut masquer une part de réussite. Une équipe qui
@@ -273,11 +317,6 @@ const dumbbellItems = [...teamStrength]
               solide que leurs résultats seuls ne le laissent penser.
             </p>
           </div>
-          <figure class="analyse__aside-fig">
-            <img class="media-aside__img" src="/photos/england.avif"
-                 alt="Célébration anglaise lors de la Coupe du Monde 2026" loading="lazy" decoding="async" />
-            <figcaption class="photo__cap mono">Angleterre, l'une des équipes qui a dépassé son niveau attendu</figcaption>
-          </figure>
         </div>
         <div class="xtable mono">
           <div class="xtable__row xtable__head"><span>Espagne</span><span>réel</span><span>attendu</span></div>
@@ -339,7 +378,12 @@ const dumbbellItems = [...teamStrength]
 
       <div class="analyse__block reveal">
         <h3 class="h3 analyse__h">Favorite, et de loin</h3>
-        <div class="media-aside">
+        <div class="media-aside media-aside--flow">
+          <figure class="analyse__aside-fig">
+            <img class="media-aside__img" src="/photos/haaland.avif"
+                 alt="Ferveur d'un but décisif lors de la Coupe du Monde 2026" loading="lazy" decoding="async" />
+            <figcaption class="photo__cap mono">La joie brute d'un tournoi encore ouvert à tous ses favoris</figcaption>
+          </figure>
           <div class="prose analyse__p">
             <p>
               Reste la question ultime&nbsp;: parmi tous les scénarios possibles
@@ -355,11 +399,6 @@ const dumbbellItems = [...teamStrength]
               premier poursuivant dans ce classement, la Belgique.
             </p>
           </div>
-          <figure class="analyse__aside-fig">
-            <img class="media-aside__img" src="/photos/haaland.avif"
-                 alt="Ferveur d'un but décisif lors de la Coupe du Monde 2026" loading="lazy" decoding="async" />
-            <figcaption class="photo__cap mono">La joie brute d'un tournoi encore ouvert à tous ses favoris</figcaption>
-          </figure>
         </div>
         <p class="figlabel mono">Fig. 4 · Probabilité de titre (10 000 tournois simulés)</p>
         <div class="analyse__chart"><BarChart caption="Probabilité de titre" unit="%" items={oddsItems} /></div>
@@ -413,7 +452,12 @@ const dumbbellItems = [...teamStrength]
             </div>
           ))}
         </div>
-        <div class="media-aside analyse__p--after">
+        <div class="media-aside media-aside--flow analyse__p--after">
+          <figure class="analyse__aside-fig">
+            <img class="media-aside__img" src="/photos/portugal.avif"
+                 alt="Célébration portugaise lors de la Coupe du Monde 2026" loading="lazy" decoding="async" />
+            <figcaption class="photo__cap mono">Huitième de finale · Espagne–Portugal, le seul 50/50 du parcours</figcaption>
+          </figure>
           <div class="prose">
             <p>
               Ce tableau permet aussi, en creux, de vérifier le modèle lui-même&nbsp;:
@@ -431,11 +475,6 @@ const dumbbellItems = [...teamStrength]
               seulement dans l'autre sens.
             </p>
           </div>
-          <figure class="analyse__aside-fig">
-            <img class="media-aside__img" src="/photos/portugal.avif"
-                 alt="Célébration portugaise lors de la Coupe du Monde 2026" loading="lazy" decoding="async" />
-            <figcaption class="photo__cap mono">Huitième de finale · Espagne–Portugal, le seul 50/50 du parcours</figcaption>
-          </figure>
         </div>
         <p class="figlabel figlabel--wide mono">Fig. 7 · Carte des tirs de l'Espagne, finale (données réelles)</p>
         <Shotmap opponent={spainFinalShots.opponent} shots={spainFinalShots.shots} />
@@ -499,7 +538,7 @@ const dumbbellItems = [...teamStrength]
             match</strong> se lit mal dans l'absolu&nbsp;: est-ce beaucoup&nbsp;?
             Pour trancher, on replace 2026 face à <strong>toutes</strong> les
             Coupes du Monde masculines depuis 1930, chaque édition ramenée à la
-            même mesure — et pour être honnête, la barre de 2026 est calculée
+            même mesure. Et pour être honnête, la barre de 2026 est calculée
             exactement comme les autres, à partir des résultats bruts, pas
             recopiée d'un palmarès. Les éditions de l'après-guerre culminaient à
             plus de cinq buts par match&nbsp;; le football moderne, plus tactique,
@@ -511,7 +550,7 @@ const dumbbellItems = [...teamStrength]
             l'édition à 48 équipes se classe <strong>{curEd.goals_per_match_rank}<sup>e</sup>
             sur {editionComparison.total_editions}</strong>, au-dessus de la moyenne
             historique{highestSince ? (
-              <> — <strong>la Coupe du Monde la plus prolifique depuis {highestSince}</strong>.
+              <>, <strong>la Coupe du Monde la plus prolifique depuis {highestSince}</strong>.
               L'élargissement du plateau, qu'on attendait dilué, aura au contraire
               produit l'un des tournois les plus offensifs de l'ère moderne</>
             ) : null}.
@@ -828,6 +867,22 @@ counts = dict.fromkeys(teams, 0)
   .xtable__row span:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
   .xtable__head { font-size: var(--mono-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); }
   .xtable .b { font-weight: 700; }
+  /* model strength leaderboard: the actual rating values, Spain's lead made concrete */
+  .ratetab { border-top: 2px solid var(--ink); font-size: var(--mono-sm); }
+  .ratetab__row { display: grid; grid-template-columns: 1.5rem 1fr 3rem 3rem 6rem; gap: 0.5rem 1rem; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--line); }
+  .ratetab__row span:nth-child(3), .ratetab__row span:nth-child(4) { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-soft); }
+  .ratetab__head { font-size: var(--mono-xs); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); }
+  .ratetab__head .ratetab__val { text-align: right; }
+  .ratetab__rank { color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+  .ratetab__team { display: flex; align-items: center; gap: 0.45rem; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ratetab__val { position: relative; display: flex; align-items: center; justify-content: flex-end; }
+  .ratetab__bar { position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 0.85rem; background: var(--accent-tint); z-index: 0; }
+  .ratetab__val b { position: relative; z-index: 1; font-variant-numeric: tabular-nums; font-weight: 700; }
+  .ratetab__row.hi { background: var(--paper-raised); }
+  .ratetab__row.hi .ratetab__team { font-weight: 700; }
+  .ratetab__row.hi .ratetab__val b { color: var(--gold); }
+  .ratetab__row.hi .ratetab__bar { background: color-mix(in srgb, var(--gold) 22%, transparent); }
+  @media (max-width: 420px) { .ratetab__row { grid-template-columns: 1.2rem 1fr 2.4rem 2.4rem 4.2rem; gap: 0.4rem 0.6rem; } }
   .realtab { border-top: 2px solid var(--ink); font-size: var(--mono-sm); }
   .realtab__row { display: grid; grid-template-columns: 9rem 3rem 2.6rem 3.4rem 2.6rem 4rem; gap: 0.5rem 1.25rem; padding: 0.5rem 0; border-bottom: 1px solid var(--line); align-items: center; }
   .realtab__row span:not(.realtab__opp) { text-align: right; font-variant-numeric: tabular-nums; }
@@ -859,19 +914,16 @@ counts = dict.fromkeys(teams, 0)
   /* image band (duotone) — reserved for full-bleed section-transition moments */
   .band { padding-block: clamp(2.5rem, 6vw, 4rem); }
   .band .eyebrow { margin-bottom: 1.4rem; }
-  /* editorial tone: every non-divider photo on the site shares this exact filter
-     (grayscale + lifted contrast/brightness, no color wash) — the same formula
-     proven on the champion band — so nothing ever reads as raw stock. */
+  /* photos are shown natural (per art direction) — no colour treatment except
+     the champion cover, which needs a dark wash for the gold text to read. */
   .photo { margin: 0; }
-  .photo__img { width: 100%; max-height: 30rem; object-fit: cover; border: 1px solid var(--line); filter: grayscale(0.55) contrast(1.05) brightness(1.12); }
+  .photo__img { width: 100%; max-height: 30rem; object-fit: cover; border: 1px solid var(--line); }
   .photo__cap { margin-top: 0.55rem; font-size: var(--mono-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); }
   .duo__frame { position: relative; overflow: hidden; height: clamp(14rem, 32vw, 24rem); background: var(--paper-sunk); isolation: isolate; }
-  /* duotone signature: grayscale photo, tinted with the brand teal via mix-blend-mode:color
-     (recolors hue/saturation, keeps the photo's own luminosity) — NOT multiply, which was
-     compounding with the dark frame behind it and crushing the image to near-black. */
-  .duo__img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.04) brightness(1.14); }
-  .duo__wash { position: absolute; inset: 0; z-index: 1; background: var(--teal); mix-blend-mode: color; opacity: 0.55; }
-  .duo__grain { position: absolute; inset: 0; z-index: 2; background-image: radial-gradient(rgba(22,20,15,0.5) 0.5px, transparent 0.6px); background-size: 3px 3px; opacity: 0.1; mix-blend-mode: multiply; }
+  /* natural full-bleed photo bands: no colour treatment (per art direction) */
+  .duo__img { width: 100%; height: 100%; object-fit: cover; }
+  .duo__wash { display: none; }
+  .duo__grain { display: none; }
   .duo__cap { margin-top: 0.55rem; font-size: var(--mono-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); }
 
   /* groups */
@@ -906,7 +958,24 @@ counts = dict.fromkeys(teams, 0)
      not the heavier duotone). Used identically in the analyse essay, groupes,
      and méthode — one ratio, one width, so it never has to be reinvented. */
   .media-aside { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.5rem, 4vw, 3rem); align-items: start; margin-top: 1.2rem; max-width: var(--measure); }
-  .media-aside__img { width: 100%; height: 100%; max-height: 20rem; object-fit: cover; border: 1px solid var(--line); filter: grayscale(0.55) contrast(1.05) brightness(1.12); }
+  .media-aside__img { width: 100%; height: 100%; max-height: 20rem; object-fit: cover; border: 1px solid var(--line); }
+
+  /* essay asides "flow": the photo floats and the prose wraps around AND under
+     it, instead of a rigid two-column grid that leaves the space below the
+     image empty. Wider than the reading column so it uses more of the screen.
+     #analyse prefix keeps it above the centering block's .analyse__block rules. */
+  #analyse .media-aside--flow { display: block; max-width: 52rem; margin-inline: auto; }
+  #analyse .media-aside--flow .prose { max-width: none; }
+  #analyse .media-aside--flow .analyse__aside-fig {
+    float: right;
+    width: min(20rem, 44%);
+    margin: 0.3rem 0 1rem 2rem;
+  }
+  #analyse .media-aside--flow .media-aside__img { max-height: 15rem; }
+  #analyse .media-aside--flow::after { content: ""; display: block; clear: both; }
+  @media (max-width: 560px) {
+    #analyse .media-aside--flow .analyse__aside-fig { float: none; width: 100%; margin: 0 0 1.2rem; }
+  }
 
   .method__test-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 3rem); align-items: start; margin-top: 1.4rem; }
   .method__test-text { align-self: center; }
@@ -936,11 +1005,11 @@ counts = dict.fromkeys(teams, 0)
   /* ============================================================
      CENTERED CONTENT SYSTEM — the whole site reads as one centered
      column on the page axis. Three tiers:
-       · 640 (--measure): reading text, section headers, most figures
-       · 832 (--wide-fig): display titles, rank badges, wide figures
-         (heatmap, shotmap, code cards — those center themselves in
-         their component styles, since page CSS can't cross Astro's
-         style scoping to reach component roots)
+       · --measure: reading text, section headers, most figures
+       · --wide-fig: display titles, rank badges, wide figures + the
+         "flow" essay asides (heatmap, shotmap, code cards center
+         themselves in their component styles, since page CSS can't
+         cross Astro's style scoping to reach component roots)
        · full wrap: dense data displays (scoreboard, scorers, groups
          grid, bracket, charts grid) and full-bleed photo bands
      Text stays left-aligned inside its centered box; only the
@@ -983,6 +1052,7 @@ counts = dict.fromkeys(teams, 0)
   /* small data tables stay tight (not stretched across the column) but centered */
   #analyse .xtable { max-width: 20rem; }
   #analyse .realtab { max-width: 30rem; }
+  #analyse .ratetab { max-width: 30rem; }
   /* the lone full-width chart row centers on the axis too */
   .charts__wide { margin-inline: auto; }
 

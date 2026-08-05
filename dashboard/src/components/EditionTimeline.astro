@@ -54,13 +54,15 @@ const labelYears = new Set([1930, 1954, 1970, 1990, 2010, 2026]);
   .edt__plot { position: relative; padding-top: 1.2rem; }
   .edt__cols {
     display: grid;
-    grid-template-columns: repeat(23, 1fr);
+    /* minmax(0,1fr) lets the columns shrink below the year-label min-width so
+       the 23-column timeline always fits the viewport (no mobile overflow) */
+    grid-template-columns: repeat(23, minmax(0, 1fr));
     align-items: end;
     gap: clamp(2px, 0.6vw, 6px);
     height: clamp(9rem, 26vw, 14rem);
     border-bottom: 1.5px solid var(--ink);
   }
-  .edt__col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+  .edt__col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 0; }
   .edt__bar {
     position: relative; width: 100%;
     background: color-mix(in srgb, var(--accent) 78%, var(--paper));
@@ -75,7 +77,7 @@ const labelYears = new Set([1930, 1954, 1970, 1990, 2010, 2026]);
   .edt__col.hi .edt__val { opacity: 1; color: var(--gold); font-weight: 700; }
   .edt__col:hover .edt__bar { background: var(--accent); }
   .edt__col:hover .edt__val { opacity: 1; }
-  .edt__yr { margin-top: 0.4rem; font-size: 0.6rem; color: var(--ink-faint); opacity: 0; height: 0.9rem; }
+  .edt__yr { margin-top: 0.4rem; font-size: 0.6rem; color: var(--ink-faint); opacity: 0; height: 0.9rem; overflow: visible; white-space: nowrap; }
   .edt__yr.show { opacity: 1; }
   .edt__col.hi .edt__yr.show { color: var(--gold); font-weight: 700; }
   /* all-time average reference line */
@@ -88,5 +90,8 @@ const labelYears = new Set([1930, 1954, 1970, 1990, 2010, 2026]);
   @media (max-width: 560px) {
     .edt__val { display: none; }
     .edt__col.hi .edt__val { display: block; }
+    /* year labels collide at 23 columns on a phone — the caption carries the
+       range; keep only the bars as a sparkline shape */
+    .edt__yr { display: none; }
   }
 </style>
