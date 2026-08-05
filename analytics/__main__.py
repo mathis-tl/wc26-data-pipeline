@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import json
 import logging
+import sys
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -16,6 +18,7 @@ import duckdb
 
 from analytics.model import PoissonModel, fit, goal_means, outcome_probs
 from analytics.simulate import ROUND_LEVELS, simulate_progression
+from ingestion.ops import record_run
 
 logger = logging.getLogger("analytics")
 
@@ -313,6 +316,32 @@ def run() -> None:
     print("analytics done ->", OUT_DIR)
 
 
-if __name__ == "__main__":
+def main() -> int:
     logging.basicConfig(level=logging.INFO)
-    run()
+    run_id = datetime.now(UTC).isoformat(timespec="seconds")
+    started = time.monotonic()
+    try:
+        run()
+    except Exception as exc:
+        record_run(
+            run_id=run_id,
+            stage="analytics",
+            dataset="model+simulation",
+            rows=0,
+            duration_s=time.monotonic() - started,
+            status="failed",
+            error=f"{type(exc).__name__}: {exc}",
+        )
+        raise
+    record_run(
+        run_id=run_id,
+        stage="analytics",
+        dataset="model+simulation",
+        rows=len(list(OUT_DIR.glob("*.json"))),
+        duration_s=time.monotonic() - started,
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

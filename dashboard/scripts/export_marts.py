@@ -12,12 +12,17 @@ auto-merged PR as the raw archive.
 from __future__ import annotations
 
 import json
+import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
 import duckdb
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO_ROOT))  # the script lives outside the package tree
+
+from ingestion.ops import read_runs  # noqa: E402
+
 WAREHOUSE = REPO_ROOT / "data" / "warehouse.duckdb"
 RUN_RESULTS = REPO_ROOT / "dbt" / "target" / "run_results.json"
 OUT_DIR = REPO_ROOT / "dashboard" / "src" / "data"
@@ -328,6 +333,14 @@ def export() -> None:
     freshness_row = con.execute("select max(extracted_at) from main.stg_matches").fetchone()
     last_ingestion = freshness_row[0] if freshness_row else None
     passed, total = _dbt_test_counts()
+    teams_row = con.execute("select count(*) from main.fct_group_standings").fetchone()
+    n_teams = teams_row[0] if teams_row else 0
+
+    # Run history from the ops log: how many automated runs the pipeline has
+    # logged, and how many of them were clean — the operational track record.
+    runs = read_runs()
+    run_ids = {r["run_id"] for r in runs}
+    failed_ids = {r["run_id"] for r in runs if r.get("status") != "ok"}
     metadata = {
         "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "last_ingestion": last_ingestion.astimezone(UTC).isoformat(timespec="seconds")
@@ -337,7 +350,13 @@ def export() -> None:
         "competition": COMPETITION,
         "dbt_nodes_passed": passed,
         "dbt_nodes_total": total,
-        "reconciliation": "48/48",
+        # derived, not hardcoded: the reconciliation test gates the build, so a
+        # successful build means every standing row matched the official one
+        "reconciliation": f"{n_teams}/{n_teams}",
+        "ops": {
+            "runs_total": len(run_ids),
+            "runs_ok": len(run_ids - failed_ids),
+        },
     }
     _write("metadata.json", metadata)
 

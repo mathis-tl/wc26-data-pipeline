@@ -6,12 +6,14 @@ them as Parquet in data/raw/, partitioned by extraction date.
 
 import logging
 import sys
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 
 from dotenv import load_dotenv
 
 from ingestion.client import FootballDataClient
+from ingestion.ops import record_run
 from ingestion.schemas import validate_rows
 from ingestion.storage import (
     matches_to_rows,
@@ -29,7 +31,8 @@ def main() -> int:
     load_dotenv()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
     extracted_at = datetime.now(UTC)
-    logger.info("ingestion run starting (extracted_at=%s)", extracted_at.isoformat())
+    run_id = extracted_at.isoformat(timespec="seconds")
+    logger.info("ingestion run starting (extracted_at=%s)", run_id)
 
     with FootballDataClient() as client:
         matches_payload = client.fetch_matches()
@@ -38,31 +41,39 @@ def main() -> int:
 
     # Schema contracts run between fetch and write: a missing or retyped core
     # field fails the run here, at the boundary, before anything is archived.
-    written = [
-        write_raw_parquet(
-            validate_rows(matches_to_rows(matches_payload), dataset="matches"),
-            dataset="matches",
-            root=RAW_ROOT,
-            extracted_at=extracted_at,
-        ),
-        write_raw_parquet(
-            validate_rows(standings_to_rows(standings_payload), dataset="standings"),
-            dataset="standings",
-            root=RAW_ROOT,
-            extracted_at=extracted_at,
-        ),
-        write_raw_parquet(
-            validate_rows(scorers_to_rows(scorers_payload), dataset="scorers"),
-            dataset="scorers",
-            root=RAW_ROOT,
-            extracted_at=extracted_at,
-        ),
-    ]
-    logger.info(
-        "ingestion run done: %d/%d datasets written",
-        sum(p is not None for p in written),
-        len(written),
-    )
+    written = 0
+    for dataset, to_rows, payload in (
+        ("matches", matches_to_rows, matches_payload),
+        ("standings", standings_to_rows, standings_payload),
+        ("scorers", scorers_to_rows, scorers_payload),
+    ):
+        started = time.monotonic()
+        try:
+            rows = validate_rows(to_rows(payload), dataset=dataset)
+            path = write_raw_parquet(
+                rows, dataset=dataset, root=RAW_ROOT, extracted_at=extracted_at
+            )
+            record_run(
+                run_id=run_id,
+                stage="ingestion",
+                dataset=dataset,
+                rows=len(rows) if path is not None else 0,
+                duration_s=time.monotonic() - started,
+            )
+            written += path is not None
+        except Exception as exc:
+            record_run(
+                run_id=run_id,
+                stage="ingestion",
+                dataset=dataset,
+                rows=0,
+                duration_s=time.monotonic() - started,
+                status="failed",
+                error=f"{type(exc).__name__}: {exc}",
+            )
+            raise
+
+    logger.info("ingestion run done: %d/3 datasets written", written)
     return 0
 
 
