@@ -51,6 +51,13 @@ jobs:
         continue-on-error: true
         run: uv run dbt build --project-dir dbt --profiles-dir dbt
 
+      - name: Generate dbt docs (self-contained, served on the site)
+        if: steps.dbt.outcome == 'success'
+        continue-on-error: true
+        run: |
+          uv run dbt docs generate --static --project-dir dbt --profiles-dir dbt
+          cp dbt/target/static_index.html dashboard/public/dbt-docs.html
+
       - name: Export marts to JSON
         id: export
         if: steps.dbt.outcome == 'success'
@@ -82,7 +89,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/raw data/ops dashboard/src/data
+          git add data/raw data/ops dashboard/src/data dashboard/public/dbt-docs.html
           if git diff --cached --quiet; then
             echo "No data changes to commit."
           else

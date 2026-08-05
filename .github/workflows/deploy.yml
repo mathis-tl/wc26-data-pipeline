@@ -1,0 +1,55 @@
+name: Deploy dashboard to Vercel
+
+# Auto-redeploys the static site whenever the dashboard changes on main —
+# including the daily auto-merged data PR (raw + JSON export + dbt docs), which
+# lands as a push to main. Closes the manual `npx vercel --prod` step.
+#
+# One-time setup by the repo owner (until then this workflow skips cleanly, it
+# does not fail): add a repository secret VERCEL_TOKEN, and two repository
+# variables VERCEL_ORG_ID and VERCEL_PROJECT_ID (from `.vercel/project.json`
+# after `vercel link`, or the Vercel dashboard). No secret → no deploy, no red X.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "dashboard/**"
+  workflow_dispatch:
+
+concurrency:
+  group: vercel-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Guard — skip if Vercel is not configured yet
+        id: guard
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "Vercel not configured (missing token or ids) — skipping deploy."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.guard.outputs.configured == 'true'
+        with:
+          node-version: 20
+
+      - name: Deploy (prebuilt, production)
+        if: steps.guard.outputs.configured == 'true'
+        working-directory: dashboard
+        run: |
+          npm i -g vercel@latest
+          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          vercel build --prod --token="$VERCEL_TOKEN"
+          vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
