@@ -63,6 +63,14 @@ jobs:
         continue-on-error: true
         run: uv run python -m analytics
 
+      - name: JSON contract tests
+        # The front consumes these files as its whole interface — never
+        # publish a JSON payload whose shape the site cannot render.
+        id: contracts
+        if: steps.analytics.outcome == 'success'
+        continue-on-error: true
+        run: uv run pytest -m contract -q
+
       - name: Publish raw data and dashboard JSON via auto-merged PR
         # main requires PRs (protect-main ruleset) and the Actions app cannot
         # be a bypass actor on a personal repo, so the bot ships its data —
@@ -88,10 +96,10 @@ jobs:
             gh pr merge "$BRANCH" --squash --delete-branch
           fi
 
-      - name: Fail if freshness, modeling, export or analytics broke
-        if: steps.freshness.outcome == 'failure' || steps.dbt.outcome == 'failure' || steps.export.outcome == 'failure' || steps.analytics.outcome == 'failure'
+      - name: Fail if freshness, modeling, export, analytics or contracts broke
+        if: steps.freshness.outcome == 'failure' || steps.dbt.outcome == 'failure' || steps.export.outcome == 'failure' || steps.analytics.outcome == 'failure' || steps.contracts.outcome == 'failure'
         run: |
-          echo "freshness=${{ steps.freshness.outcome }} dbt=${{ steps.dbt.outcome }} export=${{ steps.export.outcome }} analytics=${{ steps.analytics.outcome }}"
+          echo "freshness=${{ steps.freshness.outcome }} dbt=${{ steps.dbt.outcome }} export=${{ steps.export.outcome }} analytics=${{ steps.analytics.outcome }} contracts=${{ steps.contracts.outcome }}"
           exit 1
 
       - name: Open issue on failure

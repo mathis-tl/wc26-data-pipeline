@@ -34,6 +34,15 @@ jobs:
           uv run dbt deps --project-dir dbt --profiles-dir dbt
           uv run dbt build --project-dir dbt --profiles-dir dbt
 
+      - name: Export + JSON contract tests
+        # Regenerates the front's JSON from the freshly built warehouse, then
+        # pins its shape: an interface break fails the PR here instead of
+        # rendering `undefined` into the deployed page.
+        run: |
+          uv run python dashboard/scripts/export_marts.py
+          uv run python -m analytics
+          uv run pytest -m contract -q
+
   frontend:
     runs-on: ubuntu-latest
     steps:
