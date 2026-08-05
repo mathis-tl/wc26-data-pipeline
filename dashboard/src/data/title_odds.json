@@ -18,14 +18,14 @@
     "team_name": "Argentina",
     "team_tla": "ARG",
     "crest": "https://crests.football-data.org/762.png",
-    "title_prob": 0.0824
+    "title_prob": 0.0823
   },
   {
     "team_id": 770,
     "team_name": "England",
     "team_tla": "ENG",
     "crest": "https://crests.football-data.org/770.svg",
-    "title_prob": 0.075
+    "title_prob": 0.0751
   },
   {
     "team_id": 773,
@@ -39,7 +39,7 @@
     "team_name": "Egypt",
     "team_tla": "EGY",
     "crest": "https://crests.football-data.org/825.svg",
-    "title_prob": 0.0526
+    "title_prob": 0.0527
   },
   {
     "team_id": 765,
@@ -67,7 +67,7 @@
     "team_name": "Mexico",
     "team_tla": "MEX",
     "crest": "https://crests.football-data.org/769.svg",
-    "title_prob": 0.0175
+    "title_prob": 0.0174
   },
   {
     "team_id": 763,
