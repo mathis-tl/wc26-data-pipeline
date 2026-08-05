@@ -1,5 +1,33 @@
 # SESSION_NOTES
 
+## Session 2026-08-05 (après-midi) — durcissement « niveau senior » du pipeline ✅
+
+Objectif fixé par Mathis : le dashboard visuel est bon, mais « on veut que ça claque niveau pipeline aussi, la plus haute qualité possible — je suis sûr qu'on est loin d'un niveau senior ». Dix chantiers, chacun son commit atomique, tous shippés sur `main`, CI verte, déployé en prod. La passe visuelle/centrage du dashboard (même journée, plus tôt) est distincte.
+
+### Fait
+
+- **A · Socle outillage.** Ruff élargi de E/F par défaut à `I,B,UP,SIM,RUF` ; `ruff format` adopté ; Pyright (standard) sur ingestion/analytics/tests/export ; pre-commit qui reflète la chaîne via uv. CI : lint + format-check + type-check avant les tests. Les nouvelles règles ont révélé de **vrais bugs** — un `zip` qui tronquait en silence (désormais `strict=True`, car cet alignement EST l'invariant de réconciliation SofaScore↔modèle), une closure à variable de boucle non liée, une assertion de test sur `Exception` aveugle.
+- **B · Contrats de schéma à la frontière d'ingestion** (`ingestion/schemas.py`). Chaque dataset brut déclare ses champs cœur (types + nullabilité). Politique de dérive : champs inconnus acceptés et loggés ; champ cœur manquant ou retypé → lève avant toute écriture. Un test valide l'archive réelle commitée contre ses propres contrats.
+- **C · Durcissement dbt.** Contrats enforced sur les (désormais 5) marts ; `dbt source freshness` (warn 26h/error 48h) qui attrape la péremption silencieuse que les row-counts ratent ; paramètres d'édition (matchs/équipes/buteurs/fenêtre) en vars dbt ; test singulier de fenêtre de tournoi ; tous les kwargs de tests génériques migrés vers la propriété `arguments:` de dbt 1.10 — build sans deprecation.
+- **D · Correction analytics.** Le `fit()` Poisson refuse désormais de renvoyer des notes issues d'un optimiseur non convergé (il ne vérifiait jamais `res.success` — un solve échoué aurait shippé des valeurs plausibles mais fausses) et rejette les entrées dégénérées ; métadonnées de convergence (NLL final, lignes utilisées) exportées dans `model_meta.json`. 13 tests modèle/simulation (cas limites du bracket, invariants de progression).
+- **E · Observabilité des runs** (`ingestion/ops.py`). Chaque étape append dans `data/ops/runs.jsonl` (append-only dans git, car le fichier DuckDB est amnésique entre runs CI). L'export dérive le bilan opérationnel ; la status line affiche « runs N/N ». Vide jusqu'au premier vrai run cron — aucun chiffre semé.
+- **F · Tests de contrat sur le JSON exporté.** Le build Astro importe le JSON statiquement → une rupture de forme rend `undefined` au lieu d'échouer. 19 tests figent la forme de chaque fichier importé, + un méta-test qui grep les sources et échoue si le front importe un export sans contrat.
+- **G · ADRs** (`docs/adr/`). Cinq décisions avec alternatives rejetées et compromis : raw versionné, dbt-duckdb, classements recalculés, buts attendus modélisés (jamais « xG »), défenses aux frontières.
+- **H · Auto-déploiement + dbt docs publiées.** `deploy.yml` redéploie sur Vercel à chaque push sur `main` touchant `dashboard/**` (gardé, skip proprement tant que le owner n'a pas ajouté `VERCEL_TOKEN` + vars org/projet). `dbt docs generate --static` produit un explorateur lineage/modèles/tests autonome servi à `/dbt-docs`, lié dans le footer, régénéré dans le workflow quotidien.
+- **I · One-off SofaScore nettoyé.** Suppression du handoff `/tmp` fragile ; id d'équipe Espagne épinglé en constante vérifiée avec garde ; garde de re-run pour qu'une invocation accidentelle ne brûle pas le quota 50 req/mois (`--force` pour forcer).
+- **J · Backfill historique — 2026 en contexte.** Seed dbt de chaque Coupe du Monde masculine 1930–2022 (jfjelstul/worldcup, buts/match calculés depuis les vrais scores, recroisés avec les chiffres connus). `mart_edition_comparison` unionne l'histoire avec 2026 calculé en direct depuis `fct_matches` de façon identique. Nouveau bloc dashboard « 2026 dans l'histoire » : timeline en colonnes des buts/match sur les 23 éditions, 2026 en or au-dessus de la moyenne historique — **7ᵉ sur 23, la Coupe du Monde la plus prolifique depuis 1958**, 100 % dérivé de la donnée.
+- **Bonus.** Vrai écart de reproductibilité corrigé : DuckDB ne garantit aucun ordre de lignes sans `ORDER BY`, donc la MLE sommait dans un ordre dépendant du build → notes différentes à la 3ᵉ décimale d'un run à l'autre (contredisant la reproductibilité revendiquée dans les ADRs). Ordonner l'entrée du fit rend deux runs byte-identiques.
+
+### État
+- `main` au commit backfill historique ; CI verte (checks + frontend). dbt build : **85 nœuds** PASS (était 67). Python : **67 tests** (48 unit + 19 contract), ruff + pyright propres. Déployé : https://dashboard-mathis7.vercel.app (section historique + `/dbt-docs` vérifiés 200).
+
+### Ouverts / suite
+- **Action owner pour activer l'auto-deploy :** ajouter le secret `VERCEL_TOKEN` et les vars `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` (deploy.yml skip proprement en attendant). D'ici là, le déploiement prod reste le manuel `cd dashboard && npx vercel --prod --yes`.
+- Crédits photos du footer toujours en attente avant partage large.
+- Le compteur « runs » n'apparaît sur le site qu'après le premier run cron qui peuple `data/ops/runs.jsonl`.
+
+---
+
 ## Session 2026-08-05 — moteur d'analyse, essai long-format, données réelles SofaScore ✅
 
 Session autonome (droits donnés par Mathis en fin de soirée : « termine, je dors, je regarde demain »). Prolonge directement la Phase 3 : le dashboard passe d'un rapport visuel à une **vraie démonstration data science**.
