@@ -301,9 +301,10 @@ def run() -> None:
         {
             "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
             "n_teams": len(model.teams),
-            "n_matches": len(finished),
+            "n_matches": model.n_matches,
             "home_adv": round(model.home_adv, 3),
             "ridge": model.ridge,
+            "final_nll": round(model.final_nll, 2),
             "n_sims": N_SIMS,
             "note": "Modele de buts (Poisson) ajuste sur les resultats. Aucune donnee de tir : "
             "les buts attendus sont modelises, pas du xG de tracking.",

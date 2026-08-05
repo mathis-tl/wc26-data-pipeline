@@ -13,11 +13,19 @@ really was.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 
 import numpy as np
 from scipy.optimize import minimize
 from scipy.stats import poisson
+
+logger = logging.getLogger(__name__)
+
+
+class FitError(Exception):
+    """The optimiser failed or the data cannot support a fit — never ship
+    ratings from a non-converged model."""
 
 
 @dataclass
@@ -28,6 +36,8 @@ class PoissonModel:
     defense: dict[int, float]  # higher = concedes fewer
     home_adv: float
     ridge: float
+    final_nll: float  # converged objective value, for run-to-run comparison
+    n_matches: int  # rows actually used by the fit
 
     def strength(self, team_id: int) -> float:
         """Net rating: attack minus (negated) defense, on the log-goal scale."""
@@ -51,6 +61,8 @@ def fit(matches: list[dict], ridge: float = 0.05) -> PoissonModel:
     ids = sorted({m["home_team_id"] for m in rows} | {m["away_team_id"] for m in rows})
     idx = {t: i for i, t in enumerate(ids)}
     n = len(ids)
+    if n < 2 or not rows:
+        raise FitError(f"cannot fit a strength model on {n} team(s) / {len(rows)} match(es)")
     names: dict[int, str] = {}
     for m in rows:
         names.setdefault(m["home_team_id"], m.get("home_team_name") or str(m["home_team_id"]))
@@ -75,6 +87,13 @@ def fit(matches: list[dict], ridge: float = 0.05) -> PoissonModel:
 
     theta0 = np.zeros(2 * n + 1)
     res = minimize(nll, theta0, method="L-BFGS-B")
+    # A silently non-converged optimiser is the worst failure mode this module
+    # has: plausible-looking garbage ratings. Refuse to return them.
+    if not res.success:
+        raise FitError(f"L-BFGS-B did not converge: {res.message} (nit={res.nit})")
+    logger.info(
+        "fit converged: %d teams, %d matches, nll=%.2f, nit=%d", n, len(rows), res.fun, res.nit
+    )
     att, dfn, hadv = unpack(res.x)
     # Centre attack and defense so ratings are read relative to the average team.
     att = att - att.mean()
@@ -86,6 +105,8 @@ def fit(matches: list[dict], ridge: float = 0.05) -> PoissonModel:
         defense={t: float(dfn[idx[t]]) for t in ids},
         home_adv=float(hadv),
         ridge=ridge,
+        final_nll=float(res.fun),
+        n_matches=len(rows),
     )
 
 
