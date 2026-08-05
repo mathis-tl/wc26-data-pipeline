@@ -24,6 +24,29 @@ football-data.org ─► Python (httpx) ─► data/raw/ (Parquet) ─► dbt + 
 - **Dashboard** — marts exported to JSON, rendered by a static Astro site. The
   front never depends on Python/dbt to build.
 
+### Data quality & reliability
+
+Defenses sit at every boundary, so failures surface loud, early, and close to
+their cause:
+
+- **Schema contracts at ingestion** ([`ingestion/schemas.py`](ingestion/schemas.py)) —
+  a renamed or retyped core field fails the run before anything is archived;
+  unknown new fields are accepted and logged.
+- **Source freshness** — `dbt source freshness` (warn 26h / error 48h) catches
+  the one staleness mode row counts cannot: a run that produced no new data.
+- **Enforced dbt contracts** on every mart + **reconciliation test** (computed
+  standings vs. the official endpoint, 48/48) + volumetry guards.
+- **JSON contract tests** on the exported files — the front's whole interface,
+  pinned so a shape break fails CI instead of rendering `undefined`.
+- **Convergence guard** on the Poisson fit — never ships ratings from a
+  non-converged optimiser.
+- **Run observability** — every stage appends to [`data/ops/runs.jsonl`](data/ops/);
+  the dashboard status line surfaces the operational track record.
+
+The reasoning behind the load-bearing choices — versioned raw, dbt-duckdb,
+recomputed standings, model-based (never "xG"), the boundary defenses — is
+recorded in [Architecture Decision Records](docs/adr/).
+
 ## Quickstart
 
 ```bash
@@ -44,8 +67,10 @@ cd dashboard && npm install && npm run build             # static site → dashb
 |---|---|
 | `ingestion/` | Python API client + Parquet writers (E + L) |
 | `data/raw/` | Immutable raw layer, partitioned by extraction date |
+| `analytics/` | Poisson strength model + Monte-Carlo title simulation |
 | `dbt/` | dbt-duckdb project: staging + marts (T) |
 | `dashboard/` | Astro static dashboard + the marts→JSON export script |
+| `docs/adr/` | Architecture Decision Records |
 | `.github/workflows/` | Daily ingestion cron + CI |
 
 ## Daily data PRs
