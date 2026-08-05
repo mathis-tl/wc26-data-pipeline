@@ -36,12 +36,20 @@ jobs:
       # raw archive is still published below (a modeling failure never costs a
       # day of capture). The gate step at the end re-fails the job if either
       # broke, which triggers the failure issue.
-      - name: dbt build
-        id: dbt
+      - name: dbt source freshness
+        # Right after ingestion this must always pass; a failure means the
+        # run above silently produced no new extracted_at — the one staleness
+        # mode the row-count tests cannot catch.
+        id: freshness
         continue-on-error: true
         run: |
           uv run dbt deps --project-dir dbt --profiles-dir dbt
-          uv run dbt build --project-dir dbt --profiles-dir dbt
+          uv run dbt source freshness --project-dir dbt --profiles-dir dbt
+
+      - name: dbt build
+        id: dbt
+        continue-on-error: true
+        run: uv run dbt build --project-dir dbt --profiles-dir dbt
 
       - name: Export marts to JSON
         id: export
@@ -80,10 +88,10 @@ jobs:
             gh pr merge "$BRANCH" --squash --delete-branch
           fi
 
-      - name: Fail if modeling, export or analytics broke
-        if: steps.dbt.outcome == 'failure' || steps.export.outcome == 'failure' || steps.analytics.outcome == 'failure'
+      - name: Fail if freshness, modeling, export or analytics broke
+        if: steps.freshness.outcome == 'failure' || steps.dbt.outcome == 'failure' || steps.export.outcome == 'failure' || steps.analytics.outcome == 'failure'
         run: |
-          echo "dbt=${{ steps.dbt.outcome }} export=${{ steps.export.outcome }} analytics=${{ steps.analytics.outcome }}"
+          echo "freshness=${{ steps.freshness.outcome }} dbt=${{ steps.dbt.outcome }} export=${{ steps.export.outcome }} analytics=${{ steps.analytics.outcome }}"
           exit 1
 
       - name: Open issue on failure

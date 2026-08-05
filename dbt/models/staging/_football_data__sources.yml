@@ -8,6 +8,15 @@ sources:
       (Hive-style), nested structs preserved. union_by_name is mandatory to
       survive schema drift between partitions.
     schema: main
+    # Freshness guard: the daily cron writes extracted_at on every row; if a
+    # day of capture is silently missed, `dbt source freshness` errors — the
+    # row-count tests alone cannot catch it (104 matches of stale data still
+    # pass every count). Checked in the ingestion workflow, not in PR CI,
+    # where the committed archive is legitimately as old as the last run.
+    loaded_at_field: extracted_at
+    freshness:
+      warn_after: {count: 26, period: hour}
+      error_after: {count: 48, period: hour}
     meta:
       external_location: >-
         read_parquet('data/raw/football_data/{name}/*/*.parquet',

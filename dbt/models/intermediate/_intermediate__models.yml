@@ -8,7 +8,8 @@ models:
       place.
     data_tests:
       - row_count_equals:
-          value: 104
+          arguments:
+            value: "{{ var('expected_matches') }}"
     columns:
       - name: match_id
         data_tests:

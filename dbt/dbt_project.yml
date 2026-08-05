@@ -9,6 +9,18 @@ macro-paths: ["macros"]
 target-path: target
 clean-targets: ["target", "dbt_packages"]
 
+# Edition parameters — everything that pins this project to the 2026 World
+# Cup lives here, so a historical backfill overrides vars instead of editing
+# models and tests. (Group letters stay literal in the staging yml: the
+# 48-team A–L format is structural to these staging models, and historical
+# editions come in through a separate source anyway — see docs/adr.)
+vars:
+  expected_matches: 104
+  expected_teams: 48
+  expected_scorers: 30
+  tournament_start: "2026-06-11"
+  tournament_end: "2026-07-19"
+
 models:
   wc26:
     staging:

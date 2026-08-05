@@ -103,19 +103,21 @@ head_to_head as (
 
 )
 
+-- casts: DuckDB sums return HUGEINT; the model contract pins sane integer
+-- types for values that never exceed a handful of digits
 select
     t.group_code,
     t.team_id,
     t.team_name,
-    t.played,
-    t.won,
-    t.draw,
-    t.lost,
-    t.points,
-    t.goals_for,
-    t.goals_against,
-    t.goal_diff,
-    row_number() over (
+    cast(t.played as integer)        as played,
+    cast(t.won as integer)           as won,
+    cast(t.draw as integer)          as draw,
+    cast(t.lost as integer)          as lost,
+    cast(t.points as integer)        as points,
+    cast(t.goals_for as integer)     as goals_for,
+    cast(t.goals_against as integer) as goals_against,
+    cast(t.goal_diff as integer)     as goal_diff,
+    cast(row_number() over (
         partition by t.group_code
         order by
             t.points desc,
@@ -125,7 +127,7 @@ select
             h.h2h_goal_diff desc nulls last,
             h.h2h_goals_for desc nulls last,
             t.team_name asc
-    ) as position
+    ) as integer) as position
 
 from tied t
 left join head_to_head h

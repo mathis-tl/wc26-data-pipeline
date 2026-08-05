@@ -6,41 +6,124 @@ models:
       One row per national team, from the latest standings snapshot, enriched
       with group assignment. Teams appearing only in matches are kept with
       NULL enrichments rather than silently dropped.
+    config:
+      contract:
+        enforced: true
     data_tests:
       - row_count_equals:
-          value: 48
+          arguments:
+            value: "{{ var('expected_teams') }}"
     columns:
       - name: team_id
+        data_type: bigint
         data_tests:
           - unique
           - not_null
       - name: team_name
+        data_type: varchar
         data_tests:
           - not_null
+      - name: team_short_name
+        data_type: varchar
+      - name: team_tla
+        data_type: varchar
+      - name: team_crest_url
+        data_type: varchar
+      - name: group_code
+        data_type: varchar
 
   - name: fct_matches
     description: >
       One row per match of the 2026 World Cup (latest snapshot): scores at
       every stage of play, winner, phase. Team ids are NULL for fixtures
       whose participants are not yet determined.
+    config:
+      contract:
+        enforced: true
     data_tests:
       - row_count_equals:
-          value: 104
+          arguments:
+            value: "{{ var('expected_matches') }}"
     columns:
       - name: match_id
+        data_type: bigint
         data_tests:
           - unique
           - not_null
+      - name: kickoff_at
+        data_type: timestamp
+        data_tests:
+          - not_null
+      - name: status
+        data_type: varchar
+      - name: matchday
+        data_type: bigint
+      - name: stage
+        data_type: varchar
+      - name: group_code
+        data_type: varchar
       - name: home_team_id
+        data_type: bigint
         data_tests:
           - relationships:
-              to: ref('dim_teams')
-              field: team_id
+              arguments:
+                to: ref('dim_teams')
+                field: team_id
+      - name: home_team_name
+        data_type: varchar
       - name: away_team_id
+        data_type: bigint
         data_tests:
           - relationships:
-              to: ref('dim_teams')
-              field: team_id
+              arguments:
+                to: ref('dim_teams')
+                field: team_id
+      - name: away_team_name
+        data_type: varchar
+      - name: full_time_home_goals
+        data_type: bigint
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 12
+              config:
+                where: "full_time_home_goals is not null"
+      - name: full_time_away_goals
+        data_type: bigint
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 12
+              config:
+                where: "full_time_away_goals is not null"
+      - name: half_time_home_goals
+        data_type: bigint
+      - name: half_time_away_goals
+        data_type: bigint
+      - name: extra_time_home_goals
+        data_type: bigint
+      - name: extra_time_away_goals
+        data_type: bigint
+      - name: penalty_home_goals
+        data_type: bigint
+      - name: penalty_away_goals
+        data_type: bigint
+      - name: winner
+        data_type: varchar
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [HOME_TEAM, AWAY_TEAM, DRAW]
+              config:
+                where: "winner is not null"
+      - name: duration
+        data_type: varchar
+      - name: last_updated_at
+        data_type: timestamp
+      - name: snapshot_date
+        data_type: date
 
   - name: fct_group_standings
     description: >
@@ -53,60 +136,118 @@ models:
       (drawing of lots) is replaced by a deterministic team_name ASC fallback
       so results are reproducible. Reconciled against the official standings
       endpoint by the reconciliation test.
+    config:
+      contract:
+        enforced: true
     data_tests:
       - row_count_equals:
-          value: 48
+          arguments:
+            value: "{{ var('expected_teams') }}"
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - group_code
-            - team_id
+          arguments:
+            combination_of_columns:
+              - group_code
+              - team_id
     columns:
       - name: group_code
+        data_type: varchar
         data_tests:
           - not_null
           - accepted_values:
-              values: [A, B, C, D, E, F, G, H, I, J, K, L]
+              arguments:
+                values: [A, B, C, D, E, F, G, H, I, J, K, L]
       - name: team_id
+        data_type: bigint
         data_tests:
           - not_null
           - relationships:
-              to: ref('dim_teams')
-              field: team_id
+              arguments:
+                to: ref('dim_teams')
+                field: team_id
+      - name: team_name
+        data_type: varchar
+      - name: played
+        data_type: integer
+      - name: won
+        data_type: integer
+      - name: draw
+        data_type: integer
+      - name: lost
+        data_type: integer
+      - name: points
+        data_type: integer
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 9
+      - name: goals_for
+        data_type: integer
+      - name: goals_against
+        data_type: integer
+      - name: goal_diff
+        data_type: integer
       - name: position
+        data_type: integer
         description: Rank within the group, 1 to 4.
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4]
-              quote: false
+              arguments:
+                values: [1, 2, 3, 4]
+                quote: false
 
   - name: mart_top_scorers
     description: >
       Tournament top scorers (latest snapshot), ranked by goals with a
       deterministic tiebreaker (fewer penalties, then assists, then name).
+    config:
+      contract:
+        enforced: true
     data_tests:
       - row_count_equals:
-          value: 30
+          arguments:
+            value: "{{ var('expected_scorers') }}"
     columns:
       - name: rank
+        data_type: bigint
         data_tests:
           - unique
           - not_null
       - name: player_id
+        data_type: bigint
         data_tests:
           - unique
           - not_null
       - name: player_name
+        data_type: varchar
         data_tests:
           - not_null
-      - name: goals
-        data_tests:
-          - not_null
+      - name: player_nationality
+        data_type: varchar
       - name: team_id
+        data_type: bigint
         data_tests:
           - relationships:
-              to: ref('dim_teams')
-              field: team_id
+              arguments:
+                to: ref('dim_teams')
+                field: team_id
+      - name: team_name
+        data_type: varchar
+      - name: team_tla
+        data_type: varchar
+      - name: team_crest_url
+        data_type: varchar
+      - name: played_matches
+        data_type: bigint
+      - name: goals
+        data_type: bigint
+        data_tests:
+          - not_null
+      - name: assists
+        data_type: bigint
+      - name: penalties
+        data_type: bigint
 
 unit_tests:
   - name: head_to_head_breaks_perfect_tie

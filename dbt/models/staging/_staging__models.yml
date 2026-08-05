@@ -9,9 +9,10 @@ models:
       the latest snapshot.
     data_tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - match_id
-            - extraction_date
+          arguments:
+            combination_of_columns:
+              - match_id
+              - extraction_date
     columns:
       - name: match_id
         data_tests:
@@ -28,35 +29,38 @@ models:
       - name: status
         data_tests:
           - accepted_values:
-              values:
-                - SCHEDULED
-                - TIMED
-                - IN_PLAY
-                - PAUSED
-                - EXTRA_TIME
-                - PENALTY_SHOOTOUT
-                - FINISHED
-                - SUSPENDED
-                - POSTPONED
-                - CANCELLED
-                - AWARDED
+              arguments:
+                values:
+                  - SCHEDULED
+                  - TIMED
+                  - IN_PLAY
+                  - PAUSED
+                  - EXTRA_TIME
+                  - PENALTY_SHOOTOUT
+                  - FINISHED
+                  - SUSPENDED
+                  - POSTPONED
+                  - CANCELLED
+                  - AWARDED
       - name: stage
         data_tests:
           - not_null
           - accepted_values:
-              values:
-                - GROUP_STAGE
-                - LAST_32
-                - LAST_16
-                - QUARTER_FINALS
-                - SEMI_FINALS
-                - THIRD_PLACE
-                - FINAL
+              arguments:
+                values:
+                  - GROUP_STAGE
+                  - LAST_32
+                  - LAST_16
+                  - QUARTER_FINALS
+                  - SEMI_FINALS
+                  - THIRD_PLACE
+                  - FINAL
       - name: group_code
         description: Canonical group letter (A-L); NULL for knockout matches.
         data_tests:
           - accepted_values:
-              values: [A, B, C, D, E, F, G, H, I, J, K, L]
+              arguments:
+                values: [A, B, C, D, E, F, G, H, I, J, K, L]
       - name: extraction_date
         data_tests:
           - not_null
@@ -68,9 +72,10 @@ models:
       (team_id, extraction_date).
     data_tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - team_id
-            - extraction_date
+          arguments:
+            combination_of_columns:
+              - team_id
+              - extraction_date
     columns:
       - name: team_id
         data_tests:
@@ -82,7 +87,8 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [A, B, C, D, E, F, G, H, I, J, K, L]
+              arguments:
+                values: [A, B, C, D, E, F, G, H, I, J, K, L]
       - name: position
         data_tests:
           - not_null
@@ -99,9 +105,10 @@ models:
       per (player_id, extraction_date).
     data_tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - player_id
-            - extraction_date
+          arguments:
+            combination_of_columns:
+              - player_id
+              - extraction_date
     columns:
       - name: player_id
         data_tests:
