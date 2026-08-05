@@ -297,6 +297,29 @@ def export() -> None:
     )[0]
     _write("results_split.json", split)
 
+    # --- 2026 in historical context (every men's World Cup, one scale) ---
+    editions = _rows(
+        con,
+        """
+        select year, host, winner, teams, matches, goals,
+               goals_per_match, is_current, goals_per_match_rank
+        from main.mart_edition_comparison
+        order by year
+        """,
+    )
+    total_editions = len(editions)
+    current = next((e for e in editions if e["is_current"]), None)
+    _write(
+        "edition_comparison.json",
+        {
+            "editions": editions,
+            "current_year": current["year"] if current else None,
+            "current_goals_per_match": current["goals_per_match"] if current else None,
+            "current_rank": current["goals_per_match_rank"] if current else None,
+            "total_editions": total_editions,
+        },
+    )
+
     # --- champion & final (narrative lead once the final is played) ---
     final_rows = _rows(
         con,

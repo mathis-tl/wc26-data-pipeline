@@ -14,6 +14,7 @@ import Dumbbell from "../components/Dumbbell.astro";
 import SpainPath from "../components/SpainPath.astro";
 import CodeBlock from "../components/CodeBlock.astro";
 import Shotmap from "../components/Shotmap.astro";
+import EditionTimeline from "../components/EditionTimeline.astro";
 
 import metrics from "../data/key_metrics.json";
 import spainReal from "../data/spain_real.json";
@@ -29,6 +30,7 @@ import groups from "../data/groups.json";
 import bracket from "../data/bracket.json";
 import goalsByStage from "../data/goals_by_stage.json";
 import scorelines from "../data/scorelines.json";
+import editionComparison from "../data/edition_comparison.json";
 import split from "../data/results_split.json";
 import championData from "../data/champion.json";
 import metadata from "../data/metadata.json";
@@ -51,6 +53,15 @@ const splitSegs = [
   { label: "Match nul", value: split.draws, tone: "var(--ink-faint)" },
   { label: "Victoire à l'extérieur", value: split.away_wins, tone: "var(--teal)" },
 ];
+
+// --- 2026 in historical context ---
+const editions = editionComparison.editions;
+const curEd = editions.find((e) => e.is_current)!;
+// the most recent edition before 2026 that outscored it → "highest since …"
+const higherBefore = editions
+  .filter((e) => !e.is_current && e.goals_per_match > curEd.goals_per_match)
+  .map((e) => e.year);
+const highestSince = higherBefore.length ? Math.max(...higherBefore) : null;
 
 // --- "Did Spain deserve it?" analysis ---
 const pct = (p: number) => Math.round(p * 100);
@@ -479,6 +490,36 @@ const dumbbellItems = [...teamStrength]
         <div class="reveal"><BarChart caption="Scores les plus fréquents" unit="matchs" items={scoreItems} accent="var(--teal)" /></div>
         <div class="reveal charts__wide"><StackedBar caption="Issue des matchs (à domicile / nul / à l'extérieur)" segments={splitSegs} /></div>
       </div>
+
+      <div class="analyse__block reveal">
+        <h3 class="h3 analyse__h">2026 dans l'histoire</h3>
+        <div class="prose measure analyse__p">
+          <p>
+            Une moyenne de <strong>{curEd.goals_per_match.toFixed(2)} buts par
+            match</strong> se lit mal dans l'absolu&nbsp;: est-ce beaucoup&nbsp;?
+            Pour trancher, on replace 2026 face à <strong>toutes</strong> les
+            Coupes du Monde masculines depuis 1930, chaque édition ramenée à la
+            même mesure — et pour être honnête, la barre de 2026 est calculée
+            exactement comme les autres, à partir des résultats bruts, pas
+            recopiée d'un palmarès. Les éditions de l'après-guerre culminaient à
+            plus de cinq buts par match&nbsp;; le football moderne, plus tactique,
+            a fait décroître ce chiffre pendant un demi-siècle, jusqu'à un plancher
+            autour de 2,2 dans les années 1990-2010.
+          </p>
+          <p>
+            Sur ce fond, 2026 surprend&nbsp;: avec {curEd.goals_per_match.toFixed(2)},
+            l'édition à 48 équipes se classe <strong>{curEd.goals_per_match_rank}<sup>e</sup>
+            sur {editionComparison.total_editions}</strong>, au-dessus de la moyenne
+            historique{highestSince ? (
+              <> — <strong>la Coupe du Monde la plus prolifique depuis {highestSince}</strong>.
+              L'élargissement du plateau, qu'on attendait dilué, aura au contraire
+              produit l'un des tournois les plus offensifs de l'ère moderne</>
+            ) : null}.
+          </p>
+        </div>
+        <p class="figlabel figlabel--wide mono">Fig. · Buts par match, chaque Coupe du Monde (1930–2026)</p>
+        <EditionTimeline editions={editions} />
+      </div>
     </div>
   </section>
 
@@ -906,22 +947,23 @@ counts = dict.fromkeys(teams, 0)
      champion cover centers its text.
      ============================================================ */
   .section > .wrap > *,
-  #analyse .analyse__block > *,
+  .analyse__block > *,
   .method__cols > .method__schema > * { margin-inline: auto; }
 
-  /* the 640 reading column */
+  /* the 640 reading column — the essay-block internals (.analyse__*, .figlabel)
+     are section-agnostic: the historical block in #chiffres reuses them */
   .section > .wrap > .eyebrow,
   .section > .wrap > .section__head,
   .section > .wrap > .sec__title,
   .section > .wrap > .sec__lede,
   .section > .wrap > .lede,
   .section > .wrap > .legend,
-  #analyse .analyse__lede,
-  #analyse .analyse__h,
-  #analyse .prose,
-  #analyse .media-aside,
-  #analyse .analyse__chart,
-  #analyse .figlabel,
+  .analyse__lede,
+  .analyse__h,
+  .analyse__block .prose,
+  .analyse__block .media-aside,
+  .analyse__chart,
+  .figlabel,
   #analyse .verdict,
   #analyse .analyse__method,
   #methode .method__h,
@@ -936,7 +978,7 @@ counts = dict.fromkeys(teams, 0)
   .hero__title,
   #analyse .analyse__title,
   #analyse .rankrow,
-  #analyse .figlabel--wide { max-width: var(--wide-fig); margin-inline: auto; }
+  .figlabel--wide { max-width: var(--wide-fig); margin-inline: auto; }
 
   /* small data tables stay tight (not stretched across the column) but centered */
   #analyse .xtable { max-width: 20rem; }

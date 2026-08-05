@@ -1,0 +1,41 @@
+version: 2
+
+seeds:
+  - name: wc_history
+    description: >
+      Tournament-level aggregates for every men's FIFA World Cup, 1930–2022.
+      This is the project's second, bounded source (ADR-0001/0005): historical
+      context arrives as curated static reference data, not by accumulating
+      daily captures. Matches and goals are aggregated from the match-level
+      data of jfjelstul/worldcup (github.com/jfjelstul/worldcup, MIT), which
+      compiles the RSSSF/FIFA record; goals_per_match is computed from the
+      real per-match scores, the same way 2026's figure is computed from
+      fct_matches, so the editions are comparable. 2026 is intentionally NOT
+      in this seed — it is unioned in live from the pipeline's own marts by
+      mart_edition_comparison.
+    config:
+      column_types:
+        year: integer
+        teams: integer
+        matches: integer
+        goals: integer
+        goals_per_match: double
+    data_tests:
+      - row_count_equals:
+          arguments:
+            value: 22  # 1930–2022, every four years minus 1942/1946 (WWII)
+    columns:
+      - name: year
+        data_tests:
+          - unique
+          - not_null
+      - name: host
+        data_tests: [not_null]
+      - name: winner
+        data_tests: [not_null]
+      - name: goals_per_match
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 1.5
+                max_value: 6.0

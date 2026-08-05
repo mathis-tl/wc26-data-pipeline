@@ -1,0 +1,261 @@
+{
+  "editions": [
+    {
+      "year": 1930,
+      "host": "Uruguay",
+      "winner": "Uruguay",
+      "teams": 13,
+      "matches": 18,
+      "goals": 70,
+      "goals_per_match": 3.89,
+      "is_current": false,
+      "goals_per_match_rank": 5
+    },
+    {
+      "year": 1934,
+      "host": "Italy",
+      "winner": "Italy",
+      "teams": 16,
+      "matches": 17,
+      "goals": 70,
+      "goals_per_match": 4.12,
+      "is_current": false,
+      "goals_per_match_rank": 3
+    },
+    {
+      "year": 1938,
+      "host": "France",
+      "winner": "Italy",
+      "teams": 15,
+      "matches": 18,
+      "goals": 84,
+      "goals_per_match": 4.67,
+      "is_current": false,
+      "goals_per_match_rank": 2
+    },
+    {
+      "year": 1950,
+      "host": "Brazil",
+      "winner": "Uruguay",
+      "teams": 13,
+      "matches": 22,
+      "goals": 88,
+      "goals_per_match": 4.0,
+      "is_current": false,
+      "goals_per_match_rank": 4
+    },
+    {
+      "year": 1954,
+      "host": "Switzerland",
+      "winner": "West Germany",
+      "teams": 16,
+      "matches": 26,
+      "goals": 140,
+      "goals_per_match": 5.38,
+      "is_current": false,
+      "goals_per_match_rank": 1
+    },
+    {
+      "year": 1958,
+      "host": "Sweden",
+      "winner": "Brazil",
+      "teams": 16,
+      "matches": 35,
+      "goals": 126,
+      "goals_per_match": 3.6,
+      "is_current": false,
+      "goals_per_match_rank": 6
+    },
+    {
+      "year": 1962,
+      "host": "Chile",
+      "winner": "Brazil",
+      "teams": 16,
+      "matches": 32,
+      "goals": 89,
+      "goals_per_match": 2.78,
+      "is_current": false,
+      "goals_per_match_rank": 10
+    },
+    {
+      "year": 1966,
+      "host": "England",
+      "winner": "England",
+      "teams": 16,
+      "matches": 32,
+      "goals": 89,
+      "goals_per_match": 2.78,
+      "is_current": false,
+      "goals_per_match_rank": 11
+    },
+    {
+      "year": 1970,
+      "host": "Mexico",
+      "winner": "Brazil",
+      "teams": 16,
+      "matches": 32,
+      "goals": 95,
+      "goals_per_match": 2.97,
+      "is_current": false,
+      "goals_per_match_rank": 8
+    },
+    {
+      "year": 1974,
+      "host": "West Germany",
+      "winner": "West Germany",
+      "teams": 16,
+      "matches": 38,
+      "goals": 97,
+      "goals_per_match": 2.55,
+      "is_current": false,
+      "goals_per_match_rank": 18
+    },
+    {
+      "year": 1978,
+      "host": "Argentina",
+      "winner": "Argentina",
+      "teams": 16,
+      "matches": 38,
+      "goals": 102,
+      "goals_per_match": 2.68,
+      "is_current": false,
+      "goals_per_match_rank": 14
+    },
+    {
+      "year": 1982,
+      "host": "Spain",
+      "winner": "Italy",
+      "teams": 24,
+      "matches": 52,
+      "goals": 146,
+      "goals_per_match": 2.81,
+      "is_current": false,
+      "goals_per_match_rank": 9
+    },
+    {
+      "year": 1986,
+      "host": "Mexico",
+      "winner": "Argentina",
+      "teams": 24,
+      "matches": 52,
+      "goals": 132,
+      "goals_per_match": 2.54,
+      "is_current": false,
+      "goals_per_match_rank": 19
+    },
+    {
+      "year": 1990,
+      "host": "Italy",
+      "winner": "West Germany",
+      "teams": 24,
+      "matches": 52,
+      "goals": 115,
+      "goals_per_match": 2.21,
+      "is_current": false,
+      "goals_per_match_rank": 23
+    },
+    {
+      "year": 1994,
+      "host": "United States",
+      "winner": "Brazil",
+      "teams": 24,
+      "matches": 52,
+      "goals": 141,
+      "goals_per_match": 2.71,
+      "is_current": false,
+      "goals_per_match_rank": 12
+    },
+    {
+      "year": 1998,
+      "host": "France",
+      "winner": "France",
+      "teams": 32,
+      "matches": 64,
+      "goals": 171,
+      "goals_per_match": 2.67,
+      "is_current": false,
+      "goals_per_match_rank": 15
+    },
+    {
+      "year": 2002,
+      "host": "Korea, Japan",
+      "winner": "Brazil",
+      "teams": 32,
+      "matches": 64,
+      "goals": 161,
+      "goals_per_match": 2.52,
+      "is_current": false,
+      "goals_per_match_rank": 20
+    },
+    {
+      "year": 2006,
+      "host": "Germany",
+      "winner": "Italy",
+      "teams": 32,
+      "matches": 64,
+      "goals": 147,
+      "goals_per_match": 2.3,
+      "is_current": false,
+      "goals_per_match_rank": 21
+    },
+    {
+      "year": 2010,
+      "host": "South Africa",
+      "winner": "Spain",
+      "teams": 32,
+      "matches": 64,
+      "goals": 145,
+      "goals_per_match": 2.27,
+      "is_current": false,
+      "goals_per_match_rank": 22
+    },
+    {
+      "year": 2014,
+      "host": "Brazil",
+      "winner": "Germany",
+      "teams": 32,
+      "matches": 64,
+      "goals": 171,
+      "goals_per_match": 2.67,
+      "is_current": false,
+      "goals_per_match_rank": 16
+    },
+    {
+      "year": 2018,
+      "host": "Russia",
+      "winner": "France",
+      "teams": 32,
+      "matches": 64,
+      "goals": 169,
+      "goals_per_match": 2.64,
+      "is_current": false,
+      "goals_per_match_rank": 17
+    },
+    {
+      "year": 2022,
+      "host": "Qatar",
+      "winner": "Argentina",
+      "teams": 32,
+      "matches": 64,
+      "goals": 172,
+      "goals_per_match": 2.69,
+      "is_current": false,
+      "goals_per_match_rank": 13
+    },
+    {
+      "year": 2026,
+      "host": "USA/Canada/Mexico",
+      "winner": "Spain",
+      "teams": 48,
+      "matches": 104,
+      "goals": 333,
+      "goals_per_match": 3.2,
+      "is_current": true,
+      "goals_per_match_rank": 7
+    }
+  ],
+  "current_year": 2026,
+  "current_goals_per_match": 3.2,
+  "current_rank": 7,
+  "total_editions": 23
+}

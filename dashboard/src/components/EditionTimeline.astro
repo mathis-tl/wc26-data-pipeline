@@ -1,0 +1,92 @@
+---
+// Goals per match across every men's World Cup, 1930–2026, as a column
+// timeline. Historical editions in accent, 2026 in gold; a teal reference
+// line marks the all-time average so the current edition's standing reads at
+// a glance. CSS + inline SVG only, no chart library. The values are real text
+// in an accessible table fallback for screen readers.
+interface Edition {
+  year: number;
+  host: string;
+  winner: string;
+  goals_per_match: number;
+  matches: number;
+  goals: number;
+  is_current: boolean;
+  goals_per_match_rank: number;
+}
+const { editions } = Astro.props as { editions: Edition[] };
+
+const gpm = editions.map((e) => e.goals_per_match);
+const maxG = Math.max(...gpm);
+const avg = gpm.reduce((a, b) => a + b, 0) / gpm.length;
+// chart geometry in a 0..100 × 0..100 viewBox-like space, drawn with CSS grid
+const top = maxG * 1.08; // headroom above the tallest column
+const h = (v: number) => (v / top) * 100;
+const labelYears = new Set([1930, 1954, 1970, 1990, 2010, 2026]);
+---
+
+<figure class="edt">
+  <div class="edt__plot" role="img" aria-label="Buts par match à chaque Coupe du Monde, de 1930 à 2026">
+    <span class="edt__avg" style={`bottom:${h(avg)}%`}>
+      <span class="edt__avg-lbl mono">moyenne {avg.toFixed(2)}</span>
+    </span>
+    <div class="edt__cols">
+      {editions.map((e) => (
+        <div class:list={["edt__col", { hi: e.is_current }]}>
+          <span class="edt__bar" style={`height:${h(e.goals_per_match)}%`}>
+            <span class="edt__val mono">{e.goals_per_match.toFixed(2)}</span>
+          </span>
+          <span class:list={["edt__yr", "mono", { show: labelYears.has(e.year) }]}>
+            {`'` + String(e.year).slice(2)}
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+  <figcaption class="edt__cap mono">
+    Buts par match · chaque Coupe du Monde masculine, 1930–2026 · 2026 en or,
+    calculé depuis les mêmes résultats que le reste de cette page.
+  </figcaption>
+</figure>
+
+<style>
+  .edt { margin: 0 auto; max-width: var(--wide-fig); }
+  .edt__plot { position: relative; padding-top: 1.2rem; }
+  .edt__cols {
+    display: grid;
+    grid-template-columns: repeat(23, 1fr);
+    align-items: end;
+    gap: clamp(2px, 0.6vw, 6px);
+    height: clamp(9rem, 26vw, 14rem);
+    border-bottom: 1.5px solid var(--ink);
+  }
+  .edt__col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+  .edt__bar {
+    position: relative; width: 100%;
+    background: color-mix(in srgb, var(--accent) 78%, var(--paper));
+    min-height: 2px;
+  }
+  .edt__col.hi .edt__bar { background: var(--gold); }
+  .edt__val {
+    position: absolute; top: -1.15rem; left: 50%; transform: translateX(-50%);
+    font-size: 0.6rem; color: var(--ink-faint); opacity: 0; transition: opacity 0.15s;
+    white-space: nowrap;
+  }
+  .edt__col.hi .edt__val { opacity: 1; color: var(--gold); font-weight: 700; }
+  .edt__col:hover .edt__bar { background: var(--accent); }
+  .edt__col:hover .edt__val { opacity: 1; }
+  .edt__yr { margin-top: 0.4rem; font-size: 0.6rem; color: var(--ink-faint); opacity: 0; height: 0.9rem; }
+  .edt__yr.show { opacity: 1; }
+  .edt__col.hi .edt__yr.show { color: var(--gold); font-weight: 700; }
+  /* all-time average reference line */
+  .edt__avg { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--teal); z-index: 1; }
+  .edt__avg-lbl {
+    position: absolute; right: 0; top: -1.05rem;
+    font-size: var(--mono-xs); color: var(--teal); letter-spacing: 0.04em;
+  }
+  .edt__cap { margin-top: 1.4rem; font-size: var(--mono-xs); color: var(--ink-faint); line-height: 1.5; }
+  @media (max-width: 560px) {
+    .edt__val { display: none; }
+    .edt__col.hi .edt__val { display: block; }
+  }
+</style>

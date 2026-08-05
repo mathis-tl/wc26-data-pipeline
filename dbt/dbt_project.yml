@@ -20,6 +20,12 @@ vars:
   expected_scorers: 30
   tournament_start: "2026-06-11"
   tournament_end: "2026-07-19"
+  current_year: 2026
+  current_host: "USA/Canada/Mexico"
+
+seeds:
+  wc26:
+    +schema: main
 
 models:
   wc26:

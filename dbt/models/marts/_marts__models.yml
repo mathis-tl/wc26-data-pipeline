@@ -249,6 +249,53 @@ models:
       - name: penalties
         data_type: bigint
 
+  - name: mart_edition_comparison
+    description: >
+      Every men's World Cup 1930–2026 on one comparable scale. The 1930–2022
+      rows come from the wc_history seed; the 2026 row is computed live from
+      fct_matches with the identical goals-per-match calculation, so the
+      current tournament sits honestly next to history. See ADR-0001/0005 on
+      why historical context enters as a bounded second source.
+    config:
+      contract:
+        enforced: true
+    data_tests:
+      - row_count_equals:
+          arguments:
+            value: 23  # 22 historical editions + 2026
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [year]
+    columns:
+      - name: year
+        data_type: integer
+        data_tests: [unique, not_null]
+      - name: host
+        data_type: varchar
+        data_tests: [not_null]
+      - name: winner
+        data_type: varchar
+        data_tests: [not_null]
+      - name: teams
+        data_type: integer
+      - name: matches
+        data_type: integer
+      - name: goals
+        data_type: bigint
+      - name: goals_per_match
+        data_type: double
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 1.5
+                max_value: 6.0
+      - name: is_current
+        data_type: boolean
+        data_tests: [not_null]
+      - name: goals_per_match_rank
+        data_type: integer
+        data_tests: [unique, not_null]
+
 unit_tests:
   - name: head_to_head_breaks_perfect_tie
     description: >

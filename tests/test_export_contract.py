@@ -45,6 +45,10 @@ CONTRACTS: dict[str, tuple[bool, set[str]]] = {
     "goals_by_stage.json": (True, {"stage", "goals"}),
     "scorelines.json": (True, {"scoreline", "count"}),
     "results_split.json": (False, {"home_wins", "draws", "away_wins"}),
+    "edition_comparison.json": (
+        False,
+        {"editions", "current_year", "current_goals_per_match", "current_rank", "total_editions"},
+    ),
     "top_scorers.json": (True, {"rank", "player_name", "team_tla", "goals", "assists"}),
     "team_strength.json": (
         True,
