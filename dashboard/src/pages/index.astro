@@ -16,6 +16,9 @@ import CodeBlock from "../components/CodeBlock.astro";
 import Shotmap from "../components/Shotmap.astro";
 import EditionTimeline from "../components/EditionTimeline.astro";
 import Crest from "../components/Crest.astro";
+import Term from "../components/Term.astro";
+import Takeaway from "../components/Takeaway.astro";
+import SourceMatch from "../components/SourceMatch.astro";
 
 import metrics from "../data/key_metrics.json";
 import spainReal from "../data/spain_real.json";
@@ -32,6 +35,7 @@ import bracket from "../data/bracket.json";
 import goalsByStage from "../data/goals_by_stage.json";
 import scorelines from "../data/scorelines.json";
 import editionComparison from "../data/edition_comparison.json";
+import upsets from "../data/upsets.json";
 import split from "../data/results_split.json";
 import championData from "../data/champion.json";
 import metadata from "../data/metadata.json";
@@ -64,11 +68,40 @@ const higherBefore = editions
   .map((e) => e.year);
 const highestSince = higherBefore.length ? Math.max(...higherBefore) : null;
 
+// --- derived KPI context (real, from mart_edition_comparison — never hardcoded) ---
+const prevEd = [...editions].filter((e) => !e.is_current).sort((a, b) => b.year - a.year)[0];
+const matchesDelta = curEd.matches - prevEd.matches;
+const goalsRecord = curEd.goals > Math.max(...editions.filter((e) => !e.is_current).map((e) => e.goals));
+const first48 = !editions.some((e) => !e.is_current && e.teams >= 48);
+const kpiContext = [
+  `+${matchesDelta} vs ${prevEd.year}`,
+  goalsRecord ? "record absolu de buts" : `${curEd.goals} au total`,
+  first48 ? "1ʳᵉ édition à 48" : `${curEd.teams} équipes`,
+  highestSince ? `plus haut depuis ${highestSince}` : "moyenne record",
+];
+
+// --- conclusion: tournament records & Spain's place in history, all from marts ---
+const goldenBoot = topScorers[0];
+const championOnPodium = topScorers.slice(0, 3).some((s) => s.team_name === champion.team_name);
+const biggestUpset = upsets[0]; // upsets are ranked by ascending prior win probability
+const brazilUpset = upsets.find((u) => u.loser_name === "Brazil");
+// the marquee giant-killing (biggest name to fall), else the model's longest shot
+const marqueeUpset = brazilUpset ?? biggestUpset;
+const spainTitleYears = editions
+  .filter((e) => e.winner === "Spain")
+  .map((e) => e.year)
+  .sort((a, b) => a - b);
+const spainPrevTitle = spainTitleYears.filter((y) => y !== curEd.year).at(-1) ?? null;
+const spainTitleCount = spainTitleYears.length;
+
 // --- "Did Spain deserve it?" analysis ---
 const pct = (p: number) => Math.round(p * 100);
+const worstDefRank = Math.max(...teamStrength.map((t) => t.rank_defense));
 const scatterPts = teamStrength.map((t) => ({
   x: t.attack, y: t.defense, label: t.team_name, tla: t.team_tla,
-  highlight: t.team_name === "Spain", show: t.rank_overall <= 5,
+  highlight: t.team_name === "Spain",
+  // label the top 5, plus the two named outliers: best attack + worst defense
+  show: t.rank_overall <= 5 || t.rank_attack === 1 || t.rank_defense === worstDefRank,
 }));
 const oddsItems = titleOdds.slice(0, 8).map((t) => ({
   label: t.team_tla ?? t.team_name, value: pct(t.title_prob), display: `${pct(t.title_prob)} %`,
@@ -89,7 +122,9 @@ const dumbbellItems = [...teamStrength]
 // the model's actual strength values — the top of the table, Spain's lead made concrete
 const ratingRows = teamStrength.slice(0, 8).map((t) => ({
   rank: t.rank_overall, name: t.team_name, tla: t.team_tla, crest: t.crest,
-  rating: t.rating, attack: t.attack, defense: t.defense, current: t.team_name === "Spain",
+  rating: t.rating, attack: t.attack, defense: t.defense,
+  rankAttack: t.rank_attack, rankDefense: t.rank_defense,
+  current: t.team_name === "Spain",
 }));
 const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
 ---
@@ -131,15 +166,20 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
   <section class="section">
     <div class="wrap">
       <div class="scoreboard" role="list">
-        {stats.map((s) => (
+        {stats.map((s, i) => (
           <div class="stat" role="listitem">
             <div class="stat__value display">
               <span class="mono-num" data-count={String(s.decimal ? s.value.toFixed(2) : s.value)}>{s.decimal ? s.value.toFixed(2) : s.value}</span>{s.total ? <span class="stat__total mono">/{s.total}</span> : null}
             </div>
             <div class="stat__label mono">{s.label}</div>
+            <div class="stat__ctx mono">{kpiContext[i]}</div>
           </div>
         ))}
       </div>
+      <p class="scoreboard__foot mono">
+        Chaque repère est calculé depuis <a href="#chiffres">l'historique complet des Coupes du monde</a>,
+        1930–2026 — jamais saisi à la main.
+      </p>
     </div>
   </section>
 
@@ -186,6 +226,28 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
           la même chose, et c'est justement cet accord qui donne confiance dans ce
           que le modèle raconte du reste du tournoi.
         </p>
+      </div>
+
+      <div class="howto reveal">
+        <p class="howto__label mono">Comment lire ce rapport</p>
+        <dl class="howto__grid">
+          <div class="howto__item">
+            <dt>Note de force</dt>
+            <dd><b>0 = une équipe moyenne.</b> Plus le nombre est haut, plus l'équipe est forte&nbsp;: c'est l'attaque et la défense additionnées sur l'échelle du modèle.</dd>
+          </div>
+          <div class="howto__item">
+            <dt>Attaque · Défense</dt>
+            <dd>Deux forces distinctes. Pour les <b>deux</b>, plus la valeur est haute, meilleure l'équipe&nbsp;— une défense à 2,48 est la <b>meilleure</b> du tournoi, pas la plus fragile.</dd>
+          </div>
+          <div class="howto__item">
+            <dt>Points attendus (xPts)</dt>
+            <dd>Les points qu'une équipe aurait « mérités » vu son niveau de jeu. L'écart avec les points réels mesure la <b>part de chance</b>.</dd>
+          </div>
+          <div class="howto__item">
+            <dt>xG modèle · xG réel</dt>
+            <dd>Buts attendus <b>déduits des scores</b> (modèle, 48 équipes) ou <b>mesurés</b> tir par tir (SofaScore, Espagne seule).</dd>
+          </div>
+        </dl>
       </div>
 
       <div class="rankrow">
@@ -257,7 +319,7 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
 
         <p class="prose measure analyse__p analyse__p--after">
           Le graphique donne les positions&nbsp;; voici les valeurs. La
-          <strong>note de force</strong> ci-dessous additionne l'attaque et la
+          <strong><Term def="0 = une équipe moyenne. Plus le nombre est haut, plus l'équipe est forte : c'est l'attaque et la défense additionnées sur l'échelle du modèle.">note de force</Term></strong> ci-dessous additionne l'attaque et la
           défense d'une équipe sur l'échelle du modèle (0 = équipe moyenne).
           L'écart est frappant&nbsp;: l'Espagne y pèse <strong>{ratingRows[0].rating.toFixed(2)}</strong>,
           soit plus du double de son dauphin, un gouffre que le reste du plateau
@@ -272,8 +334,8 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
             <div class:list={["ratetab__row", { hi: r.current }]}>
               <span class="ratetab__rank">{r.rank}</span>
               <span class="ratetab__team"><Crest url={r.crest} tla={r.tla} size={16} />{r.tla ?? r.name}</span>
-              <span>{r.attack.toFixed(2)}</span>
-              <span>{r.defense.toFixed(2)}</span>
+              <span class="ratetab__num">{r.attack.toFixed(2)}<sup class="ratetab__rk">#{r.rankAttack}</sup></span>
+              <span class="ratetab__num">{r.defense.toFixed(2)}<sup class="ratetab__rk">#{r.rankDefense}</sup></span>
               <span class="ratetab__val">
                 <span class="ratetab__bar" style={`width:${Math.round((r.rating / ratingMax) * 100)}%`} aria-hidden="true"></span>
                 <b>{r.rating.toFixed(2)}</b>
@@ -281,6 +343,12 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
             </div>
           ))}
         </div>
+        <p class="ratetab__legend mono">
+          Att. et Déf. : plus la valeur est haute, meilleure l'équipe ; le <sup>#</sup> donne
+          son rang sur 48. Ainsi l'Espagne a « seulement » la 6ᵉ attaque mais la
+          1ʳᵉ défense — c'est ce cumul qui lui donne la meilleure note globale, pas
+          un secteur pris isolément.
+        </p>
       </div>
 
       <div class="analyse__block reveal">
@@ -298,8 +366,8 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
               nécessairement meilleure qu'une équipe qui domine largement mais bute
               sur un gardien inspiré. Pour débusquer cette réussite et la distinguer
               du niveau réel, on compare les points <em>réels</em> de chaque équipe
-              à ceux que son niveau de jeu promettait&nbsp;: les <strong>points
-              attendus</strong>, dérivés directement des probabilités calculées pour
+              à ceux que son niveau de jeu promettait&nbsp;: les <strong><Term def="Les points qu'une équipe aurait « mérités » vu son niveau de jeu, dérivés des probabilités de chacun de ses matchs. L'écart avec les points réels mesure la chance.">points
+              attendus</Term></strong>, dérivés directement des probabilités calculées pour
               chacun de ses matchs. L'écart entre les deux, c'est la part de chance,
               dans un sens comme dans l'autre.
             </p>
@@ -431,11 +499,23 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
             ballon (<strong>51 à 74 % de possession</strong> selon l'adversaire) et
             noyé chacun de ses adversaires sous les occasions. En finale, face à
             l'Argentine&nbsp;: 65 % de possession, <strong>20 tirs contre
-            2</strong>, et un <strong>xG réel de 2,29 contre 0,22</strong>. Un
+            2</strong>, et un <strong><Term def="Buts attendus mesurés tir par tir par SofaScore (données réelles), à distinguer du « xG modèle » que notre modèle déduit des seuls scores.">xG réel</Term> de 2,29 contre 0,22</strong>. Un
             rapport de force qui n'a, à aucun moment de la soirée, laissé planer le
             doute sur l'équipe qui méritait de gagner ce match.
           </p>
         </div>
+        <p class="prose measure analyse__p analyse__p--after">
+          Encore fallait-il faire dialoguer les deux sources. Elles ne partagent
+          <strong>aucun identifiant de match</strong>&nbsp;: pas de clé commune sur
+          laquelle faire une jointure classique. On les aligne donc sur la seule
+          chose qu'elles ont en partage — les huit matchs de l'Espagne, pris dans
+          l'ordre chronologique — avec un appariement <strong>strict, huit contre
+          huit</strong> qui fait échouer le build à la moindre divergence de
+          nombre, plutôt que de risquer d'apparier deux matchs qui ne se
+          correspondent pas.
+        </p>
+        <p class="figlabel mono">Réconcilier deux sources sans identifiant commun</p>
+        <div class="reveal analyse__chart"><SourceMatch /></div>
         <p class="figlabel mono">Fig. 6 · Espagne, données réelles par match (SofaScore), xG du modèle en regard</p>
         <div class="realtab mono">
           <div class="realtab__row realtab__head">
@@ -525,9 +605,18 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
       <p class="eyebrow"><span class="seq">/</span> Le tournoi en chiffres</p>
       <h2 class="h2 sec__title">Ce que disent 104 matchs</h2>
       <div class="charts">
-        <div class="reveal"><BarChart caption="Buts par phase" unit="buts" items={goalItems} note="La phase de groupes concentre 72 des 104 matchs." /></div>
-        <div class="reveal"><BarChart caption="Scores les plus fréquents" unit="matchs" items={scoreItems} accent="var(--teal)" /></div>
-        <div class="reveal charts__wide"><StackedBar caption="Issue des matchs (à domicile / nul / à l'extérieur)" segments={splitSegs} /></div>
+        <div class="reveal">
+          <BarChart caption="Buts par phase" unit="buts" items={goalItems} />
+          <Takeaway>Le volume suit mécaniquement le nombre de matchs&nbsp;: la phase de groupes concentre 215 des 333 buts. Ramené <strong>au match</strong>, pourtant, ce sont les 16es et 8es (3,75 buts) qui ont été les plus ouverts, avant que les enjeux ne referment le jeu en demies (2,5) puis en finale (un seul but).</Takeaway>
+        </div>
+        <div class="reveal">
+          <BarChart caption="Scores les plus fréquents" unit="matchs" items={scoreItems} accent="var(--teal)" />
+          <Takeaway>Malgré le record de buts, le <strong>1–0 reste le score roi</strong> (15 matchs) devant le 2–1&nbsp;: la plupart des rencontres se sont jouées à un ou deux buts d'écart.</Takeaway>
+        </div>
+        <div class="reveal charts__wide">
+          <StackedBar caption="Issue des matchs (à domicile / nul / à l'extérieur)" segments={splitSegs} />
+          <Takeaway>Même sur terrain neutre, l'équipe désignée « à domicile » l'emporte bien plus souvent (51) que celle « à l'extérieur » (33)&nbsp;: c'est l'asymétrie que le terme d'<strong>avantage terrain</strong> du modèle absorbe.</Takeaway>
+        </div>
       </div>
 
       <div class="analyse__block reveal">
@@ -558,6 +647,9 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
         </div>
         <p class="figlabel figlabel--wide mono">Fig. · Buts par match, chaque Coupe du Monde (1930–2026)</p>
         <EditionTimeline editions={editions} />
+        {highestSince && (
+          <Takeaway>L'élargissement à 48 équipes, qu'on annonçait dilué, n'a pas fait chuter le spectacle&nbsp;: 2026 est la Coupe du monde <strong>la plus prolifique depuis {highestSince}</strong>.</Takeaway>
+        )}
       </div>
     </div>
   </section>
@@ -575,6 +667,10 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
         par joueur. <strong>{topScorers[0]?.player_name}</strong> termine soulier d'or.
       </p>
       <div class="reveal"><TopScorers scorers={topScorers} /></div>
+      <Takeaway>
+        {goldenBoot.player_name} ({goldenBoot.goals} buts) devance {topScorers[1]?.player_name} ({topScorers[1]?.goals}) pour le soulier d'or
+        {!championOnPodium && <> — mais le titre est allé à une Espagne <strong>sans buteur sur le podium</strong>, le collectif avant l'individu</>}.
+      </Takeaway>
     </div>
   </section>
 
@@ -620,6 +716,7 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
       <div class="grid">
         {groups.map((g) => <div class="reveal"><GroupTable group={g} /></div>)}
       </div>
+      <Takeaway>Douze groupes de quatre, mais seulement 16 équipes éliminées à ce stade&nbsp;: le format à 48 envoie <strong>32 nations en phase finale</strong> (les deux premiers de chaque groupe, plus les huit meilleurs troisièmes).</Takeaway>
     </div>
   </section>
 
@@ -814,6 +911,63 @@ counts = dict.fromkeys(teams, 0)
       </p>
     </div>
   </section>
+
+  <!-- EPILOGUE — the editorial close: the report ended on machinery, this
+       refolds the narrative (Spain's place in history, the verdict, the records) -->
+  <section class="section epilogue" id="epilogue">
+    <div class="wrap">
+      <p class="eyebrow"><span class="seq">/</span> Épilogue</p>
+      <h2 class="h2 sec__title">Ce que la machine retient</h2>
+      <div class="prose measure epilogue__lede">
+        <p>
+          Au bout de {metrics.matches_total} matchs recalculés chaque matin, le
+          verdict tient en une ligne&nbsp;: <strong>l'Espagne méritait son
+          titre</strong>. Pas dans un fauteuil — sa {`${spainCase.rank_attack}`}ᵉ
+          attaque et son mince surplus de réussite ({`+${spainCase.performance}`} pts)
+          interdisent le mot « domination » — mais parce qu'elle a été, sur
+          l'ensemble du tournoi, l'équipe la plus complète&nbsp;:
+          {` #${spainCase.rank_overall}`} au classement du modèle, la meilleure
+          défense de la compétition, favorite {pct(spainCase.title_prob)} % avant
+          même les seizièmes. Une {spainTitleCount === 2 ? "deuxième" : `${spainTitleCount}ᵉ`}
+          étoile{spainPrevTitle ? `, seize ans après ${spainPrevTitle}` : ""},
+          construite sur l'équilibre plutôt que sur l'éclat d'un seul secteur.
+        </p>
+        <p>
+          Autour de ce sacre, un tournoi record&nbsp;: le plus grand nombre de buts
+          jamais inscrits dans une Coupe du monde ({curEd.goals}){highestSince ? (
+            <>, et la meilleure moyenne depuis {highestSince}</>
+          ) : null} — la preuve, chiffrée, que le passage à 48 équipes n'a pas dilué
+          le jeu qu'on annonçait fade. Trois images le résument.
+        </p>
+      </div>
+
+      <div class="epilog-cards">
+        <div class="epilog-card reveal">
+          <span class="epilog-card__k mono">Soulier d'or</span>
+          <span class="epilog-card__v display">{goldenBoot.player_name}</span>
+          <span class="epilog-card__d">{goldenBoot.goals} buts en {goldenBoot.played_matches} matchs · {goldenBoot.team_name}</span>
+        </div>
+        <div class="epilog-card reveal">
+          <span class="epilog-card__k mono">Coup de tonnerre</span>
+          <span class="epilog-card__v display">{marqueeUpset.winner_name} {marqueeUpset.score} {marqueeUpset.loser_name}</span>
+          <span class="epilog-card__d">Le modèle ne donnait {marqueeUpset.winner_name} qu'à {pct(marqueeUpset.win_prob)} %</span>
+        </div>
+        <div class="epilog-card reveal">
+          <span class="epilog-card__k mono">Le tournoi en un chiffre</span>
+          <span class="epilog-card__v display">{curEd.goals} buts</span>
+          <span class="epilog-card__d">record absolu · {curEd.goals_per_match.toFixed(2)} par match{highestSince ? `, plus haut depuis ${highestSince}` : ""}</span>
+        </div>
+      </div>
+
+      <p class="epilogue__end measure">
+        Rien de tout cela — le verdict, les records, la nuance — n'a été écrit à la
+        main&nbsp;: tout a été <strong>recalculé depuis les seuls résultats</strong>,
+        chaque matin, pendant tout le tournoi. C'est le vrai sujet de cette page.
+        Non pas qui a gagné, mais comment une chaîne de données peut le raconter —
+        honnêtement, sans jamais inventer un chiffre qu'elle n'a pas mesuré.
+      </p>
+    </div>
+  </section>
 </Base>
 
 <style>
@@ -842,6 +996,10 @@ counts = dict.fromkeys(teams, 0)
   .mono-num { font-family: var(--sans); font-variant-numeric: lining-nums tabular-nums; }
   .stat__total { font-size: 0.32em; color: var(--ink-faint); font-weight: 400; align-self: flex-end; margin-bottom: 0.6em; }
   .stat__label { margin-top: 0.7rem; font-size: var(--mono-sm); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
+  .stat__ctx { margin-top: 0.4rem; font-size: var(--mono-xs); letter-spacing: 0.01em; color: var(--accent); font-family: var(--mono); line-height: 1.35; }
+  .scoreboard__foot { margin-top: 1.1rem; font-size: var(--mono-xs); color: var(--ink-faint); letter-spacing: 0.02em; line-height: 1.55; }
+  .scoreboard__foot a { color: var(--ink-soft); text-decoration: underline; text-underline-offset: 2px; text-decoration-color: var(--line-strong); }
+  .scoreboard__foot a:hover { text-decoration-color: var(--accent); }
 
   .sec__title { margin-top: 1rem; }
   .sec__lede { margin-top: 1.1rem; }
@@ -869,8 +1027,13 @@ counts = dict.fromkeys(teams, 0)
   .xtable .b { font-weight: 700; }
   /* model strength leaderboard: the actual rating values, Spain's lead made concrete */
   .ratetab { border-top: 2px solid var(--ink); font-size: var(--mono-sm); }
-  .ratetab__row { display: grid; grid-template-columns: 1.5rem 1fr 3rem 3rem 6rem; gap: 0.5rem 1rem; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--line); }
+  .ratetab__row { display: grid; grid-template-columns: 1.5rem 1fr 3.6rem 3.6rem 5.4rem; gap: 0.5rem 1rem; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--line); }
   .ratetab__row span:nth-child(3), .ratetab__row span:nth-child(4) { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-soft); }
+  .ratetab__num { white-space: nowrap; }
+  .ratetab__rk { font-size: 0.68em; color: var(--ink-faint); margin-left: 0.15em; vertical-align: 0.35em; font-weight: 400; letter-spacing: -0.02em; }
+  .ratetab__row.hi .ratetab__rk { color: var(--accent); }
+  .ratetab__legend { margin-top: 0.9rem; font-size: var(--mono-xs); line-height: 1.6; color: var(--ink-faint); letter-spacing: 0.01em; }
+  .ratetab__legend sup { color: var(--ink-soft); }
   .ratetab__head { font-size: var(--mono-xs); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); }
   .ratetab__head .ratetab__val { text-align: right; }
   .ratetab__rank { color: var(--ink-faint); font-variant-numeric: tabular-nums; }
@@ -882,7 +1045,7 @@ counts = dict.fromkeys(teams, 0)
   .ratetab__row.hi .ratetab__team { font-weight: 700; }
   .ratetab__row.hi .ratetab__val b { color: var(--gold); }
   .ratetab__row.hi .ratetab__bar { background: color-mix(in srgb, var(--gold) 22%, transparent); }
-  @media (max-width: 420px) { .ratetab__row { grid-template-columns: 1.2rem 1fr 2.4rem 2.4rem 4.2rem; gap: 0.4rem 0.6rem; } }
+  @media (max-width: 420px) { .ratetab__row { grid-template-columns: 1.1rem 1fr 3rem 3rem 3.9rem; gap: 0.4rem 0.55rem; } }
   .realtab { border-top: 2px solid var(--ink); font-size: var(--mono-sm); }
   .realtab__row { display: grid; grid-template-columns: 9rem 3rem 2.6rem 3.4rem 2.6rem 4rem; gap: 0.5rem 1.25rem; padding: 0.5rem 0; border-bottom: 1px solid var(--line); align-items: center; }
   .realtab__row span:not(.realtab__opp) { text-align: right; font-variant-numeric: tabular-nums; }
@@ -1002,6 +1165,28 @@ counts = dict.fromkeys(teams, 0)
   .stack__cta a { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line-strong); }
   .stack__cta a:hover { text-decoration-color: var(--accent); }
 
+  /* "Comment lire ce rapport" — the reader's key to the metric scales, placed
+     before the first rank numbers so the Att/Déf scale trap never lands */
+  .howto { margin-top: 2.2rem; padding: 1.3rem 1.5rem; background: var(--paper-raised); border-left: 3px solid var(--gold); }
+  .howto__label { font-size: var(--mono-xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem; }
+  .howto__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 1.6rem; margin: 0; }
+  .howto__item dt { font-family: var(--mono); font-size: var(--mono-sm); font-weight: 600; color: var(--ink); letter-spacing: 0.02em; margin-bottom: 0.3rem; }
+  .howto__item dd { margin: 0; font-size: 0.95rem; line-height: 1.5; color: var(--ink-soft); }
+  .howto__item dd b { color: var(--ink); font-weight: 600; }
+  @media (max-width: 560px) { .howto__grid { grid-template-columns: 1fr; gap: 1.1rem; } }
+
+  /* epilogue — the editorial close */
+  .epilogue__lede { margin-top: 1.2rem; }
+  .epilogue__lede p { font-size: 1.12rem; line-height: 1.7; }
+  .epilogue__lede strong, .epilogue__end strong { color: var(--ink); font-weight: 600; }
+  .epilog-cards { margin-top: 2.2rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); max-width: var(--wide-fig); margin-inline: auto; }
+  .epilog-card { background: var(--paper); padding: 1.3rem 1.3rem 1.4rem; display: flex; flex-direction: column; gap: 0.5rem; min-height: 8.5rem; }
+  .epilog-card__k { font-size: var(--mono-xs); letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+  .epilog-card__v { font-size: clamp(1.2rem, 2.8vw, 1.6rem); font-weight: 700; line-height: 1.08; letter-spacing: -0.01em; color: var(--ink); }
+  .epilog-card__d { font-size: var(--mono-sm); font-family: var(--mono); color: var(--ink-soft); line-height: 1.5; margin-top: auto; }
+  .epilogue__end { margin-top: 2.2rem; font-size: 1.12rem; line-height: 1.7; }
+  @media (max-width: 720px) { .epilog-cards { grid-template-columns: 1fr; } .epilog-card { min-height: 0; } }
+
   /* ============================================================
      CENTERED CONTENT SYSTEM — the whole site reads as one centered
      column on the page axis. Three tiers:
@@ -1035,6 +1220,7 @@ counts = dict.fromkeys(teams, 0)
   .figlabel,
   #analyse .verdict,
   #analyse .analyse__method,
+  #analyse .howto,
   #methode .method__h,
   #methode .method__p,
   #methode .prose,
