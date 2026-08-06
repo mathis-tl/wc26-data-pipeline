@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat PROGRESS.md 2>/dev/null || echo 'Pas de PROGRESS.md — lance /sprint-end en fin de session pour en créer un.'"
+          }
+        ]
+      }
+    ]
+  }
+}
