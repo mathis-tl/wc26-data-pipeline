@@ -1,0 +1,78 @@
+---
+// The OTHER reconciliation on this site: not standings, but two data sources
+// that share no identifiers. football-data.org (scores, all 104 matches) and
+// SofaScore (real stats, Spain only) have no common match ID, so we align
+// Spain's games by chronology and enforce a strict 1:1 (8 vs 8) — a length
+// mismatch fails the build rather than pairing the wrong games. Mirrors the
+// zip(..., strict=True) invariant in analytics/real_stats.py.
+---
+<div class="xsrc" role="img"
+     aria-label="Deux sources sans identifiant commun — football-data.org (scores) et SofaScore (stats réelles de l'Espagne) — sont alignées par ordre chronologique des matchs de l'Espagne, en 8 contre 8 strictement ; une différence de nombre fait échouer le build.">
+  <div class="xsrc__sources">
+    <div class="xsrc__src xsrc__src--a">
+      <span class="xsrc__badge mono">Source 1</span>
+      <span class="xsrc__name mono">football-data.org</span>
+      <span class="xsrc__note">104 matchs · scores seuls · ids football-data</span>
+    </div>
+    <div class="xsrc__nokey" aria-hidden="true">
+      <span class="xsrc__nokey-x mono">✕</span>
+      <span class="xsrc__nokey-t mono">aucun id commun</span>
+    </div>
+    <div class="xsrc__src xsrc__src--b">
+      <span class="xsrc__badge mono">Source 2</span>
+      <span class="xsrc__name mono">SofaScore</span>
+      <span class="xsrc__note">8 matchs Espagne · xG · possession · ids SofaScore</span>
+    </div>
+  </div>
+
+  <div class="xsrc__down mono" aria-hidden="true">↓</div>
+
+  <div class="xsrc__join">
+    <span class="xsrc__op mono">aligner par chronologie</span>
+    <span class="xsrc__keys mono">clé = (Espagne, date du match), triés par date</span>
+  </div>
+
+  <div class="xsrc__down mono" aria-hidden="true">↓</div>
+
+  <div class="xsrc__result">
+    <span class="xsrc__count">8<span class="xsrc__slash">/</span>8</span>
+    <span class="xsrc__ok mono">matchs appariés · xG réel vérifié contre xG modèle</span>
+    <span class="xsrc__else mono">un écart de longueur ⇒ le build échoue (zip strict)</span>
+  </div>
+</div>
+
+<style>
+  .xsrc { max-width: 40rem; }
+  .xsrc__sources { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0.75rem; align-items: stretch; }
+  .xsrc__src { padding: 0.9rem 1rem; border: 1px solid var(--line-strong); background: var(--paper-raised); }
+  .xsrc__src--a { border-top: 3px solid var(--accent); }
+  .xsrc__src--b { border-top: 3px solid var(--teal); }
+  .xsrc__badge { display: inline-block; font-size: var(--mono-xs); letter-spacing: 0.1em; text-transform: uppercase; }
+  .xsrc__src--a .xsrc__badge { color: var(--accent); }
+  .xsrc__src--b .xsrc__badge { color: var(--teal); }
+  .xsrc__name { display: block; margin-top: 0.35rem; font-size: 0.9rem; font-weight: 600; color: var(--ink); }
+  .xsrc__note { display: block; margin-top: 0.3rem; font-size: var(--mono-xs); color: var(--ink-soft); line-height: 1.5; font-family: var(--mono); }
+
+  .xsrc__nokey { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem; padding: 0 0.2rem; }
+  .xsrc__nokey-x { font-size: 1.1rem; color: var(--ink-faint); }
+  .xsrc__nokey-t { font-size: var(--mono-xs); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); writing-mode: horizontal-tb; text-align: center; max-width: 5rem; line-height: 1.3; }
+
+  .xsrc__down { text-align: center; font-size: 1.1rem; color: var(--ink-faint); line-height: 1.5; }
+
+  .xsrc__join { text-align: center; padding: 0.85rem 1rem; border: 1px solid var(--ink); background: var(--paper); }
+  .xsrc__op { display: block; font-size: 0.9rem; font-weight: 600; letter-spacing: 0.02em; color: var(--ink); font-family: var(--sans); }
+  .xsrc__keys { display: block; margin-top: 0.25rem; font-size: var(--mono-xs); color: var(--ink-faint); }
+
+  .xsrc__result { text-align: center; padding: 1.1rem 1rem; background: var(--ink); color: var(--paper-on-accent); }
+  .xsrc__count { display: block; font-family: var(--sans); font-size: clamp(2.2rem, 7vw, 3.2rem); font-weight: 800; letter-spacing: -0.02em; color: var(--gold-bright); line-height: 1; }
+  .xsrc__slash { color: rgba(246, 239, 230, 0.4); font-weight: 400; margin: 0 0.05em; }
+  .xsrc__ok { display: block; margin-top: 0.4rem; font-size: var(--mono-sm); letter-spacing: 0.06em; text-transform: uppercase; color: var(--paper-on-accent); line-height: 1.5; }
+  .xsrc__else { display: block; margin-top: 0.3rem; font-size: var(--mono-xs); color: rgba(246, 239, 230, 0.6); }
+
+  @media (max-width: 520px) {
+    .xsrc__sources { grid-template-columns: 1fr; }
+    .xsrc__nokey { flex-direction: row; gap: 0.5rem; padding: 0.15rem 0; }
+    .xsrc__nokey-t { max-width: none; }
+    .xsrc__src { border-top-width: 3px; }
+  }
+</style>

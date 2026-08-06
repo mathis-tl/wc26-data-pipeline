@@ -5,22 +5,22 @@
 const { compact = false } = Astro.props as { compact?: boolean };
 
 const nodes = [
-  { key: "src",     kind: "io",    tag: "Source",     label: "football-data.org", note: "API · 10 req/min" },
+  { key: "src",     kind: "io",    tag: "Source 1",   label: "football-data.org", note: "scores · API 10 req/min" },
   { key: "ingest",  kind: "io",    tag: "Ingestion",  label: "Python · httpx",    note: "idempotent, horodaté" },
   { key: "raw",     kind: "raw",   tag: "Raw · bronze", label: "Parquet",         note: "brut, versionné, jamais modifié" },
   { key: "staging", kind: "silver",tag: "Staging · silver", label: "dbt · vues",  note: "typage, group_code normalisé" },
   { key: "marts",   kind: "gold",  tag: "Marts · gold", label: "schéma en étoile", note: "fct_ / dim_ · règles FIFA" },
-  { key: "model",   kind: "io",    tag: "Analyse",    label: "modèle Poisson",    note: "forces, simulation" },
+  { key: "model",   kind: "io",    tag: "Analyse",    label: "modèle Poisson",    note: "forces, simulation · + Source 2 : SofaScore (xG réel), réconciliée par chronologie" },
   { key: "export",  kind: "io",    tag: "Export",     label: "JSON",              note: "figé, commité" },
   { key: "site",    kind: "io",    tag: "Publication",label: "Astro · Vercel",    note: "statique, redéployé" },
 ];
 ---
 
 <div class:list={["flow", { "flow--compact": compact }]} role="img"
-     aria-label="Schéma du pipeline : football-data.org, ingestion Python, couche brute Parquet, staging dbt, marts en étoile, export JSON, site Astro sur Vercel.">
+     aria-label="Schéma du pipeline : source 1 football-data.org (scores), ingestion Python, couche brute Parquet, staging dbt, marts en étoile, analyse (modèle Poisson) où se réconcilie la source 2 SofaScore (xG réel), export JSON, site Astro sur Vercel.">
   <ol class="flow__track">
     {nodes.map((n, i) => (
-      <li class:list={["node", `node--${n.kind}`]}>
+      <li class:list={["node", `node--${n.kind}`, { "node--twosrc": n.key === "model" }]}>
         <span class="node__tag mono">{n.tag}</span>
         <span class="node__label">{n.label}</span>
         {!compact && <span class="node__note mono">{n.note}</span>}
@@ -32,6 +32,7 @@ const nodes = [
     <span class="chip chip--raw">brut</span>
     <span class="chip chip--silver">nettoyé</span>
     <span class="chip chip--gold">modélisé</span>
+    <span class="flow__badge">2 sources réconciliées</span>
     <span class="flow__badge">testé à chaque build ✓</span>
     <span class="flow__badge">réconcilié 48/48</span>
   </p>
@@ -50,6 +51,9 @@ const nodes = [
     background: var(--paper);
   }
   .node:last-child { border-right: none; }
+  /* the analyse node is where the 2nd source (SofaScore) joins — mark it teal */
+  .node--twosrc { box-shadow: inset 0 2px 0 0 var(--teal); }
+  .node--twosrc .node__tag { color: var(--teal); }
   .node--raw    { background: color-mix(in srgb, var(--raw) 10%, var(--paper)); }
   .node--silver { background: color-mix(in srgb, var(--silver) 11%, var(--paper)); }
   .node--gold   { background: color-mix(in srgb, var(--gold) 12%, var(--paper)); }

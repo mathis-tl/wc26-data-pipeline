@@ -1,0 +1,70 @@
+---
+// Inline glossary term: a dotted-underlined word that reveals a short
+// definition on hover OR keyboard focus OR tap (focus-within covers touch).
+// Used to explain the model's vocabulary at its first occurrence in prose,
+// so an outside reader is never left guessing what "note de force" means.
+interface Props {
+  def: string;
+}
+const { def } = Astro.props as Props;
+---
+<span class="term" tabindex="0">
+  <slot /><span class="term__tip" role="tooltip">{def}</span>
+</span>
+
+<style>
+  .term {
+    position: relative;
+    border-bottom: 1px dotted var(--ink-faint);
+    cursor: help;
+    /* keep the trigger from breaking mid-word across a line wrap */
+    white-space: nowrap;
+  }
+  .term__tip {
+    /* display:none when hidden so the box never contributes to page width on
+       mobile (a hidden absolutely-positioned tooltip still widened the document
+       and caused horizontal overflow). */
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 0.55rem);
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: min(15rem, 66vw);
+    padding: 0.6rem 0.75rem;
+    background: var(--ink);
+    color: var(--paper-on-accent);
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    font-weight: 400;
+    line-height: 1.45;
+    letter-spacing: 0;
+    text-transform: none;
+    white-space: normal;
+    text-align: left;
+    border-radius: 2px;
+    box-shadow: 0 6px 20px rgba(22, 20, 15, 0.22);
+    z-index: 30;
+    pointer-events: none;
+  }
+  /* little downward arrow */
+  .term__tip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--ink);
+  }
+  .term:hover .term__tip,
+  .term:focus .term__tip,
+  .term:focus-within .term__tip {
+    display: block;
+  }
+  .term:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 1px;
+  }
+</style>

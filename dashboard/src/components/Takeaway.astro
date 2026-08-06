@@ -1,0 +1,39 @@
+---
+// A one-line reading aid placed under an annex figure: an orange "À retenir"
+// tag + a single sentence saying what the reader should take from the chart.
+// Deliberately one sentence — the annex sections lean descriptive, and this
+// hands the reader the conclusion the essay would otherwise have to spell out.
+---
+<p class="takeaway">
+  <span class="takeaway__tag mono">À retenir</span>
+  <span class="takeaway__text"><slot /></span>
+</p>
+
+<style>
+  .takeaway {
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+    margin-top: 0.9rem;
+    padding-left: 0.85rem;
+    border-left: 2px solid var(--accent);
+    max-width: 42rem;
+  }
+  .takeaway__tag {
+    flex: none;
+    font-size: var(--mono-xs);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding-top: 0.05rem;
+  }
+  .takeaway__text {
+    font-size: 0.98rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+  .takeaway__text strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+</style>
