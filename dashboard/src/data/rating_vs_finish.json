@@ -100,7 +100,7 @@
   {
     "team_name": "South Africa",
     "team_tla": "RSA",
-    "rating": -1.073,
+    "rating": -1.072,
     "finish": 1,
     "highlight": false
   },
@@ -149,7 +149,7 @@
   {
     "team_name": "Czechia",
     "team_tla": "CZE",
-    "rating": -1.473,
+    "rating": -1.472,
     "finish": 0,
     "highlight": false
   },
@@ -254,14 +254,14 @@
   {
     "team_name": "Panama",
     "team_tla": "PAN",
-    "rating": -1.964,
+    "rating": -1.963,
     "finish": 0,
     "highlight": false
   },
   {
     "team_name": "Cape Verde Islands",
     "team_tla": "CPV",
-    "rating": 1.055,
+    "rating": 1.054,
     "finish": 1,
     "highlight": false
   },
