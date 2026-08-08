@@ -82,9 +82,14 @@ const labelYears = new Set([1930, 1954, 1970, 1990, 2010, 2026]);
   .edt__col.hi .edt__yr.show { color: var(--gold); font-weight: 700; }
   /* all-time average reference line */
   .edt__avg { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--teal); z-index: 1; }
+  /* anchored at the LEFT end of the line, away from 2026's gold value label at
+     the right — the two used to collide (2.96 sat right under "moyenne 3.06",
+     making it look like 2026 topped the average when it sits just below it). A
+     paper chip keeps the teal label readable over the tall early-era bars. */
   .edt__avg-lbl {
-    position: absolute; right: 0; top: -1.05rem;
+    position: absolute; left: 0; top: -1.05rem;
     font-size: var(--mono-xs); color: var(--teal); letter-spacing: 0.04em;
+    background: var(--paper); padding: 0 0.3rem;
   }
   .edt__cap { margin-top: 1.4rem; font-size: var(--mono-xs); color: var(--ink-faint); line-height: 1.5; }
   @media (max-width: 560px) {

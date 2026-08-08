@@ -68,6 +68,15 @@ const higherBefore = editions
   .filter((e) => !e.is_current && e.goals_per_match > curEd.goals_per_match)
   .map((e) => e.year);
 const highestSince = higherBefore.length ? Math.max(...higherBefore) : null;
+// all-time mean goals/match — the SAME figure the EditionTimeline draws as its
+// reference line, so the prose and the chart can never contradict each other.
+const allTimeAvg = editions.reduce((s, e) => s + e.goals_per_match, 0) / editions.length;
+const aboveAllTimeAvg = curEd.goals_per_match > allTimeAvg;
+// modern-era baseline (editions since 1990, current excluded): the honest
+// comparison, since the all-time mean is inflated by the 1930s–50s goal-fests.
+const modernEds = editions.filter((e) => e.year >= 1990 && !e.is_current);
+const modernAvg = modernEds.reduce((s, e) => s + e.goals_per_match, 0) / modernEds.length;
+const aboveModernAvg = curEd.goals_per_match > modernAvg;
 
 // --- derived KPI context (real, from mart_edition_comparison — never hardcoded) ---
 const prevEd = [...editions].filter((e) => !e.is_current).sort((a, b) => b.year - a.year)[0];
@@ -581,10 +590,11 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
         <p class="figlabel mono">Fig. 6 · Défense du modèle × % d'arrêts réel (FBref, 48 équipes)</p>
         <ScatterPlot
           points={realityPts}
+          scale
           xLabel="Défense (modèle) →"
-          yLabel="% d'arrêts réel →"
+          yLabel="% d'arrêts →"
           yRef={savePctMean}
-          caption="Chaque point = une équipe · x = force défensive du modèle · y = pourcentage d'arrêts du gardien, réellement enregistré (FBref) · lignes = équipe moyenne (modèle) et moyenne du plateau (% d'arrêts) · étiquetés : le top 5 défense du modèle"
+          caption="Chaque point = une équipe · x = force défensive du modèle · y = pourcentage d'arrêts du gardien, réellement enregistré (FBref) · lignes pleines = échelle · pointillés = équipe moyenne (modèle) et moyenne du plateau (% d'arrêts) · étiquetés : le top 5 défense du modèle"
           ariaLabel="Nuage de points force défensive du modèle contre pourcentage d'arrêts réel mesuré par FBref pour les 48 équipes ; l'Espagne cumule la meilleure défense du modèle et le meilleur pourcentage d'arrêts réel."
         />
         <Takeaway>
@@ -752,17 +762,23 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
             autour de 2,2 dans les années 1990-2010.
           </p>
           <p>
-            Sur ce fond, 2026 surprend&nbsp;: avec {curEd.goals_per_match.toFixed(2)},
-            l'édition à 48 équipes se classe <strong>{curEd.goals_per_match_rank}<sup>e</sup>
-            sur {editionComparison.total_editions}</strong>, au-dessus de la moyenne
-            historique{highestSince ? (
-              <>, <strong>la Coupe du Monde la plus prolifique depuis {highestSince}</strong>.
-              L'élargissement du plateau, qu'on attendait dilué, aura au contraire
-              produit l'un des tournois les plus offensifs de l'ère moderne</>
+            Sur ce fond, 2026 se lit en deux temps. Avec {curEd.goals_per_match.toFixed(2)}
+            buts par match, l'édition à 48 équipes se classe <strong>{curEd.goals_per_match_rank}<sup>e</sup>
+            sur {editionComparison.total_editions}</strong>&nbsp;: elle reste
+            {aboveAllTimeAvg ? " au-dessus" : " en dessous"} de la moyenne de
+            <em>toutes</em> les éditions ({allTimeAvg.toFixed(2)}), un repère
+            tiré vers le haut par les cartons des années 1930-50 qu'aucun tournoi
+            moderne ne rejoue. Mais rapportée à son époque, elle se situe
+            {aboveModernAvg ? " nettement au-dessus" : " en dessous"} de la
+            moyenne de l'ère moderne (<strong>{modernAvg.toFixed(1)} de moyenne
+            depuis 1990</strong>){highestSince ? (
+              <>, et signe <strong>la Coupe du Monde la plus prolifique depuis {highestSince}</strong>.
+              L'élargissement du plateau, qu'on attendait dilué, n'aura donc pas
+              fait chuter le spectacle</>
             ) : null}.
           </p>
         </div>
-        <p class="figlabel figlabel--wide mono">Fig. · Buts par match, chaque Coupe du Monde (1930–2026)</p>
+        <p class="figlabel figlabel--wide mono">Fig. 9 · Buts par match, chaque Coupe du Monde (1930–2026)</p>
         <EditionTimeline editions={editions} />
         {highestSince && (
           <Takeaway>L'élargissement à 48 équipes, qu'on annonçait dilué, n'a pas fait chuter le spectacle&nbsp;: 2026 est la Coupe du monde <strong>la plus prolifique depuis {highestSince}</strong>.</Takeaway>

@@ -17,7 +17,12 @@
     margin-top: 0.9rem;
     padding-left: 0.85rem;
     border-left: 2px solid var(--accent);
-    max-width: 42rem;
+    /* self-center to the reading column: as a component root, this element is
+       out of reach of the page's `.analyse__block > * { margin-inline: auto }`
+       rule (Astro style scoping stops at the component boundary), so it must
+       center itself — matching the width of the figure it sits under. */
+    max-width: var(--measure);
+    margin-inline: auto;
   }
   .takeaway__tag {
     flex: none;

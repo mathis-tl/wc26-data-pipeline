@@ -7,10 +7,15 @@ const { points } = Astro.props as { points: Pt[] };
 
 const vals = points.flatMap((p) => [p.real, p.model]);
 const top = Math.max(...vals) * 1.15;
-const W = 100, H = 46, m = { l: 3, r: 3, t: 6, b: 9 };
+// wider left margin (l) than the other three sides: it holds the y-axis title
+// and the xG tick labels, so the reader can read magnitudes off the curve.
+const W = 100, H = 46, m = { l: 8, r: 3, t: 6, b: 9 };
 const n = points.length;
 const sx = (i: number) => m.l + (i / (n - 1)) * (W - m.l - m.r);
 const sy = (v: number) => (H - m.b) - (v / top) * (H - m.t - m.b);
+// light integer xG scale (0, 1, 2, …) — every whole value that fits under the top
+const yticks: number[] = [];
+for (let v = 0; v <= top; v += 1) yticks.push(v);
 
 const realPath = points.map((p, i) => `${i === 0 ? "M" : "L"}${sx(i)},${sy(p.real)}`).join(" ");
 const modelPath = points.map((p, i) => `${i === 0 ? "M" : "L"}${sx(i)},${sy(p.model)}`).join(" ");
@@ -24,6 +29,16 @@ const abbr = (s: string) => s.slice(0, 3).toUpperCase();
   </div>
   <svg viewBox={`0 0 ${W} ${H}`} role="img" preserveAspectRatio="xMidYMid meet"
        aria-label="Courbes du xG réel de l'Espagne (SofaScore) et du xG du modèle, un point par match dans l'ordre chronologique du tournoi.">
+    <!-- light xG gridlines + tick labels, and the vertical axis title -->
+    {yticks.map((v) => (
+      <>
+        <line x1={m.l} y1={sy(v)} x2={W - m.r} y2={sy(v)} class="grid" />
+        <text x={m.l - 1.4} y={sy(v) + 0.7} text-anchor="end" class="tick">{v}</text>
+      </>
+    ))}
+    <text transform={`translate(${m.l - 5} ${(m.t + (H - m.b)) / 2}) rotate(-90)`}
+          text-anchor="middle" class="axttl">xG →</text>
+    <line x1={m.l} y1={m.t} x2={m.l} y2={H - m.b} class="axis" />
     <line x1={m.l} y1={H - m.b} x2={W - m.r} y2={H - m.b} class="axis" />
     <path d={modelPath} class="line line--model" />
     <path d={realPath} class="line line--real" />
@@ -49,6 +64,9 @@ const abbr = (s: string) => s.slice(0, 3).toUpperCase();
   .dot--model { background: var(--teal); }
   .xgc svg { width: 100%; height: auto; display: block; background: var(--paper-raised); border: 1px solid var(--line); }
   .axis { stroke: var(--line-strong); stroke-width: 0.15; }
+  .grid { stroke: var(--line); stroke-width: 0.1; }
+  .tick { font-family: var(--mono); font-size: 1.8px; fill: var(--ink-faint); }
+  .axttl { font-family: var(--mono); font-size: 2px; fill: var(--ink-faint); letter-spacing: 0.02em; }
   .line { fill: none; stroke-width: 0.55; }
   .line--real { stroke: var(--accent); }
   .line--model { stroke: var(--teal); stroke-dasharray: 1.4 1; }
