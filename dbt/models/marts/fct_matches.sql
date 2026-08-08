@@ -14,6 +14,21 @@ select
     away_team_name,
     full_time_home_goals,
     full_time_away_goals,
+    -- football-data.org's score.fullTime includes penalty-shootout goals when
+    -- duration = PENALTY_SHOOTOUT (fullTime = regulation/ET + penalties) — not
+    -- "full time" by football convention, and not a real goal for any
+    -- goal-counting purpose (a shootout kick isn't a goal scored in the
+    -- match). Strip penalties back out so every consumer that counts goals
+    -- (totals, scoreline distribution, the Poisson fit) sees the actual match
+    -- score; `winner` below already carries the correct shootout-aware
+    -- outcome independently of any goal column, so match-result logic
+    -- (who won/advanced) is unaffected by this correction.
+    case when duration = 'PENALTY_SHOOTOUT'
+         then full_time_home_goals - coalesce(penalty_home_goals, 0)
+         else full_time_home_goals end as regulation_home_goals,
+    case when duration = 'PENALTY_SHOOTOUT'
+         then full_time_away_goals - coalesce(penalty_away_goals, 0)
+         else full_time_away_goals end as regulation_away_goals,
     half_time_home_goals,
     half_time_away_goals,
     extra_time_home_goals,

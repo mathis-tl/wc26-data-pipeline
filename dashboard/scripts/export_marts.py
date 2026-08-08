@@ -97,8 +97,12 @@ def export() -> None:
             m.away_team_name,
             away_t.team_tla       as away_team_tla,
             away_t.team_crest_url as away_crest,
-            m.full_time_home_goals,
-            m.full_time_away_goals,
+            -- aliased from regulation_*: "full time" excludes penalty-shootout
+            -- kicks by football convention; the raw API field does not (see
+            -- fct_matches.sql). winner/penalty_* below already carry the
+            -- correct shootout-aware outcome independently of this goal count.
+            m.regulation_home_goals as full_time_home_goals,
+            m.regulation_away_goals as full_time_away_goals,
             m.penalty_home_goals,
             m.penalty_away_goals,
             m.winner,
@@ -116,13 +120,13 @@ def export() -> None:
         select
             count(*)                                             as matches_total,
             count(*) filter (where status = 'FINISHED')          as matches_played,
-            sum(coalesce(full_time_home_goals, 0)
-              + coalesce(full_time_away_goals, 0))
+            sum(coalesce(regulation_home_goals, 0)
+              + coalesce(regulation_away_goals, 0))
               filter (where status = 'FINISHED')                 as goals_scored,
             (select count(*) from main.dim_teams)                as teams,
             round(
-              sum(coalesce(full_time_home_goals, 0)
-                + coalesce(full_time_away_goals, 0))
+              sum(coalesce(regulation_home_goals, 0)
+                + coalesce(regulation_away_goals, 0))
                 filter (where status = 'FINISHED')
               / nullif(count(*) filter (where status = 'FINISHED'), 0), 2
             )                                                    as avg_goals_per_match
@@ -224,11 +228,11 @@ def export() -> None:
         """
         select stage,
                count(*) filter (where status = 'FINISHED')            as matches,
-               sum(coalesce(full_time_home_goals,0)
-                 + coalesce(full_time_away_goals,0))
+               sum(coalesce(regulation_home_goals,0)
+                 + coalesce(regulation_away_goals,0))
                  filter (where status = 'FINISHED')                   as goals,
                round(
-                 sum(coalesce(full_time_home_goals,0)+coalesce(full_time_away_goals,0))
+                 sum(coalesce(regulation_home_goals,0)+coalesce(regulation_away_goals,0))
                    filter (where status = 'FINISHED')
                  / nullif(count(*) filter (where status = 'FINISHED'),0), 2) as avg_goals
         from main.fct_matches
@@ -270,11 +274,11 @@ def export() -> None:
         """
         with s as (
             select
-                greatest(full_time_home_goals, full_time_away_goals) as hi,
-                least(full_time_home_goals, full_time_away_goals)    as lo
+                greatest(regulation_home_goals, regulation_away_goals) as hi,
+                least(regulation_home_goals, regulation_away_goals)    as lo
             from main.fct_matches
             where status = 'FINISHED'
-              and full_time_home_goals is not null
+              and regulation_home_goals is not null
         )
         select (hi::text || '–' || lo::text) as scoreline, count(*) as count
         from s group by 1 order by count desc, scoreline
@@ -284,13 +288,17 @@ def export() -> None:
     _write("scorelines.json", scorelines)
 
     # --- results split (home win / draw / away win among finished) ---
+    # Uses `winner`, not a goal comparison: a penalty-shootout match has equal
+    # regulation goals (by definition, that's why it went to penalties) but is
+    # not a draw for this split — the API's own winner field is authoritative
+    # regardless of how the match was decided.
     split = _rows(
         con,
         """
         select
-            count(*) filter (where full_time_home_goals > full_time_away_goals) as home_wins,
-            count(*) filter (where full_time_home_goals = full_time_away_goals) as draws,
-            count(*) filter (where full_time_home_goals < full_time_away_goals) as away_wins
+            count(*) filter (where winner = 'HOME_TEAM') as home_wins,
+            count(*) filter (where winner = 'DRAW')      as draws,
+            count(*) filter (where winner = 'AWAY_TEAM') as away_wins
         from main.fct_matches
         where status = 'FINISHED'
         """,
@@ -361,9 +369,20 @@ def export() -> None:
 
     # Run history from the ops log: how many automated runs the pipeline has
     # logged, and how many of them were clean — the operational track record.
+    # NOTE: the ops log (data/ops/runs.jsonl) only started being written
+    # recently, so runs_total badly undercounts the pipeline's real cadence.
+    # The durable proof of "ran every day" is the raw archive itself (ADR-0001:
+    # one committed extraction_date= partition per ingestion day) — count that
+    # separately so the freshness banner doesn't imply a one-day pipeline.
     runs = read_runs()
     run_ids = {r["run_id"] for r in runs}
     failed_ids = {r["run_id"] for r in runs if r.get("status") != "ok"}
+    raw_matches_dir = REPO_ROOT / "data" / "raw" / "football_data" / "matches"
+    ingestion_days = (
+        len([p for p in raw_matches_dir.glob("extraction_date=*") if p.is_dir()])
+        if raw_matches_dir.exists()
+        else 0
+    )
     metadata = {
         "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "last_ingestion": last_ingestion.astimezone(UTC).isoformat(timespec="seconds")
@@ -373,6 +392,7 @@ def export() -> None:
         "competition": COMPETITION,
         "dbt_nodes_passed": passed,
         "dbt_nodes_total": total,
+        "ingestion_days": ingestion_days,
         # derived, not hardcoded: the reconciliation test gates the build, so a
         # successful build means every standing row matched the official one
         "reconciliation": f"{n_teams}/{n_teams}",

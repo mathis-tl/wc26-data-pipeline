@@ -82,6 +82,12 @@ models:
         data_type: varchar
       - name: full_time_home_goals
         data_type: bigint
+        description: >
+          Raw score.fullTime.home from the API. CAUTION — includes penalty-
+          shootout kicks when duration = PENALTY_SHOOTOUT (verified: fullTime
+          = regulation + penalties for all 4 shootout matches in this
+          tournament). Do not use for goal-counting; use
+          regulation_home_goals instead.
         data_tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -91,6 +97,7 @@ models:
                 where: "full_time_home_goals is not null"
       - name: full_time_away_goals
         data_type: bigint
+        description: Away-team counterpart of full_time_home_goals — same caution applies.
         data_tests:
           - dbt_utils.accepted_range:
               arguments:
@@ -98,6 +105,30 @@ models:
                 max_value: 12
               config:
                 where: "full_time_away_goals is not null"
+      - name: regulation_home_goals
+        data_type: bigint
+        description: >
+          Goals actually scored by the home team in regulation/extra time —
+          excludes penalty-shootout kicks, unlike full_time_home_goals (see
+          its description). Use this for any goal-counting aggregate.
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 12
+              config:
+                where: "regulation_home_goals is not null"
+      - name: regulation_away_goals
+        data_type: bigint
+        description: >
+          Away-team counterpart of regulation_home_goals.
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 12
+              config:
+                where: "regulation_away_goals is not null"
       - name: half_time_home_goals
         data_type: bigint
       - name: half_time_away_goals

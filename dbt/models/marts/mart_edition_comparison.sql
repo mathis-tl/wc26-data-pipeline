@@ -32,9 +32,12 @@ current_edition as (
             end)                                as winner,
         {{ var('expected_teams') }}             as teams,
         count(*)                                as matches,
-        sum(full_time_home_goals + full_time_away_goals) as goals,
+        -- regulation_*_goals, not full_time_*_goals: the latter includes
+        -- penalty-shootout kicks for 4 matches this tournament, which are not
+        -- goals by any historical edition's counting convention either.
+        sum(regulation_home_goals + regulation_away_goals) as goals,
         round(
-            sum(full_time_home_goals + full_time_away_goals) * 1.0 / count(*), 2
+            sum(regulation_home_goals + regulation_away_goals) * 1.0 / count(*), 2
         )                                       as goals_per_match,
         true                                    as is_current
     from {{ ref('fct_matches') }}
