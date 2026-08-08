@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-08-08T06:51:37+00:00",
+  "generated_at": "2026-08-08T07:15:50+00:00",
   "n_teams": 48,
   "n_matches": 104,
-  "home_adv": 0.291,
+  "home_adv": 0.273,
   "ridge": 0.05,
-  "final_nll": 87.54,
+  "final_nll": 98.25,
   "n_sims": 10000,
-  "note": "Modele de buts (Poisson) ajuste sur les resultats. Aucune donnee de tir : les buts attendus sont modelises, pas du xG de tracking."
+  "note": "Modele de buts (Poisson) ajuste sur les resultats. Depuis le sprint FBref, on dispose de volumes de tir reels (tirs, cadres, buts encaisses, arrets) en complement — mais toujours aucune donnee de xG de tracking : les buts attendus du modele restent modelises, jamais mesures, et ne sont jamais appeles xG (ADR-0004, ADR-0006)."
 }
