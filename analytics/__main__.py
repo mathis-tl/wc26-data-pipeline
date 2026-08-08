@@ -51,9 +51,10 @@ def run() -> None:
     matches = _rows(
         con,
         """
-        select match_id, stage, status, winner, kickoff_at,
-               home_team_id, home_team_name, full_time_home_goals as home_goals,
-               away_team_id, away_team_name, full_time_away_goals as away_goals
+        select match_id, stage, status, winner, kickoff_at, duration,
+               home_team_id, home_team_name, regulation_home_goals as home_goals,
+               away_team_id, away_team_name, regulation_away_goals as away_goals,
+               penalty_home_goals, penalty_away_goals
         from main.fct_matches
         order by match_id  -- deterministic row order: the MLE fit sums in this
                            -- order, so identical data yields identical ratings
@@ -92,11 +93,17 @@ def run() -> None:
     for m in finished:
         h, a = m["home_team_id"], m["away_team_id"]
         gh, ga = m["home_goals"], m["away_goals"]
-        lh, la = goal_means(model, h, a)
+        # Knockout matches are neutral-venue: "home" is a fixture-listing
+        # artifact, not a real advantage, so home_adv must not apply — this
+        # feeds every team's aggregate xgf/xga (e.g. spain_case.json's xga).
+        lh, la = goal_means(model, h, a, neutral=m["stage"] != "GROUP_STAGE")
         p_home, p_draw, p_away = outcome_probs(lh, la)
-        for team, opp, gf, ga_, xgf, xga, xp in (
-            (h, a, gh, ga, lh, la, 3 * p_home + p_draw),
-            (a, h, ga, gh, la, lh, 3 * p_away + p_draw),
+        # Points come from `winner`, never from comparing goals: a
+        # penalty-shootout match has equal regulation goals by construction
+        # (that's why it went to penalties) but is a win/loss, not a draw.
+        for team, opp, gf, ga_, xgf, xga, xp, win, draw in (
+            (h, a, gh, ga, lh, la, 3 * p_home + p_draw, m["winner"] == "HOME_TEAM", m["winner"] == "DRAW"),
+            (a, h, ga, gh, la, lh, 3 * p_away + p_draw, m["winner"] == "AWAY_TEAM", m["winner"] == "DRAW"),
         ):
             d = agg[team]
             d["gf"] += gf
@@ -105,7 +112,7 @@ def run() -> None:
             d["xga"] += xga
             d["xpts"] += xp
             d["played"] += 1
-            d["pts"] += 3 if gf > ga_ else (1 if gf == ga_ else 0)
+            d["pts"] += 3 if win else (1 if draw else 0)
             d["opp_rating_sum"] += ratings[opp]
 
     def meta(t):
@@ -142,18 +149,69 @@ def run() -> None:
     team_strength.sort(key=lambda x: x["rank_overall"])
     _write("team_strength.json", team_strength)
 
+    # --- FBref reality check (source #3): real basic stats next to the model's ratings ---
+    from analytics.real_fbref import load_fbref_real
+
+    fbref_real = load_fbref_real({row["team_name"] for row in team_strength})
+    if fbref_real:
+        team_reality = [
+            {
+                "team_id": row["team_id"],
+                "team_name": row["team_name"],
+                "team_tla": row["team_tla"],
+                "crest": row["crest"],
+                "rank_overall": row["rank_overall"],
+                "rank_attack": row["rank_attack"],
+                "rank_defense": row["rank_defense"],
+                "attack": row["attack"],
+                "defense": row["defense"],
+                "rating": row["rating"],
+                "possession": real["possession"],
+                "shots": real["shots"],
+                "sot": real["sot"],
+                "sot_pct": real["sot_pct"],
+                "sota": real["sota"],
+                "ga": real["ga"],
+                "save_pct": real["save_pct"],
+                "cs": real["cs"],
+                "conversion": real["g_per_sh"],
+            }
+            for row in team_strength
+            if (real := fbref_real.get(row["team_name"])) is not None
+        ]
+        # dim_teams -> FBref is the reverse direction of the NAME_MAP check inside
+        # load_fbref_real: that guard catches an unmapped FBref name, this one
+        # catches a dim_teams team that FBref's own 48 never covered.
+        missing = {row["team_name"] for row in team_strength} - fbref_real.keys()
+        if missing:
+            raise RuntimeError(f"dim_teams team(s) missing from FBref reality check: {sorted(missing)}")
+        team_reality.sort(key=lambda x: x["rank_overall"])
+        _write("team_reality.json", team_reality)
+
     # --- upsets: finished matches the winner was least likely to win ---
     upsets = []
     for m in finished:
         if m["winner"] not in ("HOME_TEAM", "AWAY_TEAM"):
             continue
-        lh, la = goal_means(model, m["home_team_id"], m["away_team_id"])
+        lh, la = goal_means(model, m["home_team_id"], m["away_team_id"], neutral=m["stage"] != "GROUP_STAGE")
         p_home, p_draw, p_away = outcome_probs(lh, la)
         win_p = p_home if m["winner"] == "HOME_TEAM" else p_away
-        winner_id = m["home_team_id"] if m["winner"] == "HOME_TEAM" else m["away_team_id"]
-        loser_id = m["away_team_id"] if m["winner"] == "HOME_TEAM" else m["home_team_id"]
+        home_won = m["winner"] == "HOME_TEAM"
+        winner_id = m["home_team_id"] if home_won else m["away_team_id"]
+        loser_id = m["away_team_id"] if home_won else m["home_team_id"]
         wn, _, wc = meta(winner_id)
         ln, _, lc = meta(loser_id)
+        wg, lg = (m["home_goals"], m["away_goals"]) if home_won else (m["away_goals"], m["home_goals"])
+        score = f"{wg}–{lg}"
+        # Regulation goals alone would show a shootout win as e.g. "0–0", which
+        # reads as no result at all — append how it was actually decided.
+        if m.get("duration") == "PENALTY_SHOOTOUT" and m.get("penalty_home_goals") is not None:
+            wp, lp = (
+                (m["penalty_home_goals"], m["penalty_away_goals"])
+                if home_won
+                else (m["penalty_away_goals"], m["penalty_home_goals"])
+            )
+            score += f" ({wp}–{lp} t.a.b.)"
         upsets.append(
             {
                 "match_id": m["match_id"],
@@ -162,7 +220,7 @@ def run() -> None:
                 "winner_crest": wc,
                 "loser_name": ln,
                 "loser_crest": lc,
-                "score": f"{max(m['home_goals'], m['away_goals'])}–{min(m['home_goals'], m['away_goals'])}",
+                "score": score,
                 "win_prob": round(win_p, 3),
             }
         )
@@ -274,19 +332,35 @@ def run() -> None:
         for m in sp_matches:
             home = m["home_team_id"] == spain_id
             opp = m["away_team_id"] if home else m["home_team_id"]
-            lh, la = goal_means(model, m["home_team_id"], m["away_team_id"])
+            # Knockout matches are played at neutral venues: the "home" team
+            # label is an artifact of fixture listing order, not a real venue
+            # advantage, so home_adv must not apply here — same convention as
+            # simulate.py's _win_prob_table, which this call was missing.
+            neutral = m["stage"] != "GROUP_STAGE"
+            lh, la = goal_means(model, m["home_team_id"], m["away_team_id"], neutral=neutral)
             p_home, p_draw, p_away = outcome_probs(lh, la)
             sg = m["home_goals"] if home else m["away_goals"]
             og = m["away_goals"] if home else m["home_goals"]
             oname, otla, ocrest = meta(opp)
+            score = f"{sg}–{og}"
+            # Same shootout caveat as the upsets score above: regulation goals
+            # alone can show a decisive knockout win as a bare tie.
+            if m.get("duration") == "PENALTY_SHOOTOUT" and m.get("penalty_home_goals") is not None:
+                sp, op = (
+                    (m["penalty_home_goals"], m["penalty_away_goals"])
+                    if home
+                    else (m["penalty_away_goals"], m["penalty_home_goals"])
+                )
+                score += f" ({sp}–{op} t.a.b.)"
+            result = "V" if m["winner"] == ("HOME_TEAM" if home else "AWAY_TEAM") else ("N" if m["winner"] == "DRAW" else "D")
             path.append(
                 {
                     "stage": m["stage"],
                     "opponent": oname,
                     "opponent_tla": otla,
                     "opponent_crest": ocrest,
-                    "score": f"{sg}–{og}",
-                    "result": "V" if sg > og else ("N" if sg == og else "D"),
+                    "score": score,
+                    "result": result,
                     "win_prob": round(p_home if home else p_away, 3),
                     "model_xg_for": round(lh if home else la, 2),
                     "model_xg_against": round(la if home else lh, 2),
@@ -312,8 +386,16 @@ def run() -> None:
             "ridge": model.ridge,
             "final_nll": round(model.final_nll, 2),
             "n_sims": N_SIMS,
-            "note": "Modele de buts (Poisson) ajuste sur les resultats. Aucune donnee de tir : "
-            "les buts attendus sont modelises, pas du xG de tracking.",
+            "note": (
+                "Modele de buts (Poisson) ajuste sur les resultats. Depuis le sprint FBref, "
+                "on dispose de volumes de tir reels (tirs, cadres, buts encaisses, arrets) en "
+                "complement — mais toujours aucune donnee de xG de tracking : les buts "
+                "attendus du modele restent modelises, jamais mesures, et ne sont jamais "
+                "appeles xG (ADR-0004, ADR-0006)."
+                if fbref_real
+                else "Modele de buts (Poisson) ajuste sur les resultats. Aucune donnee de tir : "
+                "les buts attendus sont modelises, pas du xG de tracking."
+            ),
         },
     )
     print("analytics done ->", OUT_DIR)

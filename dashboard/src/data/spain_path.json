@@ -6,9 +6,9 @@
     "opponent_crest": "https://crests.football-data.org/cape_verde.svg",
     "score": "0–0",
     "result": "N",
-    "win_prob": 0.783,
-    "model_xg_for": 1.75,
-    "model_xg_against": 0.14
+    "win_prob": 0.787,
+    "model_xg_for": 1.78,
+    "model_xg_against": 0.15
   },
   {
     "stage": "GROUP_STAGE",
@@ -17,8 +17,8 @@
     "opponent_crest": "https://crests.football-data.org/saudi_arabia.svg",
     "score": "4–0",
     "result": "V",
-    "win_prob": 0.878,
-    "model_xg_for": 2.21,
+    "win_prob": 0.891,
+    "model_xg_for": 2.33,
     "model_xg_against": 0.05
   },
   {
@@ -28,9 +28,9 @@
     "opponent_crest": "https://crests.football-data.org/758.svg",
     "score": "1–0",
     "result": "V",
-    "win_prob": 0.806,
-    "model_xg_for": 1.99,
-    "model_xg_against": 0.21
+    "win_prob": 0.824,
+    "model_xg_for": 2.12,
+    "model_xg_against": 0.22
   },
   {
     "stage": "LAST_32",
@@ -39,9 +39,9 @@
     "opponent_crest": "https://crests.football-data.org/816.svg",
     "score": "3–0",
     "result": "V",
-    "win_prob": 0.947,
-    "model_xg_for": 3.35,
-    "model_xg_against": 0.14
+    "win_prob": 0.891,
+    "model_xg_for": 2.54,
+    "model_xg_against": 0.15
   },
   {
     "stage": "LAST_16",
@@ -50,9 +50,9 @@
     "opponent_crest": "https://crests.football-data.org/765.svg",
     "score": "1–0",
     "result": "V",
-    "win_prob": 0.5,
-    "model_xg_for": 0.8,
-    "model_xg_against": 0.15
+    "win_prob": 0.526,
+    "model_xg_for": 0.84,
+    "model_xg_against": 0.12
   },
   {
     "stage": "QUARTER_FINALS",
@@ -61,9 +61,9 @@
     "opponent_crest": "https://crests.football-data.org/805.svg",
     "score": "2–1",
     "result": "V",
-    "win_prob": 0.729,
-    "model_xg_for": 1.57,
-    "model_xg_against": 0.2
+    "win_prob": 0.666,
+    "model_xg_for": 1.32,
+    "model_xg_against": 0.19
   },
   {
     "stage": "SEMI_FINALS",
@@ -72,9 +72,9 @@
     "opponent_crest": "https://crests.football-data.org/773.svg",
     "score": "2–0",
     "result": "V",
-    "win_prob": 0.72,
-    "model_xg_for": 1.59,
-    "model_xg_against": 0.24
+    "win_prob": 0.773,
+    "model_xg_for": 1.78,
+    "model_xg_against": 0.2
   },
   {
     "stage": "FINAL",
@@ -83,8 +83,8 @@
     "opponent_crest": "https://crests.football-data.org/762.png",
     "score": "1–0",
     "result": "V",
-    "win_prob": 0.693,
-    "model_xg_for": 1.41,
-    "model_xg_against": 0.19
+    "win_prob": 0.631,
+    "model_xg_for": 1.22,
+    "model_xg_against": 0.21
   }
 ]

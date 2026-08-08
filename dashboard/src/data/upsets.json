@@ -1,13 +1,13 @@
 [
   {
-    "match_id": 537340,
-    "stage": "GROUP_STAGE",
-    "winner_name": "Scotland",
-    "winner_crest": "https://crests.football-data.org/814.svg",
-    "loser_name": "Haiti",
-    "loser_crest": "https://crests.football-data.org/haiti.svg",
-    "score": "1–0",
-    "win_prob": 0.2
+    "match_id": 537382,
+    "stage": "LAST_16",
+    "winner_name": "Switzerland",
+    "winner_crest": "https://crests.football-data.org/788.svg",
+    "loser_name": "Colombia",
+    "loser_crest": "https://crests.football-data.org/818.svg",
+    "score": "0–0 (4–3 t.a.b.)",
+    "win_prob": 0.092
   },
   {
     "match_id": 537349,
@@ -17,17 +17,17 @@
     "loser_name": "United States",
     "loser_crest": "https://crests.football-data.org/usa.svg",
     "score": "3–2",
-    "win_prob": 0.208
+    "win_prob": 0.192
   },
   {
-    "match_id": 537377,
-    "stage": "LAST_16",
-    "winner_name": "Norway",
-    "winner_crest": "https://crests.football-data.org/813.svg",
-    "loser_name": "Brazil",
-    "loser_crest": "https://crests.football-data.org/764.svg",
-    "score": "2–1",
-    "win_prob": 0.255
+    "match_id": 537340,
+    "stage": "GROUP_STAGE",
+    "winner_name": "Scotland",
+    "winner_crest": "https://crests.football-data.org/814.svg",
+    "loser_name": "Haiti",
+    "loser_crest": "https://crests.football-data.org/haiti.svg",
+    "score": "1–0",
+    "win_prob": 0.213
   },
   {
     "match_id": 537355,
@@ -37,27 +37,7 @@
     "loser_name": "Germany",
     "loser_crest": "https://crests.football-data.org/759.svg",
     "score": "2–1",
-    "win_prob": 0.286
-  },
-  {
-    "match_id": 537332,
-    "stage": "GROUP_STAGE",
-    "winner_name": "South Africa",
-    "winner_crest": "https://crests.football-data.org/9396.svg",
-    "loser_name": "South Korea",
-    "loser_crest": "https://crests.football-data.org/772.png",
-    "score": "1–0",
-    "win_prob": 0.293
-  },
-  {
-    "match_id": 537353,
-    "stage": "GROUP_STAGE",
-    "winner_name": "Germany",
-    "winner_crest": "https://crests.football-data.org/759.svg",
-    "loser_name": "Ivory Coast",
-    "loser_crest": "https://crests.football-data.org/787.svg",
-    "score": "2–1",
-    "win_prob": 0.309
+    "win_prob": 0.247
   },
   {
     "match_id": 537347,
@@ -67,7 +47,7 @@
     "loser_name": "Turkey",
     "loser_crest": "https://crests.football-data.org/803.svg",
     "score": "1–0",
-    "win_prob": 0.323
+    "win_prob": 0.261
   },
   {
     "match_id": 537430,
@@ -77,6 +57,26 @@
     "loser_name": "Ghana",
     "loser_crest": "https://crests.football-data.org/ghana.svg",
     "score": "1–0",
-    "win_prob": 0.351
+    "win_prob": 0.283
+  },
+  {
+    "match_id": 537332,
+    "stage": "GROUP_STAGE",
+    "winner_name": "South Africa",
+    "winner_crest": "https://crests.football-data.org/9396.svg",
+    "loser_name": "South Korea",
+    "loser_crest": "https://crests.football-data.org/772.png",
+    "score": "1–0",
+    "win_prob": 0.289
+  },
+  {
+    "match_id": 537353,
+    "stage": "GROUP_STAGE",
+    "winner_name": "Germany",
+    "winner_crest": "https://crests.football-data.org/759.svg",
+    "loser_name": "Ivory Coast",
+    "loser_crest": "https://crests.football-data.org/787.svg",
+    "score": "2–1",
+    "win_prob": 0.373
   }
 ]

@@ -1,106 +1,119 @@
-# Plan — prochaine session : accompagner le lecteur, clôturer le récit
+# Plan — prochain sprint : le verdict à l'épreuve des chiffres réels (FBref, 48 équipes)
 
-Synthèse de trois revues externes (relues au bistouri : elles ont été faites
-**sans exécuter le site**, donc une bonne part de leurs conseils tombe à côté).
-Ce plan ne garde que ce qui survit à une revue *sur le site réel*.
+> Sprint 1 (accompagnement lecteur + clôture) est **livré et déployé**. Cette session
+> a exploré l'enrichissement par une source foot externe. Conclusions **vérifiées par
+> la donnée**, pas supposées — les voici pour ne pas refaire le chemin.
 
-## Contexte
+## Ce qui a été vérifié cette session (NE PAS re-chercher)
 
-Le pipeline et le writing sont jugés très bons (revues : « 9.5/10 », « digne du
-NYT Upshot / The Athletic », « pas de la merde »). Ce qui bride le dashboard
-n'est **ni la donnée ni les visuels**, mais le fait qu'il est écrit par
-quelqu'un qui connaît déjà ses chiffres : un lecteur extérieur a besoin qu'on
-lui dise *que montre ce graphe, pourquoi, quoi retenir*. Et le récit **ne se
-referme pas** (la page finit sur la méthode).
+- ✅ **FBref via `soccerdata`** (league `"INT-World Cup"`, season `2026`) charge les **48
+  équipes** ; Cloudflare est percé par soccerdata (`wrapper-tls-requests`).
+- ❌ **FBref n'a AUCUN xG pour la WC 2026.** Prouvé : pour les compétitions internationales
+  soccerdata n'expose que 5 tables **basiques** (`standard`, `keeper`, `shooting`,
+  `playing_time`, `misc`) et **aucune** ne contient de colonne « Expected ». Les pages xG
+  de FBref existent pour 2022 (StatsBomb), **pas 2026**. → **Ne pas re-tenter le xG via FBref.**
+- ❌ **xG réel des 48 équipes = nulle part gratuit ET propre.** SofaScore l'a (c'est la
+  source du xG Espagne) mais le plan RapidAPI **gratuit = 50 req/mois < ~105 requis**
+  (→ tier payant) ; le direct `api.sofascore.com` est ToU-gris. API-Football (`expected_goals`,
+  free 100/j) **non vérifié** — piste si un jour on veut le vrai xG.
+- ✅ **Ce qu'on garde : FBref basique** — vrai, gratuit, fiable, buildable maintenant.
 
-## Ce qui est REJETÉ (et pourquoi — à assumer, pas à corriger)
+## Objectif du sprint
 
-Tout l'attirail « analytics joueurs » demandé par les revues suppose de la
-donnée événementielle par joueur (StatsBomb/Opta) que ce projet **n'a pas**, par
-conception : c'est un modèle **par équipe** sur des scores + du xG réel limité à
-l'Espagne. À rejeter en bloc, car les fabriquer détruirait le seul atout le plus
-fort du projet — l'honnêteté méthodologique :
+**« Le verdict à l'épreuve des chiffres réels »** : confronter les notes du modèle Poisson
+au réel FBref sur 48 équipes — domination au tir, mur défensif, conversion. **Pas du xG** :
+un contrôle de réalité honnête au niveau équipe.
 
-- per-90 / percentiles, comparaison par poste, filtres poste/saison/ligue/temps
-  de jeu → pas de donnée joueur.
-- PPDA, PrgP, xThreat, npxG, radars / pizza charts → pas de donnée de tracking.
-- « préciser la source du xG » → **déjà fait** (football-data = scores ;
-  SofaScore = xG réel Espagne ; « jamais appelé xG »).
+## Pourquoi ça vaut le coup (chiffres Espagne réels, déjà tirés)
 
-Déjà présents mais non vus par les reviewers (ne rien refaire) : formule Poisson
-+ code `fit()`/`play()` (« Le modèle, à nu »), section limites (« Ce que le
-modèle ne fait pas »), PipelineDiagram + StarSchema + ReconciliationDiagram,
-traçabilité des sources.
+| Volet thèse | Le modèle disait | Le réel FBref confirme |
+|---|---|---|
+| Mérite — défense | « Défense #1 » | **1 but encaissé en 8 matchs**, 11 TC concédés, **90.9 % d'arrêts** |
+| Mérite — contrôle | rating élevé | **64.1 % possession**, 140 tirs (16.8/90) |
+| Chance — finition | « facteur +2.16 » | **G/Sh 0.09** → pas de sur-conversion : gagné par la défense, pas la veine |
 
-## Tier 1 — les vrais trous (3 revues ont convergé dessus)
+Renfort du verdict **plus fort qu'espéré**, et gratuit.
 
-### 1. Le lecteur ne sait pas lire les chiffres → pédagogie des métriques
-Devant `Att. 0.80 · Déf. 2.48 · Note 3.27`, aucun repère d'échelle. À ajouter :
-- Un encadré **« Comment lire ce rapport »** en tête de l'essai (ou repliable) :
-  Note de force (0 = équipe moyenne, échelle log-buts), Att./Déf. (plus haut =
-  mieux, y compris la défense — piège actuel : Déf. 2.48 « élevé » = bon), Pts
-  attendus (xPts), xG modèle vs xG réel.
-- Des **définitions au survol** (tooltip ou petit `i`) sur chaque terme technique
-  à sa première occurrence : note de force, xPts, xG modèle. Composant réutilisable
-  `<Term def="…">note de force</Term>`.
-- **Piège à corriger absolument** : dans le tableau de notes, un œil naïf lit
-  « Espagne Att. 0.80 » et croit l'attaque faible vs Angleterre 1.21 — il faut
-  soit une légende, soit afficher le rang à côté (#6 attaque) pour lever
-  l'ambiguïté. C'est le point n°1 des trois revues.
+## Données disponibles (48 équipes, agrégats tournoi)
 
-### 2. Les KPIs d'intro ne racontent rien → contexte dérivé (réel, pas inventé)
-Les 4 gros nombres (104/333/48/3.20) sont bruts. On a désormais
-`mart_edition_comparison` pour les faire parler **avec de la vraie donnée** :
-- 104 matchs → « +28 vs 2022 » (format élargi)
-- 333 buts → à situer historiquement
-- 48 équipes → « 1ʳᵉ édition à 48 »
-- 3.20 buts/match → « meilleure moyenne depuis 1958 » (déjà calculé plus bas,
-  juste à remonter sous le KPI)
-Ajouter une ligne de contexte sous chaque `stat__value` (dérivée du mart, pas
-en dur). Relie aussi le KPI à la section historique existante.
+Tirs, tirs cadrés, SoT%, G/Sh, G/SoT, possession, buts/passes, **gardien** (GA, GA90, SoTA,
+arrêts, save%, clean sheets, W/D/L), cartons/fautes/interceptions/hors-jeu.
+**Non dispo : xG, passes progressives, per-match.**
 
-### 3. Pas de conclusion → clôture éditoriale
-La page finit sur méthode + stack + GitHub. Ajouter une **section de clôture**
-avant le footer qui synthétise : la place de cette Espagne dans l'histoire (lien
-au 7ᵉ/23), le verdict du modèle en une phrase, 2–3 records/surprises du tournoi
-(meilleur buteur, plus gros upset — déjà dans les marts `upsets`/`top_scorers`),
-et une dernière ligne éditoriale. Courte, pas un pavé.
+## Architecture — calque le chemin SofaScore, PAS un mart dbt
 
-## Tier 2 — accompagner le lecteur figure par figure
+Le réel vit dans la couche **Python `analytics/`** (dbt = scores/standings/buteurs).
 
-### 4. « À retenir » sous chaque figure des sections annexes
-L'essai `#analyse` interprète déjà bien. Les sections annexes (chiffres,
-buteurs, groupes) sont plus descriptives. Ajouter une ligne **« À retenir : … »**
-(ou une phrase de lecture avant) sous chaque graphe pour dire quoi en tirer —
-pas un paragraphe, une phrase.
+1. **Dépendance** : `uv add --group analytics soccerdata` (déjà installé en jetable dans `.venv`).
+2. **Acquisition** : `ingestion/fbref.py` sur le modèle de `ingestion/sofascore.py` — run-once,
+   refuse de re-fetch si l'archive existe (sauf `--force`), pull des 5 tables, garde les
+   colonnes utiles → `data/raw/fbref/team_basic_2026.csv` **versionné** (ADR 0001).
+3. **Réconciliation noms** FBref ↔ `dim_teams` — **LE risque du sprint**. Cible : **0 non-apparié
+   sur 48** (mapper Korea Republic, IR Iran, Cabo Verde, Türkiye, etc.).
+4. **Comparaison** : `analytics/` joint le réel au `team_strength` du modèle → exporte
+   `dashboard/src/data/team_reality.json` (par équipe : `rank_overall/attack/defense` du modèle
+   + tirs, SoTA, GA, save%, conversion, possession réels).
+5. **Dashboard** (session 2) : composant « réalité vs modèle ».
 
-### 5. Scatter Fig 1 — lisibilité
-Réel, pas « anonyme » (il labelle déjà ESP/POR/ARG/BEL/ENG + lignes médianes),
-mais :
-- collisions de labels à régler : ARG/BEL se chevauchent, ENG collé au label
-  d'axe « Attaque ».
-- labelliser les **outliers intéressants** (Angleterre = meilleure attaque à
-  droite ; l'anomalie en bas ; pas seulement le top-5 par note).
-- éventuel trait de rappel (leader line) sur les points denses.
+## Garde-fous / conformité
 
-### 6. Réconciliation des DEUX sources, valorisée
-Le ReconciliationDiagram actuel parle du **calcul des classements** (computed vs
-official). La réconciliation **SofaScore ↔ football-data sans ID commun**
-(matching chronologique par équipe + date) n'est qu'évoquée en prose. En faire
-un petit schéma/encadré : c'est une problématique Data Engineering très
-concrète et valorisante. (`analytics/real_stats.py` a déjà la logique.)
+- Nouvel **ADR 0006** — « FBref (soccerdata) comme source de stats *basiques* réelles :
+  run-once, raw versionné, **absence de xG pour 2026 documentée** ».
+- **ADR 0004 maintenu** : ne jamais appeler « xG » la sortie du modèle. Nuancer la note de
+  `model_meta.json` : on a désormais des **volumes de tir réels**, mais toujours **pas de xG
+  de tracking** — la distinction reste nette.
+- **Tests** : réconciliation des noms (0 non-apparié) + contrat d'export (cf. `tests/test_export_contract.py`).
 
-## Tier 3 — renforcer le signal DE (si le temps)
+## Découpage
 
-- Rendre le PipelineDiagram plus explicitement « DAG source→…→front » nommant
-  les **deux** sources et l'étape de réconciliation.
-- Vérifier le scroll horizontal + en-têtes des tables larges sur mobile
-  (heatmap surtout).
-- Glossaire complet en bas de la section méthode (repli).
+- **Session 1 (backend/data)** : dép + `ingestion/fbref.py` + réconciliation + join analytics +
+  export `team_reality.json` + ADR 0006 + tests. Aucun dashboard.
+- **Session 2 (front/récit)** : composant dashboard + note d'honnêteté + QA `npm run build` +
+  `shoot.mjs` (desktop + mobile 390).
 
-## Note de cadrage
+## Definition of Done (sprint)
 
-Ne pas retomber dans le piège inverse : ce projet gagne par la **retenue et
-l'honnêteté**, pas par l'empilement de features. Chaque ajout ci-dessus sert le
-lecteur ou le récit ; rien n'invente de donnée. Le fil directeur reste
-« montrer la machinerie, honnêtement ».
+- [x] `data/raw/fbref/team_basic_2026.csv` versionné ; `ingestion/fbref.py` reproductible, run-once.
+- [x] `team_reality.json` : 48 équipes, **0 non-apparié**, chiffres Espagne cohérents (1 GA, 90.9 %).
+- [x] Composant dashboard « réalité vs modèle » en ligne, labels honnêtes (ADR 0004).
+- [x] ADR 0006 écrit ; note `model_meta.json` nuancée ; tests verts ; build + QA mobile OK.
+
+## Hors scope (décidé)
+
+xG (indisponible pour 2026), passes prog / style (**Sprint C** optionnel), analytics joueur
+(**Sprint B** optionnel, via API-Football — nécessite un ADR qui acte le revirement).
+
+---
+
+## Prompt de démarrage — session 1
+
+```
+Sprint : « Le verdict à l'épreuve des chiffres réels (FBref, 48 équipes) ».
+Commence par lire docs/NEXT_SESSION.md — surtout la section « vérifié cette session » :
+FBref n'a PAS de xG pour 2026, c'est prouvé, ne le re-cherche pas.
+
+Objectif de CETTE session : backend/data uniquement. Faire entrer les stats FBref
+réelles dans le pipeline et produire le JSON de comparaison modèle↔réel. Pas de dashboard.
+
+Étapes, dans l'ordre :
+1. Dépendance : `uv add --group analytics soccerdata` (déjà installé en jetable dans .venv).
+2. `ingestion/fbref.py` calqué sur `ingestion/sofascore.py` : run-once, refuse de re-fetch
+   si l'archive existe (sauf --force) ; pull des 5 tables FBref (league "INT-World Cup",
+   season 2026) ; garde tirs, SoT, SoT%, G/Sh, possession, GA, SoTA, saves, save%, CS,
+   cartons ; écrit data/raw/fbref/team_basic_2026.csv versionné (ADR 0001).
+3. Réconcilie les noms FBref ↔ dim_teams — c'est LE risque. DoD = 0 non-apparié sur 48
+   (Korea Republic, IR Iran, Cabo Verde, Türkiye…). Fais un mapping explicite et testé.
+4. Étends analytics/ : joins le réel au team_strength du modèle → exporte
+   dashboard/src/data/team_reality.json (par équipe : rank_overall/attack/defense du
+   modèle + tirs, SoTA, GA, save%, conversion, possession réels).
+5. ADR 0006 (FBref basique, run-once, raw versionné, absence de xG documentée). Nuance la
+   note de model_meta.json (volumes de tir réels ≠ xG tracking ; jamais appelé « xG »).
+6. Tests : réconciliation noms (0 unmatched) + contrat d'export.
+
+Garde-fous : discipline ADR 0004 (jamais « xG » pour le model-output) ; pas de commit/push
+sans demande explicite ; réponds en français ; interroge la carte via /gquery, pas le JSON brut.
+
+Vérification de fin de session : lance l'analytics, montre-moi que team_reality.json a 48
+lignes, 0 non-apparié, et que les chiffres Espagne (1 GA, 90.9 % save%, 64 % possession)
+apparaissent bien.
+```

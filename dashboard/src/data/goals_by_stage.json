@@ -9,15 +9,15 @@
   {
     "stage": "LAST_32",
     "matches": 16,
-    "goals": 60,
-    "avg_goals": 3.75,
+    "goals": 42,
+    "avg_goals": 2.63,
     "label": "16es"
   },
   {
     "stage": "LAST_16",
     "matches": 8,
-    "goals": 30,
-    "avg_goals": 3.75,
+    "goals": 23,
+    "avg_goals": 2.88,
     "label": "8es"
   },
   {

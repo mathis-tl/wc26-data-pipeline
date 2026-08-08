@@ -97,7 +97,7 @@
       "goals": 95,
       "goals_per_match": 2.97,
       "is_current": false,
-      "goals_per_match_rank": 8
+      "goals_per_match_rank": 7
     },
     {
       "year": 1974,
@@ -248,14 +248,14 @@
       "winner": "Spain",
       "teams": 48,
       "matches": 104,
-      "goals": 333,
-      "goals_per_match": 3.2,
+      "goals": 308,
+      "goals_per_match": 2.96,
       "is_current": true,
-      "goals_per_match_rank": 7
+      "goals_per_match_rank": 8
     }
   ],
   "current_year": 2026,
-  "current_goals_per_match": 3.2,
-  "current_rank": 7,
+  "current_goals_per_match": 2.96,
+  "current_rank": 8,
   "total_editions": 23
 }

@@ -12,8 +12,8 @@ import ScatterPlot from "../components/ScatterPlot.astro";
 import ProgressionHeatmap from "../components/ProgressionHeatmap.astro";
 import Dumbbell from "../components/Dumbbell.astro";
 import SpainPath from "../components/SpainPath.astro";
-import CodeBlock from "../components/CodeBlock.astro";
 import Shotmap from "../components/Shotmap.astro";
+import XgCurve from "../components/XgCurve.astro";
 import EditionTimeline from "../components/EditionTimeline.astro";
 import Crest from "../components/Crest.astro";
 import Term from "../components/Term.astro";
@@ -26,6 +26,7 @@ import spainFinalShots from "../data/spain_final_shots.json";
 import topScorers from "../data/top_scorers.json";
 import spainCase from "../data/spain_case.json";
 import teamStrength from "../data/team_strength.json";
+import teamReality from "../data/team_reality.json";
 import titleOdds from "../data/title_odds.json";
 import titleProgression from "../data/title_progression.json";
 import spainPath from "../data/spain_path.json";
@@ -103,14 +104,45 @@ const scatterPts = teamStrength.map((t) => ({
   // label the top 5, plus the two named outliers: best attack + worst defense
   show: t.rank_overall <= 5 || t.rank_attack === 1 || t.rank_defense === worstDefRank,
 }));
+// --- reality check (FBref, 48 teams): does the model's defense hold up
+// against a real, continuous keeper metric? save% (shots saved / shots on
+// target faced) — no xG here, FBref has none for 2026 — chosen over clean
+// sheets specifically because cs only takes 5 distinct values across 48
+// teams (heavy ties → label collisions on the scatter); save% has 41.
+const savePctMean = teamReality.reduce((s, t) => s + t.save_pct, 0) / teamReality.length;
+const pearsonR = (() => {
+  const xs = teamReality.map((t) => t.defense), ys = teamReality.map((t) => t.save_pct);
+  const mx = xs.reduce((a, b) => a + b, 0) / xs.length;
+  const my = ys.reduce((a, b) => a + b, 0) / ys.length;
+  const cov = xs.reduce((s, x, i) => s + (x - mx) * (ys[i] - my), 0);
+  const sx = Math.sqrt(xs.reduce((s, x) => s + (x - mx) ** 2, 0));
+  const sy = Math.sqrt(ys.reduce((s, y) => s + (y - my) ** 2, 0));
+  return cov / (sx * sy);
+})();
+const realityPts = teamReality.map((t) => ({
+  x: t.defense, y: t.save_pct, label: t.team_name, tla: t.team_tla,
+  highlight: t.team_name === "Spain",
+  show: t.rank_defense <= 5,
+}));
+const spainReality = teamReality.find((t) => t.team_name === "Spain")!;
+const spainHasTopSavePct = teamReality.every((t) => t.save_pct <= spainReality.save_pct);
+const xgCurvePts = spainReal.map((r) => ({ label: r.opponent, real: r.xg_for, model: r.model_xg_for }));
+
 const oddsItems = titleOdds.slice(0, 8).map((t) => ({
   label: t.team_tla ?? t.team_name, value: pct(t.title_prob), display: `${pct(t.title_prob)} %`,
 }));
+// runner-up, computed rather than named — the ranking shifts whenever the
+// model is refit, and a hardcoded second name silently goes stale.
+const runnerUp = titleOdds[1];
+const runnerUpRatio = Math.round(spainCase.title_prob / runnerUp.title_prob);
+// Spain's closest match by the model's own win probability — found, not
+// assumed, so the "seul 50/50" claim can't drift out of sync with a refit.
+const closestSpainMatch = [...spainPath].sort((a, b) => a.win_prob - b.win_prob)[0];
 const rankBadges = [
   { v: `#${spainCase.rank_overall}`, l: "force globale" },
   { v: `#${spainCase.rank_defense}`, l: "défense" },
   { v: `#${spainCase.rank_attack}`, l: "attaque" },
-  { v: `${pct(spainCase.title_prob)} %`, l: "favorite au départ" },
+  { v: `${pct(spainCase.title_prob)} %`, l: "probabilité de titre" },
 ];
 // dumbbell: the biggest luck stories among the stronger teams
 const dumbbellItems = [...teamStrength]
@@ -119,6 +151,13 @@ const dumbbellItems = [...teamStrength]
   .slice(0, 10)
   .sort((a, b) => (b.points - b.xpoints) - (a.points - a.xpoints))
   .map((t) => ({ label: t.team_name, tla: t.team_tla, actual: t.points, expected: t.xpoints }));
+// Spain's own rank on that same positive-gap scale — computed, not asserted,
+// so the "chance" paragraph applies the same yardstick to Spain as to every
+// other team it names (no double standard between "skill" and "luck").
+const performanceRank = [...teamStrength]
+  .filter((t) => t.played >= 3)
+  .sort((a, b) => (b.points - b.xpoints) - (a.points - a.xpoints))
+  .findIndex((t) => t.team_name === "Spain") + 1;
 // the model's actual strength values — the top of the table, Spain's lead made concrete
 const ratingRows = teamStrength.slice(0, 8).map((t) => ({
   rank: t.rank_overall, name: t.team_name, tla: t.team_tla, crest: t.crest,
@@ -178,7 +217,7 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
       </div>
       <p class="scoreboard__foot mono">
         Chaque repère est calculé depuis <a href="#chiffres">l'historique complet des Coupes du monde</a>,
-        1930–2026 — jamais saisi à la main.
+        1930–2026, jamais saisi à la main.
       </p>
     </div>
   </section>
@@ -192,7 +231,7 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
         <p>
           L'Espagne a soulevé le trophée le 19 juillet 2026. Mais soulever un
           trophée et <em>être</em> la meilleure équipe du tournoi, ce n'est pas
-          tout à fait la même chose&nbsp;: un Mondial se joue en sept matchs, à
+          tout à fait la même chose&nbsp;: un Mondial se joue en huit matchs, à
           quelques ballons près, et l'histoire du football regorge de champions
           que personne n'annonçait. La Grèce 2004, portée par un bloc défensif et
           un tableau clément. Le Danemark 1992, repêché in extremis et couronné
@@ -205,25 +244,33 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
           ne livre que des scores&nbsp;: la date, les deux équipes, le résultat
           final. Ni possession, ni tirs, ni xG, rien qui permette de distinguer une
           équipe qui a dominé et gagné d'une équipe qui a survécu et gagné quand
-          même. On a donc répondu en deux temps, à deux échelles différentes. Pour
-          <strong>les 48 équipes</strong> du tournoi, on estime la <strong>force
-          réelle</strong> de chacune à partir des 104 résultats disponibles, à
-          l'aide d'un modèle statistique&nbsp;: sa capacité à marquer, sa capacité
-          à ne pas encaisser, le tout <strong>corrigé de la qualité des
-          adversaires</strong> rencontrés, parce que battre le Brésil et battre le
-          dernier du groupe ne peuvent pas peser pareil dans une évaluation
-          sérieuse. C'est la matière de cette première partie de la page. Puis,
-          pour <strong>l'Espagne</strong> spécifiquement, on est allé chercher les
-          <em>vraies</em> données match par match&nbsp;: possession, tirs, xG, via
-          une seconde source (SofaScore), réconciliée avec la première malgré
-          l'absence d'identifiants communs entre elles deux.
+          même. On a donc répondu en <strong>trois temps</strong>, à trois échelles
+          différentes. Pour <strong>les 48 équipes</strong> du tournoi, on estime
+          la <strong>force réelle</strong> de chacune à partir des 104 résultats
+          disponibles, à l'aide d'un modèle statistique&nbsp;: sa capacité à
+          marquer, sa capacité à ne pas encaisser, le tout <strong>corrigé de la
+          qualité des adversaires</strong> rencontrés, parce que battre le Brésil
+          et battre le dernier du groupe ne peuvent pas peser pareil dans une
+          évaluation sérieuse. C'est la matière de cette première partie de la
+          page. On confronte ensuite ce modèle à un premier jeu de données
+          réelles, mais toujours sur <strong>les 48 équipes</strong>&nbsp;: tirs,
+          tirs cadrés et clean sheets réellement enregistrés, via une deuxième
+          source (FBref), sans xG&nbsp;: une compétition internationale 2026 n'en
+          publie pas. Puis, pour <strong>l'Espagne</strong> spécifiquement, on est
+          allé chercher les données les plus fines, match par match&nbsp;:
+          possession, tirs, et cette fois du <em>vrai</em> xG, via une troisième
+          source (SofaScore), réconciliée avec la première malgré l'absence
+          d'identifiants communs entre elles deux.
         </p>
         <p>
           Le modèle porte l'analyse sur tout le plateau, les 48 équipes&nbsp;: c'est
-          lui qui situe l'Espagne parmi les autres. Les vraies données, elles,
-          n'existent que pour l'Espagne, et jouent un autre rôle&nbsp;: celui de
-          contrôle. Là où les deux se recoupent, sur le cas espagnol, ils disent
-          la même chose, et c'est justement cet accord qui donne confiance dans ce
+          lui qui situe l'Espagne parmi les autres. FBref élargit un premier
+          contrôle réel à ces mêmes 48 équipes, mais reste muet sur le xG. Les
+          données SofaScore, elles, ne sont récupérées que pour l'Espagne (le
+          quota gratuit ne couvre pas les 104 matchs du tournoi), et vont plus
+          loin&nbsp;: c'est le contrôle le plus fin, jusqu'au xG mesuré tir par
+          tir. Là où les trois se recoupent, sur le cas espagnol, elles disent la
+          même chose, et c'est justement cet accord qui donne confiance dans ce
           que le modèle raconte du reste du tournoi.
         </p>
       </div>
@@ -237,7 +284,7 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
           </div>
           <div class="howto__item">
             <dt>Attaque · Défense</dt>
-            <dd>Deux forces distinctes. Pour les <b>deux</b>, plus la valeur est haute, meilleure l'équipe&nbsp;— une défense à 2,48 est la <b>meilleure</b> du tournoi, pas la plus fragile.</dd>
+            <dd>Deux forces distinctes. Pour les <b>deux</b>, plus la valeur est haute, meilleure l'équipe&nbsp;: une défense à 2,48 est la <b>meilleure</b> du tournoi, pas la plus fragile.</dd>
           </div>
           <div class="howto__item">
             <dt>Points attendus (xPts)</dt>
@@ -299,7 +346,7 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
           <p>
             C'est précisément dans ce coin que se trouve l'Espagne. Elle possède
             <strong>la défense la plus hermétique du tournoi</strong>&nbsp;: un
-            seul but encaissé en sept matchs, un total presque irréel quand on sait
+            seul but encaissé en huit matchs, un total presque irréel quand on sait
             que le modèle, sur la seule base de la qualité des adversaires
             affrontés, en attendait déjà {spainCase.xga}. Un tel écart, plus de
             deux buts sur l'ensemble du parcours, ne s'explique plus par la chance
@@ -346,7 +393,7 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
         <p class="ratetab__legend mono">
           Att. et Déf. : plus la valeur est haute, meilleure l'équipe ; le <sup>#</sup> donne
           son rang sur 48. Ainsi l'Espagne a « seulement » la 6ᵉ attaque mais la
-          1ʳᵉ défense — c'est ce cumul qui lui donne la meilleure note globale, pas
+          1ʳᵉ défense&nbsp;: c'est ce cumul qui lui donne la meilleure note globale, pas
           un secteur pris isolément.
         </p>
       </div>
@@ -374,15 +421,20 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
             <p>
               L'Espagne a pris <strong>{spainCase.points} points</strong> pour
               <strong>{spainCase.xpoints} attendus</strong> ({`+${spainCase.performance}`}).
-              Un léger surplus, mais rien d'anormal pour une équipe qui convertit
-              efficacement ses occasions&nbsp;: elle a gagné parce qu'elle était
-              forte, pas parce qu'elle a été portée par la réussite. Le graphique
+              Un surplus réel, auquel il faut appliquer la même règle qu'aux
+              autres équipes de ce graphique&nbsp;: c'est le {`${performanceRank}`}ᵉ
+              plus gros écart positif du tournoi, dans la même fourchette que la
+              Suisse ou le Paraguay, loin devant zéro. La part de réussite n'est
+              donc pas nulle. Ce qui distingue l'Espagne, ce n'est pas l'absence de
+              chance&nbsp;: c'est qu'elle tenait par ailleurs la meilleure défense
+              du tournoi et la première place du classement du modèle, une base que
+              la réussite est venue amplifier plutôt que remplacer. Le graphique
               ci-dessous replace ce chiffre dans son contexte, parmi les dix écarts
-              les plus marqués du tournoi. Certaines équipes, comme l'Argentine ou
-              l'Angleterre, ont nettement dépassé ce que leur niveau de jeu
-              promettait&nbsp;; d'autres, comme le Sénégal ou le Japon, ont au
-              contraire été trahies par leur classement final malgré un profil plus
-              solide que leurs résultats seuls ne le laissent penser.
+              les plus marqués du tournoi&nbsp;: l'Argentine et l'Angleterre l'ont
+              nettement dépassée sur ce même critère&nbsp;; à l'autre bout, le
+              Sénégal ou le Japon ont au contraire été trahis par leur classement
+              final malgré un profil plus solide que leurs résultats seuls ne le
+              laissent penser.
             </p>
           </div>
         </div>
@@ -420,14 +472,14 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
           <p>
             Être fort ne suffit pas&nbsp;: encore faut-il un tableau qui ne vous
             crucifie pas dès les seizièmes. Le modèle donnait l'Espagne favorite
-            dans <em>chacun</em> de ses sept matchs, mais tous n'avaient pas le
+            dans <em>chacun</em> de ses huit matchs, mais tous n'avaient pas le
             même relief. Contre le Cap-Vert, l'Arabie saoudite puis l'Autriche, la
             probabilité de victoire dépassait 78&nbsp;%&nbsp;: des rencontres où la
             surprise aurait été de perdre. Le vrai test, le seul 50/50 de tout le
-            parcours, fut le huitième de finale contre le Portugal&nbsp;: le seul
-            match où le modèle ne la voyait pas au-dessus de son adversaire. Elle
-            l'a passé 1-0, sur un scénario serré, puis n'a plus tremblé jusqu'à la
-            finale.
+            parcours, fut le huitième de finale contre le {closestSpainMatch.opponent}&nbsp;:
+            le seul match où le modèle ne lui donnait qu'une mince avance
+            ({pct(closestSpainMatch.win_prob)}&nbsp;%). Elle l'a passé 1-0, sur un
+            scénario serré, puis n'a plus tremblé jusqu'à la finale.
           </p>
           <p>
             Ce genre de match charnière est ce qui sépare, dans les simulations,
@@ -463,12 +515,27 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
               l'identique (le détail de cette simulation, sa logique et son code,
               sont expliqués plus bas). Verdict&nbsp;: l'Espagne termine championne
               <strong> {pct(spainCase.title_prob)} % du temps</strong>, presque un
-              tournoi simulé sur deux, et surtout cinq fois plus souvent que son
-              premier poursuivant dans ce classement, la Belgique.
+              tournoi simulé sur deux, et surtout {`${runnerUpRatio}`} fois plus
+              souvent que son premier poursuivant dans ce classement, {runnerUp.team_name}.
+            </p>
+            <p>
+              Une précision s'impose, pour ne pas faire dire à ce chiffre plus
+              qu'il ne dit&nbsp;: les forces attaque/défense utilisées ici sont
+              ajustées sur <strong>les 104 résultats déjà connus</strong>, tournoi
+              fini inclus, pas sur la seule phase de groupes, rejouée à
+              l'aveugle vers un tournoi encore incertain. Le {pct(spainCase.title_prob)}&nbsp;%
+              n'est donc pas un pronostic livré avant le coup d'envoi&nbsp;: c'est
+              une lecture <em>a posteriori</em>, qui répond à la question « le
+              niveau de jeu affiché sur l'ensemble du tournoi rendait-il ce sacre
+              probable » plutôt qu'à « l'aurait-on parié à l'avance ». Les deux
+              questions se recoupent (une équipe qui a réellement dominé obtient
+              logiquement une probabilité haute), mais elles ne sont pas
+              identiques, et seule la seconde serait un vrai test de
+              prédictibilité.
             </p>
           </div>
         </div>
-        <p class="figlabel mono">Fig. 4 · Probabilité de titre (10 000 tournois simulés)</p>
+        <p class="figlabel mono">Fig. 4 · Probabilité de titre (10 000 tournois simulés, forces estimées sur le tournoi complet)</p>
         <div class="analyse__chart"><BarChart caption="Probabilité de titre" unit="%" items={oddsItems} /></div>
         <div class="prose measure analyse__p analyse__p--after">
           <p>
@@ -487,15 +554,59 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
       </div>
 
       <div class="analyse__block reveal">
+        <h3 class="h3 analyse__h">Confirmé, à l'échelle du tournoi</h3>
+        <div class="prose measure analyse__p">
+          <p>
+            Le modèle situe l'Espagne au sommet, mais tout ce qui précède reste
+            une estimation statistique, jamais un tir observé. Avant de zoomer sur
+            l'Espagne seule, on peut déjà confronter ce classement à une première
+            réalité, à l'échelle <strong>des 48 équipes</strong>&nbsp;: FBref
+            publie, pour chaque sélection, les tirs, les tirs cadrés et le
+            <strong>pourcentage d'arrêts</strong> du gardien réellement enregistrés
+            sur le tournoi, sans xG&nbsp;: une compétition internationale 2026
+            n'en publie pas, seulement des volumes de jeu mesurés.
+          </p>
+          <p>
+            Le test est simple&nbsp;: si la défense du modèle veut dire quelque
+            chose, les équipes qu'il classe en tête doivent aussi être celles dont
+            le gardien a le plus souvent arrêté ce qui lui arrivait dessus. Le
+            nuage ci-dessous met les deux en regard, une équipe par point.
+            L'Espagne, meilleure défense du modèle, a{spainHasTopSavePct ? " aussi le meilleur pourcentage d'arrêts réel du tournoi" : " aussi un des meilleurs pourcentages d'arrêts réels du tournoi"}
+            ({spainReality.save_pct.toFixed(1)}&nbsp;%)&nbsp;: l'accord n'est pas
+            parfait sur les 48 équipes (la donnée ne se plie jamais totalement à
+            la théorie), mais la tendance monte bien avec le modèle plutôt que
+            de lui tourner le dos.
+          </p>
+        </div>
+        <p class="figlabel mono">Fig. 6 · Défense du modèle × % d'arrêts réel (FBref, 48 équipes)</p>
+        <ScatterPlot
+          points={realityPts}
+          xLabel="Défense (modèle) →"
+          yLabel="% d'arrêts réel →"
+          yRef={savePctMean}
+          caption="Chaque point = une équipe · x = force défensive du modèle · y = pourcentage d'arrêts du gardien, réellement enregistré (FBref) · lignes = équipe moyenne (modèle) et moyenne du plateau (% d'arrêts) · étiquetés : le top 5 défense du modèle"
+          ariaLabel="Nuage de points force défensive du modèle contre pourcentage d'arrêts réel mesuré par FBref pour les 48 équipes ; l'Espagne cumule la meilleure défense du modèle et le meilleur pourcentage d'arrêts réel."
+        />
+        <Takeaway>
+          Défense modélisée et % d'arrêts réel sont corrélés
+          (<strong>r&nbsp;≈&nbsp;{pearsonR.toFixed(2)}</strong> sur 48 équipes)&nbsp;:
+          la tendance confirme le modèle, mais FBref ne mesure que des volumes de
+          jeu&nbsp;: <strong>aucun xG</strong> ne circule pour une compétition
+          internationale 2026. Ce contrôle-là attendra l'Espagne, seule équipe où
+          l'on dispose d'un xG réellement mesuré (plus bas).
+        </Takeaway>
+      </div>
+
+      <div class="analyse__block reveal">
         <h3 class="h3 analyse__h">Les chiffres réels le confirment</h3>
         <div class="prose measure analyse__p">
           <p>
-            Jusqu'ici, tout venait du modèle&nbsp;: une estimation statistique,
-            honnête mais indirecte, qui ne voit jamais un seul tir ni un seul
-            pourcentage de possession. Pour l'Espagne, on dispose désormais des
-            <em>vraies</em> données, celles que SofaScore a mesurées match par
-            match, et elles ne viennent pas atténuer le verdict du modèle&nbsp;:
-            elles l'enfoncent. Sur ses huit rencontres, l'Espagne a monopolisé le
+            Le contrôle FBref porte sur des volumes, 48 équipes, jamais sur du
+            xG. Pour l'Espagne, on peut aller plus loin&nbsp;: on dispose
+            désormais des <em>vraies</em> données, celles que SofaScore a
+            mesurées match par match, et elles ne viennent pas atténuer le
+            verdict du modèle&nbsp;: elles l'enfoncent. Sur ses huit rencontres,
+            l'Espagne a monopolisé le
             ballon (<strong>51 à 74 % de possession</strong> selon l'adversaire) et
             noyé chacun de ses adversaires sous les occasions. En finale, face à
             l'Argentine&nbsp;: 65 % de possession, <strong>20 tirs contre
@@ -508,15 +619,17 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
           Encore fallait-il faire dialoguer les deux sources. Elles ne partagent
           <strong>aucun identifiant de match</strong>&nbsp;: pas de clé commune sur
           laquelle faire une jointure classique. On les aligne donc sur la seule
-          chose qu'elles ont en partage — les huit matchs de l'Espagne, pris dans
-          l'ordre chronologique — avec un appariement <strong>strict, huit contre
+          chose qu'elles ont en partage&nbsp;: les huit matchs de l'Espagne, pris
+          dans l'ordre chronologique, avec un appariement <strong>strict, huit contre
           huit</strong> qui fait échouer le build à la moindre divergence de
           nombre, plutôt que de risquer d'apparier deux matchs qui ne se
           correspondent pas.
         </p>
         <p class="figlabel mono">Réconcilier deux sources sans identifiant commun</p>
         <div class="reveal analyse__chart"><SourceMatch /></div>
-        <p class="figlabel mono">Fig. 6 · Espagne, données réelles par match (SofaScore), xG du modèle en regard</p>
+        <p class="figlabel mono">Fig. 7a · xG réel (SofaScore) et xG du modèle, les huit matchs de l'Espagne</p>
+        <div class="reveal analyse__chart"><XgCurve points={xgCurvePts} /></div>
+        <p class="figlabel mono">Fig. 7b · Espagne, données réelles par match (SofaScore), xG du modèle en regard</p>
         <div class="realtab mono">
           <div class="realtab__row realtab__head">
             <span>Adversaire</span><span>Poss.</span><span>xG</span><span>xG adv.</span><span>Tirs</span><span class="hide-sm">xG modèle</span>
@@ -556,16 +669,17 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
             </p>
           </div>
         </div>
-        <p class="figlabel figlabel--wide mono">Fig. 7 · Carte des tirs de l'Espagne, finale (données réelles)</p>
+        <p class="figlabel figlabel--wide mono">Fig. 8 · Carte des tirs de l'Espagne, finale (données réelles)</p>
         <Shotmap opponent={spainFinalShots.opponent} shots={spainFinalShots.shots} />
       </div>
 
       <div class="verdict reveal">
         <p class="verdict__label mono">Le verdict</p>
         <p class="verdict__text">
-          Meilleure équipe globale, meilleure défense du tournoi, favorite à
-          {` ${pct(spainCase.title_prob)} %`} avant même le coup d'envoi des
-          seizièmes&nbsp;: <strong>oui, sur le papier, l'Espagne méritait son
+          Meilleure équipe globale, meilleure défense du tournoi, une
+          probabilité de titre de {` ${pct(spainCase.title_prob)} %`} une fois
+          le tournoi rejoué 10 000 fois sur son niveau de jeu réel&nbsp;:
+          <strong>oui, sur le papier, l'Espagne méritait son
           titre.</strong> Avec la seule nuance honnête que la donnée impose, une
           attaque « seulement » {`#${spainCase.rank_attack}`} et un mince surplus
           de réussite ({`+${spainCase.performance}`} pts). Ni un hold-up, ni une
@@ -576,13 +690,16 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
       </div>
 
       <p class="analyse__method mono">
-        Méthode, deux sources. <b>football-data.org</b> (scores) alimente le modèle
-        de buts (Poisson, maximum de vraisemblance sur {` ${modelMeta.n_matches}`}
+        Méthode, trois sources. <b>football-data.org</b> (scores) alimente le
+        modèle de buts (Poisson, maximum de vraisemblance sur {` ${modelMeta.n_matches}`}
         résultats) pour les 48 équipes&nbsp;: là, les « buts attendus » sont
-        <b>modélisés</b>. Pour l'Espagne, <b>SofaScore</b> (source #2, réconciliée par
-        équipe et par date) fournit la possession, les tirs et le <b>xG réel</b>
-        observé. Chaque chiffre de cette page est étiqueté selon son origine.
-        Détail complet du modèle plus bas, dans la section méthode.
+        <b>modélisés</b>. <b>FBref</b> (source #2, 48 équipes) confirme les tirs,
+        tirs cadrés et clean sheets réellement enregistrés, jamais de xG&nbsp;:
+        une compétition internationale 2026 n'en publie pas. Pour l'Espagne,
+        <b>SofaScore</b> (source #3, réconciliée par équipe et par date) fournit
+        la possession, les tirs et le <b>xG réel</b> observé. Chaque chiffre de
+        cette page est étiqueté selon son origine. Détail complet du modèle plus
+        bas, dans la section méthode.
       </p>
     </div>
   </section>
@@ -607,7 +724,7 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
       <div class="charts">
         <div class="reveal">
           <BarChart caption="Buts par phase" unit="buts" items={goalItems} />
-          <Takeaway>Le volume suit mécaniquement le nombre de matchs&nbsp;: la phase de groupes concentre 215 des 333 buts. Ramené <strong>au match</strong>, pourtant, ce sont les 16es et 8es (3,75 buts) qui ont été les plus ouverts, avant que les enjeux ne referment le jeu en demies (2,5) puis en finale (un seul but).</Takeaway>
+          <Takeaway>Le volume suit mécaniquement le nombre de matchs&nbsp;: la phase de groupes concentre 215 des 308 buts. Ramené <strong>au match</strong>, ce sont les quarts (3,00 buts) qui ont été les plus ouverts, à peine devant les groupes (2,99) et les 8es (2,88), avant que les enjeux ne referment le jeu en 16es (2,63), en demies (2,50) puis en finale (un seul but).</Takeaway>
         </div>
         <div class="reveal">
           <BarChart caption="Scores les plus fréquents" unit="matchs" items={scoreItems} accent="var(--teal)" />
@@ -615,7 +732,7 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
         </div>
         <div class="reveal charts__wide">
           <StackedBar caption="Issue des matchs (à domicile / nul / à l'extérieur)" segments={splitSegs} />
-          <Takeaway>Même sur terrain neutre, l'équipe désignée « à domicile » l'emporte bien plus souvent (51) que celle « à l'extérieur » (33)&nbsp;: c'est l'asymétrie que le terme d'<strong>avantage terrain</strong> du modèle absorbe.</Takeaway>
+          <Takeaway>Même sur terrain neutre, l'équipe désignée « à domicile » l'emporte bien plus souvent (51) que celle « à l'extérieur » (33)&nbsp;: c'est l'asymétrie que le terme d'<strong>avantage terrain</strong> du modèle absorbe. Réserve honnête&nbsp;: ce label « domicile » vient de l'ordre de la source, pas d'un vrai stade (sauf pour les 3 pays hôtes, aucune équipe n'est « chez elle » dans un Mondial). S'il se trouve corrélé au niveau des équipes plutôt qu'au hasard, le terme du modèle absorbe alors un peu de force réelle sous couvert d'avantage terrain&nbsp;: une limite non vérifiée ici, à garder en tête.</Takeaway>
         </div>
       </div>
 
@@ -669,7 +786,7 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
       <div class="reveal"><TopScorers scorers={topScorers} /></div>
       <Takeaway>
         {goldenBoot.player_name} ({goldenBoot.goals} buts) devance {topScorers[1]?.player_name} ({topScorers[1]?.goals}) pour le soulier d'or
-        {!championOnPodium && <> — mais le titre est allé à une Espagne <strong>sans buteur sur le podium</strong>, le collectif avant l'individu</>}.
+        {!championOnPodium && <>, mais le titre est allé à une Espagne <strong>sans buteur sur le podium</strong>, le collectif avant l'individu</>}.
       </Takeaway>
     </div>
   </section>
@@ -700,9 +817,14 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
             Ces classements sont <strong>reconstruits à partir des seuls résultats
             des matchs</strong>, avec les règles de départage de la FIFA (points,
             différence de buts, buts marqués, puis confrontations directes).
-            Un test automatique les confronte chaque jour au classement officiel,
-            avec un résultat constant depuis le début du tournoi&nbsp;:
-            <strong class="pitch">réconciliés 48/48</strong>.
+            Un test automatique les confronte chaque jour au classement officiel
+            du même fournisseur, avec un résultat constant depuis le début du
+            tournoi&nbsp;: <strong class="pitch">réconciliés 48/48</strong>.
+            Une réserve honnête&nbsp;: ce test porte sur la phase de groupes
+            seule, et compare deux classements qui viennent tous les deux de
+            football-data.org, une cohérence interne à la source plutôt qu'une
+            validation par une source indépendante, et il ne couvre pas les
+            scores à élimination directe.
           </p>
         </div>
         <img class="media-aside__img" src="/photos/groups.avif"
@@ -775,6 +897,21 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
              alt="Ambiance de stade lors de la Coupe du Monde 2026" loading="lazy" decoding="async" />
       </div>
       <div class="reveal method__diagram"><PipelineDiagram /></div>
+      <p class="prose measure method__p method__diagram-note">
+        Concrètement&nbsp;: chaque nuit, la source brute est captée telle
+        quelle, sans y toucher (<strong>bronze</strong>). Elle est ensuite
+        nettoyée et typée sans changer son sens&nbsp;: renommer une colonne,
+        pas réinterpréter une donnée (<strong>silver</strong>). Puis elle est
+        recomposée en tables de faits et de dimensions selon les règles du
+        jeu&nbsp;: classements de poules, barème FIFA, arbre de la phase finale
+        (<strong>gold</strong>). Le modèle statistique et les exports JSON de
+        cette page ne repartent jamais d'ailleurs que de cette dernière
+        couche&nbsp;: aucun chiffre n'est recalculé deux fois, de deux façons
+        différentes, dans deux coins du site. L'intérêt n'est pas esthétique&nbsp;:
+        c'est que si une correction s'impose un jour dans une étape (une
+        définition de but, une règle de départage), il suffit de la corriger
+        une fois, à la source, pour que tout le reste se recalcule avec elle.
+      </p>
 
       <div class="method__cols">
         <div class="method__schema">
@@ -834,18 +971,8 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
         <p class="prose measure method__p">
           On ajuste ces forces par <strong>maximum de vraisemblance</strong> sur les
           {modelMeta.n_matches} résultats, avec une pénalité (ridge) qui garde le modèle
-          stable malgré le peu de matchs par équipe. Le cœur du calcul&nbsp;:
+          stable malgré le peu de matchs par équipe.
         </p>
-        <CodeBlock file="analytics/model.py" lang="python">def fit(matches, ridge=0.05):
-&#32;&#32;&#32;&#32;<i># une force d'attaque et de défense par equipe, + avantage terrain</i>
-&#32;&#32;&#32;&#32;def nll(theta):                       <i># -log vraisemblance de Poisson</i>
-&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;att, dfn, hadv = unpack(theta)
-&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;eta_h = hadv + att[h] - dfn[a]    <i># log E[buts] domicile</i>
-&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;eta_a =        att[a] - dfn[h]    <i># log E[buts] exterieur</i>
-&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;loss = sum(exp(eta_h) - gh*eta_h) + sum(exp(eta_a) - ga*eta_a)
-&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<b>return</b> loss + ridge * (sum(att**2) + sum(dfn**2))   <i># penalite</i>
-&#32;&#32;&#32;&#32;res = minimize(nll, theta0, method=<span class="s">"L-BFGS-B"</span>)
-&#32;&#32;&#32;&#32;<b>return</b> PoissonModel(attack=..., defense=..., home_adv=...)</CodeBlock>
         <p class="prose measure method__p method__p--after">
           De ces forces découlent des buts et des points attendus, match par match.
           Reste la question du titre&nbsp;: elle est plus retorse qu'il n'y paraît.
@@ -872,19 +999,6 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
           (<span class="mono">seed=42</span>) pour que le résultat soit reproductible
           d'un run à l'autre.
         </p>
-        <CodeBlock file="analytics/simulate.py" lang="python">def play(node_id, rng):
-&#32;&#32;&#32;&#32;node = nodes[node_id]
-&#32;&#32;&#32;&#32;<b>if</b> node[<span class="s">"children"</span>] <b>is None</b>:      <i># feuille (16e) : pas d'enfants</i>
-&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;a, b = node[<span class="s">"teams"</span>]
-&#32;&#32;&#32;&#32;<b>else</b>:                                    <i># sinon : on joue d'abord les deux tours precedents</i>
-&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;a = play(node[<span class="s">"children"</span>][0], rng)
-&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;b = play(node[<span class="s">"children"</span>][1], rng)
-&#32;&#32;&#32;&#32;u = rng.random()
-&#32;&#32;&#32;&#32;<b>return</b> a <b>if</b> u &lt; wp[(a, b)] <b>else</b> b      <i># wp = P(a bat b), nul reparti 50/50</i>
-
-counts = dict.fromkeys(teams, 0)
-<b>for</b> _ <b>in</b> range(10_000):                     <i># 10 000 tirages, en cascade jusqu'aux 16es</i>
-&#32;&#32;&#32;&#32;counts[play(final_id, rng)] += 1</CodeBlock>
         <p class="prose measure method__p method__p--after">
           Chaque simulation n'enregistre pas que le champion&nbsp;: elle retient
           aussi le tour le plus loin atteint par chaque équipe, ce qui donne la
@@ -894,7 +1008,7 @@ counts = dict.fromkeys(teams, 0)
         <div class="limits">
           <p class="limits__label mono">Ce que le modèle ne fait pas</p>
           <ul class="limits__list">
-            <li>Le modèle <b>ne mesure pas les tirs</b>, il les déduit des scores. Les vraies stats (SofaScore) ne couvrent que l'Espagne&nbsp;: le quota gratuit (50 req/mois) interdit les 104 matchs.</li>
+            <li>Le modèle <b>ne mesure pas les tirs</b>, il les déduit des scores. FBref confirme les volumes réels (tirs, clean sheets) sur les 48 équipes, mais <b>sans xG</b>&nbsp;: le xG réel (SofaScore) ne couvre que l'Espagne, le quota gratuit (50 req/mois) interdisant les 104 matchs.</li>
             <li>Avec ~7 matchs par équipe, les forces estimées restent <b>incertaines</b>&nbsp;: un éclairage, pas un oracle.</li>
             <li>Les « buts attendus » sont <b>modélisés</b> à partir des scores&nbsp;; ce n'est pas du xG de tracking.</li>
           </ul>
@@ -922,13 +1036,13 @@ counts = dict.fromkeys(teams, 0)
         <p>
           Au bout de {metrics.matches_total} matchs recalculés chaque matin, le
           verdict tient en une ligne&nbsp;: <strong>l'Espagne méritait son
-          titre</strong>. Pas dans un fauteuil — sa {`${spainCase.rank_attack}`}ᵉ
+          titre</strong>. Pas dans un fauteuil, sa {`${spainCase.rank_attack}`}ᵉ
           attaque et son mince surplus de réussite ({`+${spainCase.performance}`} pts)
-          interdisent le mot « domination » — mais parce qu'elle a été, sur
+          interdisent le mot « domination », mais parce qu'elle a été, sur
           l'ensemble du tournoi, l'équipe la plus complète&nbsp;:
           {` #${spainCase.rank_overall}`} au classement du modèle, la meilleure
-          défense de la compétition, favorite {pct(spainCase.title_prob)} % avant
-          même les seizièmes. Une {spainTitleCount === 2 ? "deuxième" : `${spainTitleCount}ᵉ`}
+          défense de la compétition, une probabilité de titre de {pct(spainCase.title_prob)} %
+          une fois le tournoi rejoué sur son niveau de jeu réel. Une {spainTitleCount === 2 ? "deuxième" : `${spainTitleCount}ᵉ`}
           étoile{spainPrevTitle ? `, seize ans après ${spainPrevTitle}` : ""},
           construite sur l'équilibre plutôt que sur l'éclat d'un seul secteur.
         </p>
@@ -936,7 +1050,7 @@ counts = dict.fromkeys(teams, 0)
           Autour de ce sacre, un tournoi record&nbsp;: le plus grand nombre de buts
           jamais inscrits dans une Coupe du monde ({curEd.goals}){highestSince ? (
             <>, et la meilleure moyenne depuis {highestSince}</>
-          ) : null} — la preuve, chiffrée, que le passage à 48 équipes n'a pas dilué
+          ) : null}, preuve chiffrée que le passage à 48 équipes n'a pas dilué
           le jeu qu'on annonçait fade. Trois images le résument.
         </p>
       </div>
@@ -960,11 +1074,11 @@ counts = dict.fromkeys(teams, 0)
       </div>
 
       <p class="epilogue__end measure">
-        Rien de tout cela — le verdict, les records, la nuance — n'a été écrit à la
+        Rien de tout cela (le verdict, les records, la nuance) n'a été écrit à la
         main&nbsp;: tout a été <strong>recalculé depuis les seuls résultats</strong>,
         chaque matin, pendant tout le tournoi. C'est le vrai sujet de cette page.
-        Non pas qui a gagné, mais comment une chaîne de données peut le raconter —
-        honnêtement, sans jamais inventer un chiffre qu'elle n'a pas mesuré.
+        Non pas qui a gagné, mais comment une chaîne de données peut le
+        raconter&nbsp;: honnêtement, sans jamais inventer un chiffre qu'elle n'a pas mesuré.
       </p>
     </div>
   </section>
@@ -1115,6 +1229,7 @@ counts = dict.fromkeys(teams, 0)
 
   /* method */
   .method__diagram { margin-top: 2rem; }
+  .method__diagram-note { margin-top: 1.4rem; }
   .method__cols { margin-top: var(--section-gap); }
 
   /* the one aside pattern: a photo beside a paragraph, editorial tone (not raw,

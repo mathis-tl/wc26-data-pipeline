@@ -16,6 +16,12 @@ const ingestion = stamp(metadata.last_ingestion);
     <span class="statusline__field">dbt build <b>{metadata.dbt_nodes_passed}/{metadata.dbt_nodes_total}</b> <span class="ok" aria-hidden="true">✓</span></span>
     <span class="sep" aria-hidden="true">·</span>
     <span class="statusline__field">réconcilié <b>{metadata.reconciliation}</b></span>
+    {metadata.ingestion_days > 0 && (
+      <>
+        <span class="sep" aria-hidden="true">·</span>
+        <span class="statusline__field"><b>{metadata.ingestion_days}</b> jours de collecte archivés</span>
+      </>
+    )}
     {metadata.ops && metadata.ops.runs_total > 0 && (
       <>
         <span class="sep" aria-hidden="true">·</span>

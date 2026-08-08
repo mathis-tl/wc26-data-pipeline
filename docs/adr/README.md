@@ -15,3 +15,4 @@ Status is one of `accepted`, `superseded by ADR-NNN`, or `proposed`.
 | [0003](0003-standings-recomputed-not-copied.md) | Recompute standings from results; reconcile against the API | accepted |
 | [0004](0004-model-based-expected-goals.md) | Model-based expected goals, never called xG | accepted |
 | [0005](0005-schema-contracts-and-freshness.md) | Contracts at the boundary, freshness for staleness | accepted |
+| [0006](0006-fbref-basic-stats-no-xg-2026.md) | FBref basic team stats as a third source — real, but no xG for 2026 | accepted |

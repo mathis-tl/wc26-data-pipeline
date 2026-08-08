@@ -2,336 +2,336 @@
   {
     "team_name": "Uruguay",
     "team_tla": "URU",
-    "rating": 0.738,
+    "rating": 0.721,
     "finish": 0,
     "highlight": false
   },
   {
     "team_name": "Germany",
     "team_tla": "GER",
-    "rating": -1.078,
+    "rating": -0.884,
     "finish": 1,
     "highlight": false
   },
   {
     "team_name": "Spain",
     "team_tla": "ESP",
-    "rating": 3.271,
+    "rating": 3.267,
     "finish": 5,
     "highlight": true
   },
   {
     "team_name": "Paraguay",
     "team_tla": "PAR",
-    "rating": -0.47,
+    "rating": -0.705,
     "finish": 2,
     "highlight": false
   },
   {
     "team_name": "Argentina",
     "team_tla": "ARG",
-    "rating": 1.536,
+    "rating": 1.524,
     "finish": 5,
     "highlight": false
   },
   {
     "team_name": "Ghana",
     "team_tla": "GHA",
-    "rating": 0.626,
+    "rating": 0.723,
     "finish": 1,
     "highlight": false
   },
   {
     "team_name": "Brazil",
     "team_tla": "BRA",
-    "rating": 0.779,
+    "rating": 0.649,
     "finish": 2,
     "highlight": false
   },
   {
     "team_name": "Portugal",
     "team_tla": "POR",
-    "rating": 1.289,
+    "rating": 1.35,
     "finish": 2,
     "highlight": false
   },
   {
     "team_name": "Japan",
     "team_tla": "JPN",
-    "rating": 0.348,
+    "rating": 0.367,
     "finish": 1,
     "highlight": false
   },
   {
     "team_name": "Mexico",
     "team_tla": "MEX",
-    "rating": 0.728,
+    "rating": 0.677,
     "finish": 2,
     "highlight": false
   },
   {
     "team_name": "England",
     "team_tla": "ENG",
-    "rating": 1.302,
+    "rating": 1.305,
     "finish": 4,
     "highlight": false
   },
   {
     "team_name": "United States",
     "team_tla": "USA",
-    "rating": 0.161,
+    "rating": 0.125,
     "finish": 2,
     "highlight": false
   },
   {
     "team_name": "South Korea",
     "team_tla": "KOR",
-    "rating": -1.006,
+    "rating": -1.08,
     "finish": 0,
     "highlight": false
   },
   {
     "team_name": "France",
     "team_tla": "FRA",
-    "rating": 1.09,
+    "rating": 1.078,
     "finish": 4,
     "highlight": false
   },
   {
     "team_name": "South Africa",
     "team_tla": "RSA",
-    "rating": -1.072,
+    "rating": -1.184,
     "finish": 1,
     "highlight": false
   },
   {
     "team_name": "Algeria",
     "team_tla": "ALG",
-    "rating": -0.019,
+    "rating": 0.01,
     "finish": 1,
     "highlight": false
   },
   {
     "team_name": "Australia",
     "team_tla": "AUS",
-    "rating": -0.124,
+    "rating": 0.03,
     "finish": 1,
     "highlight": false
   },
   {
     "team_name": "New Zealand",
     "team_tla": "NZL",
-    "rating": 0.143,
+    "rating": -0.041,
     "finish": 0,
     "highlight": false
   },
   {
     "team_name": "Switzerland",
     "team_tla": "SUI",
-    "rating": 0.396,
+    "rating": 0.401,
     "finish": 3,
     "highlight": false
   },
   {
     "team_name": "Ecuador",
     "team_tla": "ECU",
-    "rating": -1.668,
+    "rating": -1.586,
     "finish": 1,
     "highlight": false
   },
   {
     "team_name": "Sweden",
     "team_tla": "SWE",
-    "rating": -0.281,
+    "rating": -0.22,
     "finish": 1,
     "highlight": false
   },
   {
     "team_name": "Czechia",
     "team_tla": "CZE",
-    "rating": -1.472,
+    "rating": -1.536,
     "finish": 0,
     "highlight": false
   },
   {
     "team_name": "Croatia",
     "team_tla": "CRO",
-    "rating": 0.924,
+    "rating": 0.927,
     "finish": 1,
     "highlight": false
   },
   {
     "team_name": "Saudi Arabia",
     "team_tla": "KSA",
-    "rating": -0.23,
+    "rating": -0.254,
     "finish": 0,
     "highlight": false
   },
   {
     "team_name": "Tunisia",
     "team_tla": "TUN",
-    "rating": -1.817,
+    "rating": -1.667,
     "finish": 0,
     "highlight": false
   },
   {
     "team_name": "Turkey",
     "team_tla": "TUR",
-    "rating": -0.687,
+    "rating": -0.708,
     "finish": 0,
     "highlight": false
   },
   {
     "team_name": "Senegal",
     "team_tla": "SEN",
-    "rating": 0.831,
+    "rating": 0.778,
     "finish": 1,
     "highlight": false
   },
   {
     "team_name": "Belgium",
     "team_tla": "BEL",
-    "rating": 1.493,
+    "rating": 1.34,
     "finish": 3,
     "highlight": false
   },
   {
     "team_name": "Morocco",
     "team_tla": "MAR",
-    "rating": 0.766,
+    "rating": 0.692,
     "finish": 3,
     "highlight": false
   },
   {
     "team_name": "Austria",
     "team_tla": "AUT",
-    "rating": 0.399,
+    "rating": 0.426,
     "finish": 1,
     "highlight": false
   },
   {
     "team_name": "Colombia",
     "team_tla": "COL",
-    "rating": 0.676,
+    "rating": 1.751,
     "finish": 2,
     "highlight": false
   },
   {
     "team_name": "Egypt",
     "team_tla": "EGY",
-    "rating": 1.226,
+    "rating": 0.991,
     "finish": 2,
     "highlight": false
   },
   {
     "team_name": "Canada",
     "team_tla": "CAN",
-    "rating": 0.059,
+    "rating": -0.195,
     "finish": 2,
     "highlight": false
   },
   {
     "team_name": "Haiti",
     "team_tla": "HAI",
-    "rating": -0.859,
+    "rating": -1.065,
     "finish": 0,
     "highlight": false
   },
   {
     "team_name": "Iran",
     "team_tla": "IRN",
-    "rating": 0.905,
+    "rating": 0.607,
     "finish": 0,
     "highlight": false
   },
   {
     "team_name": "Bosnia-Herzegovina",
     "team_tla": "BIH",
-    "rating": -0.506,
+    "rating": -0.682,
     "finish": 1,
     "highlight": false
   },
   {
     "team_name": "Panama",
     "team_tla": "PAN",
-    "rating": -1.963,
+    "rating": -1.942,
     "finish": 0,
     "highlight": false
   },
   {
     "team_name": "Cape Verde Islands",
     "team_tla": "CPV",
-    "rating": 1.054,
+    "rating": 1.035,
     "finish": 1,
     "highlight": false
   },
   {
     "team_name": "Congo DR",
     "team_tla": "COD",
-    "rating": 0.546,
+    "rating": 0.605,
     "finish": 1,
     "highlight": false
   },
   {
     "team_name": "Ivory Coast",
     "team_tla": "CIV",
-    "rating": -0.549,
+    "rating": -0.547,
     "finish": 1,
     "highlight": false
   },
   {
     "team_name": "Qatar",
     "team_tla": "QAT",
-    "rating": -1.477,
+    "rating": -1.625,
     "finish": 0,
     "highlight": false
   },
   {
     "team_name": "Jordan",
     "team_tla": "JOR",
-    "rating": -0.451,
+    "rating": -0.431,
     "finish": 0,
     "highlight": false
   },
   {
     "team_name": "Iraq",
     "team_tla": "IRQ",
-    "rating": -1.445,
+    "rating": -1.471,
     "finish": 0,
     "highlight": false
   },
   {
     "team_name": "Uzbekistan",
     "team_tla": "UZB",
-    "rating": -0.858,
+    "rating": -0.436,
     "finish": 0,
     "highlight": false
   },
   {
     "team_name": "Netherlands",
     "team_tla": "NED",
-    "rating": 0.095,
+    "rating": 0.373,
     "finish": 1,
     "highlight": false
   },
   {
     "team_name": "Norway",
     "team_tla": "NOR",
-    "rating": 0.669,
+    "rating": 0.631,
     "finish": 3,
     "highlight": false
   },
   {
     "team_name": "Scotland",
     "team_tla": "SCO",
-    "rating": -1.156,
+    "rating": -1.34,
     "finish": 0,
     "highlight": false
   },
   {
     "team_name": "Curaçao",
     "team_tla": "CUW",
-    "rating": -2.857,
+    "rating": -2.782,
     "finish": 0,
     "highlight": false
   }

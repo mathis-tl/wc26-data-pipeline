@@ -66,6 +66,24 @@ CONTRACTS: dict[str, tuple[bool, set[str]]] = {
             "performance",
         },
     ),
+    "team_reality.json": (
+        True,
+        {
+            "team_id",
+            "team_name",
+            "rank_overall",
+            "rank_attack",
+            "rank_defense",
+            "attack",
+            "defense",
+            "possession",
+            "shots",
+            "sota",
+            "ga",
+            "save_pct",
+            "conversion",
+        },
+    ),
     "spain_case.json": (
         False,
         {

@@ -1,0 +1,60 @@
+---
+// Spain's real xG (SofaScore) vs the model's xG, match by match, in
+// chronological order — the shape Fig.7's table already gives in numbers.
+// Same colour convention as Dumbbell.astro: accent = réel, teal = modèle.
+interface Pt { label: string; real: number; model: number }
+const { points } = Astro.props as { points: Pt[] };
+
+const vals = points.flatMap((p) => [p.real, p.model]);
+const top = Math.max(...vals) * 1.15;
+const W = 100, H = 46, m = { l: 3, r: 3, t: 6, b: 9 };
+const n = points.length;
+const sx = (i: number) => m.l + (i / (n - 1)) * (W - m.l - m.r);
+const sy = (v: number) => (H - m.b) - (v / top) * (H - m.t - m.b);
+
+const realPath = points.map((p, i) => `${i === 0 ? "M" : "L"}${sx(i)},${sy(p.real)}`).join(" ");
+const modelPath = points.map((p, i) => `${i === 0 ? "M" : "L"}${sx(i)},${sy(p.model)}`).join(" ");
+const abbr = (s: string) => s.slice(0, 3).toUpperCase();
+---
+
+<figure class="xgc">
+  <div class="xgc__legend mono">
+    <span><span class="dot dot--real"></span>xG réel (SofaScore)</span>
+    <span><span class="dot dot--model"></span>xG modèle</span>
+  </div>
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" preserveAspectRatio="xMidYMid meet"
+       aria-label="Courbes du xG réel de l'Espagne (SofaScore) et du xG du modèle, un point par match dans l'ordre chronologique du tournoi.">
+    <line x1={m.l} y1={H - m.b} x2={W - m.r} y2={H - m.b} class="axis" />
+    <path d={modelPath} class="line line--model" />
+    <path d={realPath} class="line line--real" />
+    {points.map((p, i) => (
+      <>
+        <circle cx={sx(i)} cy={sy(p.model)} r="1.15" class="pt pt--model" />
+        <circle cx={sx(i)} cy={sy(p.real)} r="1.15" class="pt pt--real" />
+        <text x={sx(i)} y={H - m.b + 3.4} text-anchor="middle" class="lbl">{abbr(p.label)}</text>
+      </>
+    ))}
+  </svg>
+  <figcaption class="xgc__cap mono">
+    Un point = un match de l'Espagne, dans l'ordre du tournoi · courbe pleine = xG réel (SofaScore) · courbe pointillée = xG du modèle, calculé sans jamais voir un tir
+  </figcaption>
+</figure>
+
+<style>
+  .xgc { margin: 0 auto; max-width: var(--measure); }
+  .xgc__legend { display: flex; gap: 1.4rem; margin-bottom: 0.9rem; font-size: var(--mono-xs); color: var(--ink-soft); }
+  .xgc__legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+  .dot { width: 0.7rem; height: 0.7rem; border-radius: 50%; }
+  .dot--real { background: var(--accent); }
+  .dot--model { background: var(--teal); }
+  .xgc svg { width: 100%; height: auto; display: block; background: var(--paper-raised); border: 1px solid var(--line); }
+  .axis { stroke: var(--line-strong); stroke-width: 0.15; }
+  .line { fill: none; stroke-width: 0.55; }
+  .line--real { stroke: var(--accent); }
+  .line--model { stroke: var(--teal); stroke-dasharray: 1.4 1; }
+  .pt { stroke: var(--paper-raised); stroke-width: 0.3; }
+  .pt--real { fill: var(--accent); }
+  .pt--model { fill: var(--teal); }
+  .lbl { font-family: var(--mono); font-size: 2.1px; fill: var(--ink-faint); letter-spacing: 0.02em; }
+  .xgc__cap { margin-top: 0.55rem; font-size: var(--mono-xs); color: var(--ink-faint); line-height: 1.5; }
+</style>

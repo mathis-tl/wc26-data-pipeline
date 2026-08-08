@@ -42,3 +42,6 @@ graphify-out/
 dashboard/node_modules/
 dashboard/dist/
 dashboard/.astro/
+
+# soccerdata scratch lockfiles (touched on import, not project output)
+downloaded_files/
