@@ -255,11 +255,11 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
           équipe qui a dominé et gagné d'une équipe qui a survécu et gagné quand
           même. On a donc répondu en <strong>trois temps</strong>, à trois échelles
           différentes. Pour <strong>les 48 équipes</strong> du tournoi, on estime
-          la <strong>force réelle</strong> de chacune à partir des 104 résultats
+          la <strong>force réelle</strong> de chacune à partir des {modelMeta.n_matches} résultats
           disponibles, à l'aide d'un modèle statistique — une <strong>régression de
           Poisson</strong> qui attribue à chaque équipe une force d'attaque et une
           force de défense, ajustées pour que les buts qu'elles impliquent collent aux
-          104 scores réels (<a class="jump" href="#methode">formule et code plus
+          {modelMeta.n_matches} scores réels (<a class="jump" href="#methode">formule et code plus
           bas</a>). Concrètement, il jauge sa capacité à marquer, sa capacité à ne pas
           encaisser, le tout <strong>corrigé de la qualité des adversaires</strong>
           rencontrés, parce que battre le Brésil et battre le dernier du groupe ne
@@ -279,7 +279,7 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
           lui qui situe l'Espagne parmi les autres. FBref élargit un premier
           contrôle réel à ces mêmes 48 équipes, mais reste muet sur le xG. Les
           données SofaScore, elles, ne sont récupérées que pour l'Espagne (le
-          quota gratuit ne couvre pas les 104 matchs du tournoi), et vont plus
+          quota gratuit ne couvre pas les {metrics.matches_total} matchs du tournoi), et vont plus
           loin&nbsp;: c'est le contrôle le plus fin, jusqu'au xG mesuré tir par
           tir. Là où les trois se recoupent, sur le cas espagnol, elles disent la
           même chose, et c'est justement cet accord qui donne confiance dans ce
@@ -543,7 +543,7 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
             <p>
               Une précision s'impose, pour ne pas faire dire à ce chiffre plus
               qu'il ne dit&nbsp;: les forces attaque/défense utilisées ici sont
-              ajustées sur <strong>les 104 résultats déjà connus</strong>, tournoi
+              ajustées sur <strong>les {modelMeta.n_matches} résultats déjà connus</strong>, tournoi
               fini inclus, pas sur la seule phase de groupes, rejouée à
               l'aveugle vers un tournoi encore incertain. Le {pct(spainCase.title_prob)}&nbsp;%
               n'est donc pas un pronostic livré avant le coup d'envoi&nbsp;: c'est
@@ -743,7 +743,7 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
   <section class="section" id="chiffres">
     <div class="wrap">
       <p class="eyebrow"><span class="seq">/</span> Le tournoi en chiffres</p>
-      <h2 class="h2 sec__title">Ce que disent 104 matchs</h2>
+      <h2 class="h2 sec__title">Ce que disent {metrics.matches_total} matchs</h2>
       <div class="charts">
         <div class="reveal">
           <BarChart caption="Buts par phase" unit="buts" items={goalItems} />
@@ -1060,7 +1060,7 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
         <div class="limits">
           <p class="limits__label mono">Ce que le modèle ne fait pas</p>
           <ul class="limits__list">
-            <li>Le modèle <b>ne mesure pas les tirs</b>, il les déduit des scores. FBref confirme les volumes réels (tirs, clean sheets) sur les 48 équipes, mais <b>sans xG</b>&nbsp;: le xG réel (SofaScore) ne couvre que l'Espagne, le quota gratuit (50 req/mois) interdisant les 104 matchs.</li>
+            <li>Le modèle <b>ne mesure pas les tirs</b>, il les déduit des scores. FBref confirme les volumes réels (tirs, clean sheets) sur les 48 équipes, mais <b>sans xG</b>&nbsp;: le xG réel (SofaScore) ne couvre que l'Espagne, le quota gratuit (50 req/mois) interdisant les {metrics.matches_total} matchs.</li>
             <li>Avec ~7 matchs par équipe, les forces estimées restent <b>incertaines</b>&nbsp;: un éclairage, pas un oracle.</li>
             <li>Les « buts attendus » sont <b>modélisés</b> à partir des scores&nbsp;; ce n'est pas du xG de tracking.</li>
           </ul>
@@ -1164,8 +1164,7 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
   .stat__label { margin-top: 0.7rem; font-size: var(--mono-sm); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
   .stat__ctx { margin-top: 0.4rem; font-size: var(--mono-xs); letter-spacing: 0.01em; color: var(--accent); font-family: var(--mono); line-height: 1.35; }
   .scoreboard__foot { margin-top: 1.1rem; font-size: var(--mono-xs); color: var(--ink-faint); letter-spacing: 0.02em; line-height: 1.55; }
-  .scoreboard__foot a { color: var(--ink-soft); text-decoration: underline; text-underline-offset: 2px; text-decoration-color: var(--line-strong); }
-  .scoreboard__foot a:hover { text-decoration-color: var(--accent); }
+  .scoreboard__foot a { color: var(--ink-soft); text-underline-offset: 2px; }
 
   .sec__title { margin-top: 1rem; }
   .sec__lede { margin-top: 1.1rem; }
@@ -1329,13 +1328,15 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
   .stack { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: var(--section-gap) 0 0; padding: 0; list-style: none; }
   .stack li { font-size: var(--mono-sm); padding: 0.35rem 0.7rem; border: 1px solid var(--line-strong); color: var(--ink-soft); }
   .stack__cta { margin-top: 1.6rem; font-size: 1.05rem; }
-  .stack__cta a { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line-strong); }
-  .stack__cta a:hover { text-decoration-color: var(--accent); }
+  .stack__cta a { text-underline-offset: 3px; }
 
-  /* in-prose jump links to the method section: subtle, same underline idiom as
-     the other links on the page — never a loud blue, just a hint it's clickable */
-  .jump { color: inherit; text-decoration: underline; text-underline-offset: 2px; text-decoration-color: var(--line-strong); transition: text-decoration-color 0.15s; }
-  .jump:hover { text-decoration-color: var(--accent); }
+  /* one underline idiom for every in-page link: a line-strong underline that
+     warms to accent on hover. Each link's own rule (above) sets only what
+     differs — colour and underline-offset; .jump adds a focus ring for the
+     in-prose method-section anchors. */
+  .scoreboard__foot a, .stack__cta a, .jump { text-decoration: underline; text-decoration-color: var(--line-strong); }
+  .scoreboard__foot a:hover, .stack__cta a:hover, .jump:hover { text-decoration-color: var(--accent); }
+  .jump { color: inherit; text-underline-offset: 2px; transition: text-decoration-color 0.15s; }
   .jump:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 1px; }
 
   /* "Comment lire ce rapport" — the reader's key to the metric scales, placed
