@@ -256,11 +256,14 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
           même. On a donc répondu en <strong>trois temps</strong>, à trois échelles
           différentes. Pour <strong>les 48 équipes</strong> du tournoi, on estime
           la <strong>force réelle</strong> de chacune à partir des 104 résultats
-          disponibles, à l'aide d'un modèle statistique&nbsp;: sa capacité à
-          marquer, sa capacité à ne pas encaisser, le tout <strong>corrigé de la
-          qualité des adversaires</strong> rencontrés, parce que battre le Brésil
-          et battre le dernier du groupe ne peuvent pas peser pareil dans une
-          évaluation sérieuse. C'est la matière de cette première partie de la
+          disponibles, à l'aide d'un modèle statistique — une <strong>régression de
+          Poisson</strong> qui attribue à chaque équipe une force d'attaque et une
+          force de défense, ajustées pour que les buts qu'elles impliquent collent aux
+          104 scores réels (<a class="jump" href="#methode">formule et code plus
+          bas</a>). Concrètement, il jauge sa capacité à marquer, sa capacité à ne pas
+          encaisser, le tout <strong>corrigé de la qualité des adversaires</strong>
+          rencontrés, parce que battre le Brésil et battre le dernier du groupe ne
+          peuvent pas peser pareil dans une évaluation sérieuse. C'est la matière de cette première partie de la
           page. On confronte ensuite ce modèle à un premier jeu de données
           réelles, mais toujours sur <strong>les 48 équipes</strong>&nbsp;: tirs,
           tirs cadrés et clean sheets réellement enregistrés, via une deuxième
@@ -303,6 +306,14 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
             <dt>xG modèle · xG réel</dt>
             <dd>Buts attendus <b>déduits des scores</b> (modèle, 48 équipes) ou <b>mesurés</b> tir par tir (SofaScore, Espagne seule).</dd>
           </div>
+          <div class="howto__item">
+            <dt>Probabilité de victoire</dt>
+            <dd>Pour un match donné, la part des scénarios où l'équipe l'emporte. Elle vient des deux forces (attaque, défense) converties en probabilité de chaque score possible, <a class="jump" href="#methode">détaillé plus bas</a>.</dd>
+          </div>
+          <div class="howto__item">
+            <dt>Probabilité de titre</dt>
+            <dd>La fréquence à laquelle une équipe gagne le tournoi quand on le <b>rejoue 10 000 fois</b>, chaque match tiré selon sa probabilité de victoire — une lecture <em>a posteriori</em>, pas un pronostic d'avant-match.</dd>
+          </div>
         </dl>
       </div>
 
@@ -344,8 +355,9 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
             deux formes de solidité qui ne vont pas nécessairement de pair la même
             saison. Le modèle sépare nativement les deux, puisqu'il ajuste une
             force d'attaque et une force de défense indépendantes pour chacune des
-            48 équipes (le détail du calcul, la formule et le code, sont développés
-            plus bas dans la section méthode). On peut alors placer chaque équipe
+            48 équipes (le détail du calcul, la formule et le code, sont
+            <a class="jump" href="#methode">développés dans la section méthode</a>). On
+            peut alors placer chaque équipe
             sur un plan à deux dimensions&nbsp;: plus on est à droite, plus
             l'attaque est dangereuse&nbsp;; plus on est haut, plus la défense est
             hermétique. Le coin en haut à droite, celui où les deux qualités se
@@ -432,8 +444,8 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
               <strong>{spainCase.xpoints} attendus</strong> ({`+${spainCase.performance}`}).
               Un surplus réel, auquel il faut appliquer la même règle qu'aux
               autres équipes de ce graphique&nbsp;: c'est le {`${performanceRank}`}ᵉ
-              plus gros écart positif du tournoi, dans la même fourchette que la
-              Suisse ou le Paraguay, loin devant zéro. La part de réussite n'est
+              plus gros écart positif du tournoi, nettement au-dessus de zéro mais
+              loin des cas les plus extrêmes, comme le montre le graphique ci-dessous. La part de réussite n'est
               donc pas nulle. Ce qui distingue l'Espagne, ce n'est pas l'absence de
               chance&nbsp;: c'est qu'elle tenait par ailleurs la meilleure défense
               du tournoi et la première place du classement du modèle, une base que
@@ -496,7 +508,8 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
             quart de finale. Une défaite ce soir-là contre le Portugal, et c'est
             tout le récit de cette page qui change&nbsp;: plus de finale, plus de
             titre, sans doute un tout autre article. C'est aussi pour cette raison
-            que la probabilité de titre, calculée plus bas, ne s'écrit jamais avec
+            que la probabilité de titre, <a class="jump" href="#methode">calculée plus
+            bas</a>, ne s'écrit jamais avec
             certitude&nbsp;: elle intègre, par construction, ce genre de bascule
             possible à chaque match du parcours.
           </p>
@@ -522,7 +535,7 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
               fois</strong> depuis les seizièmes de finale, chaque match étant tiré
               au sort selon les probabilités que donne le modèle plutôt que rejoué à
               l'identique (le détail de cette simulation, sa logique et son code,
-              sont expliqués plus bas). Verdict&nbsp;: l'Espagne termine championne
+              sont <a class="jump" href="#methode">expliqués plus bas</a>). Verdict&nbsp;: l'Espagne termine championne
               <strong> {pct(spainCase.title_prob)} % du temps</strong>, presque un
               tournoi simulé sur deux, et surtout {`${runnerUpRatio}`} fois plus
               souvent que son premier poursuivant dans ce classement, {runnerUp.team_name}.
@@ -708,8 +721,8 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
         une compétition internationale 2026 n'en publie pas. Pour l'Espagne,
         <b>SofaScore</b> (source #3, réconciliée par équipe et par date) fournit
         la possession, les tirs et le <b>xG réel</b> observé. Chaque chiffre de
-        cette page est étiqueté selon son origine. Détail complet du modèle plus
-        bas, dans la section méthode.
+        cette page est étiqueté selon son origine.
+        <a class="jump" href="#methode">Détail complet du modèle dans la section méthode.</a>
       </p>
     </div>
   </section>
@@ -989,9 +1002,32 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
           {modelMeta.n_matches} résultats, avec une pénalité (ridge) qui garde le modèle
           stable malgré le peu de matchs par équipe.
         </p>
+        <p class="prose measure method__p">
+          De ces forces découlent, pour chaque match, deux nombres de buts attendus —
+          un par équipe. Mais un score attendu n'est pas un résultat&nbsp;: il faut
+          encore en tirer une probabilité de victoire, et c'est ce chiffre-là, jamais
+          les buts eux-mêmes, que le reste de la page manipule.
+        </p>
+
+        <h3 class="h3 method__h">D'un match à une probabilité</h3>
+        <p class="prose measure method__p">
+          On traite les buts de chaque équipe comme deux <strong>lois de Poisson
+          indépendantes</strong>, ce qui donne la probabilité de <em>chaque</em> score
+          exact&nbsp;: 0-0, 1-0, 2-1, et ainsi de suite. Il suffit alors de regrouper
+          ces scores selon leur issue — ceux où l'équipe A gagne, ceux où c'est nul,
+          ceux où elle perd — et d'additionner leurs probabilités.
+        </p>
+        <div class="formula">
+          <code class="formula__eq mono">P(victoire<sub>A</sub>) = Σ P(score) où A &gt; B</code>
+          <code class="formula__eq mono">P(nul) = Σ P(score) où A = B</code>
+          <code class="formula__eq mono">P(défaite<sub>A</sub>) = Σ P(score) où A &lt; B</code>
+        </div>
         <p class="prose measure method__p method__p--after">
-          De ces forces découlent des buts et des points attendus, match par match.
-          Reste la question du titre&nbsp;: elle est plus retorse qu'il n'y paraît.
+          Ce triplet — victoire / nul / défaite — est le maillon qui alimente tout le
+          reste&nbsp;: la probabilité de victoire affichée à chaque tour (Fig.&nbsp;3),
+          les points attendus qui mesurent la part de chance (Fig.&nbsp;2), et, en
+          rejouant ces probabilités match après match, la probabilité de titre. Reste
+          justement cette dernière&nbsp;: elle est plus retorse qu'il n'y paraît.
         </p>
 
         <h3 class="h3 method__h">Rejouer le tournoi 10&nbsp;000 fois</h3>
@@ -1295,6 +1331,12 @@ const ratingMax = Math.max(...ratingRows.map((r) => r.rating));
   .stack__cta { margin-top: 1.6rem; font-size: 1.05rem; }
   .stack__cta a { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line-strong); }
   .stack__cta a:hover { text-decoration-color: var(--accent); }
+
+  /* in-prose jump links to the method section: subtle, same underline idiom as
+     the other links on the page — never a loud blue, just a hint it's clickable */
+  .jump { color: inherit; text-decoration: underline; text-underline-offset: 2px; text-decoration-color: var(--line-strong); transition: text-decoration-color 0.15s; }
+  .jump:hover { text-decoration-color: var(--accent); }
+  .jump:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 1px; }
 
   /* "Comment lire ce rapport" — the reader's key to the metric scales, placed
      before the first rank numbers so the Att/Déf scale trap never lands */
