@@ -1,17 +1,19 @@
 ---
+// absolute anchors (/#…) so the report sections are reachable from any page,
+// not just the single-page report itself (e.g. from /coulisses).
 const nav = [
-  { href: "#analyse", label: "Analyse" },
-  { href: "#chiffres", label: "Chiffres" },
-  { href: "#buteurs", label: "Buteurs" },
-  { href: "#groupes", label: "Groupes" },
-  { href: "#bracket", label: "Phase finale" },
-  { href: "#methode", label: "Méthode" },
+  { href: "/#analyse", label: "Analyse" },
+  { href: "/#chiffres", label: "Chiffres" },
+  { href: "/#buteurs", label: "Buteurs" },
+  { href: "/#groupes", label: "Groupes" },
+  { href: "/#bracket", label: "Phase finale" },
+  { href: "/#methode", label: "Méthode" },
 ];
 ---
 
 <header class="site-header">
   <div class="wrap site-header__inner">
-    <a class="brand" href="#haut">
+    <a class="brand" href="/#haut">
       <span class="brand__mark display">CM 26</span>
       <span class="brand__sub mono">rapport du tournoi</span>
     </a>

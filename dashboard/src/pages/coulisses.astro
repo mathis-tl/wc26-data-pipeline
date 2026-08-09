@@ -1,0 +1,344 @@
+---
+import Base from "../layouts/Base.astro";
+import { SITE } from "../lib/site";
+
+const title = "Coulisses techniques";
+const description =
+  "Le making-of du pipeline WC26 : pourquoi ELT plutôt qu'ETL, DuckDB " +
+  "plutôt que Postgres, un site statique plutôt qu'un serveur, et ce que je " +
+  "referais autrement.";
+---
+
+<Base title={title} description={description}>
+  <article class="cls">
+    <!-- HERO -->
+    <section class="section cls__hero">
+      <div class="wrap">
+        <p class="eyebrow"><span class="seq">/</span> Coulisses</p>
+        <h1 class="h1 cls__title">
+          Comment ce rapport se fabrique tout seul
+        </h1>
+        <p class="lede measure cls__lede">
+          Le <a href="/#haut">rapport</a> que vous venez peut-être de lire n'a
+          pas été écrit à la main&nbsp;: il est recalculé chaque jour par un
+          pipeline de données automatisé, sur une stack <strong>100&nbsp;%
+          gratuite</strong>, pensée et construite <em>pendant</em> le tournoi.
+          Voici les quatre choix techniques qui le tiennent debout — et,
+          honnêtement, ce que je referais autrement.
+        </p>
+        <p class="prose measure cls__back mono">
+          <a href="/#haut">← revenir au rapport</a>
+        </p>
+      </div>
+    </section>
+
+    <!-- 1 · LE PITCH -->
+    <section class="section">
+      <div class="wrap">
+        <p class="eyebrow"><span class="seq">/</span> Le projet en une minute</p>
+        <h2 class="h2 cls__h">Une chaîne, cinq maillons</h2>
+        <div class="prose measure">
+          <p>
+            Chaque nuit, une <strong>GitHub Action</strong> interroge les API de
+            résultats, dépose la réponse brute telle quelle, la transforme en
+            tables de faits et de dimensions avec <strong>dbt</strong> sur
+            <strong>DuckDB</strong>, exporte le tout en JSON, et rebuild un site
+            <strong>Astro</strong> statique déployé sur Vercel. Aucun serveur à
+            surveiller, aucune base à administrer, aucune facture&nbsp;: le tout
+            tient dans un dépôt Git public, et chaque exécution laisse une trace
+            rejouable.
+          </p>
+          <p>
+            L'objectif n'était pas seulement d'afficher des chiffres, mais de
+            pouvoir <strong>prouver</strong> qu'ils sont justes — d'où
+            l'obsession, tout au long de la chaîne, pour les tests et la
+            traçabilité plutôt que pour la magie.
+          </p>
+        </div>
+        <ul class="cls__flow mono" aria-label="Étapes du pipeline">
+          <li>API foot</li><li aria-hidden="true">→</li>
+          <li>raw immuable</li><li aria-hidden="true">→</li>
+          <li>dbt + DuckDB</li><li aria-hidden="true">→</li>
+          <li>JSON</li><li aria-hidden="true">→</li>
+          <li>site statique</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 2 · POURQUOI ELT -->
+    <section class="section">
+      <div class="wrap">
+        <p class="eyebrow"><span class="seq">/</span> Choix 1</p>
+        <h2 class="h2 cls__h">ELT plutôt qu'ETL</h2>
+        <div class="decision">
+          <p class="decision__k mono">La décision</p>
+          <p class="decision__v">
+            Charger la donnée brute d'abord, la transformer ensuite <em>dans</em>
+            la base — pas l'inverse.
+          </p>
+        </div>
+        <div class="prose measure">
+          <p>
+            Dans un ETL classique, on transforme la donnée <em>avant</em> de la
+            stocker&nbsp;: le code Python décide de sa forme finale, et la source
+            d'origine est perdue. Le moindre bug de transformation est alors
+            irréversible — il faut re-télécharger pour corriger.
+          </p>
+          <p>
+            J'ai fait l'inverse. La réponse de l'API est archivée
+            <strong>intacte</strong>, horodatée, versionnée dans le dépôt
+            (couche <em>bronze</em>). Toutes les transformations vivent ensuite en
+            SQL, dans la base, en trois temps&nbsp;: nettoyage et typage sans
+            réinterprétation (<em>silver</em>), puis recomposition en tables de
+            faits et dimensions selon les règles du jeu — classements, barème
+            FIFA, arbre de la phase finale (<em>gold</em>).
+          </p>
+          <p>
+            Le bénéfice est concret&nbsp;: le brut est un <strong>filet de
+            sécurité</strong>. Quand j'ai découvert que l'API comptait les buts
+            des séances de tirs au but dans le score final — faussant tous les
+            comptages — je n'ai pas eu à re-télécharger quoi que ce soit&nbsp;:
+            j'ai corrigé une transformation SQL et rejoué toute la chaîne depuis
+            la même source brute. Une correction, un endroit, et tout se recalcule.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 · POURQUOI DUCKDB -->
+    <section class="section">
+      <div class="wrap">
+        <p class="eyebrow"><span class="seq">/</span> Choix 2</p>
+        <h2 class="h2 cls__h">DuckDB plutôt que Postgres</h2>
+        <div class="decision">
+          <p class="decision__k mono">La décision</p>
+          <p class="decision__v">
+            Une base analytique <strong>embarquée</strong>, dans un seul fichier,
+            sans serveur à faire tourner.
+          </p>
+        </div>
+        <div class="prose measure">
+          <p>
+            Postgres est excellent, mais c'est un serveur&nbsp;: il faut
+            l'héberger, le sécuriser, le maintenir en vie 24&nbsp;h/24 — et sur un
+            free tier, il s'endort ou expire. Pour un jeu de données qui tient
+            largement en mémoire et qu'on ne fait que <em>lire</em> pour produire
+            des agrégats, c'est un marteau-pilon.
+          </p>
+          <p>
+            <strong>DuckDB</strong> est à l'analytique ce que SQLite est au
+            transactionnel&nbsp;: une base colonne, sans serveur, qui vit dans un
+            fichier. Elle démarre en millisecondes à l'intérieur de la GitHub
+            Action, avale les résultats du tournoi, et disparaît une fois le build
+            terminé. <strong>dbt</strong> s'y branche directement
+            (<span class="mono">dbt-duckdb</span>)&nbsp;: j'écris des modèles SQL
+            testés, sans jamais gérer de connexion réseau ni de mot de passe.
+          </p>
+          <p>
+            Coût d'infrastructure&nbsp;: zéro. Point de défaillance
+            réseau&nbsp;: aucun. Et le fichier de base peut lui-même être
+            reconstruit à la demande depuis le brut, ce qui le rend jetable — donc
+            fiable.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 · POURQUOI STATIQUE -->
+    <section class="section">
+      <div class="wrap">
+        <p class="eyebrow"><span class="seq">/</span> Choix 3</p>
+        <h2 class="h2 cls__h">Un site statique plutôt qu'un serveur</h2>
+        <div class="decision">
+          <p class="decision__k mono">La décision</p>
+          <p class="decision__v">
+            Figer les marts en JSON, puis compiler une page statique — aucun
+            backend à l'exécution.
+          </p>
+        </div>
+        <div class="prose measure">
+          <p>
+            La donnée ne change qu'une fois par jour, à la fin du pipeline. Servir
+            chaque visiteur via un backend qui rejouerait des requêtes à chaque
+            chargement serait payer un serveur pour recalculer, des milliers de
+            fois, un résultat identique.
+          </p>
+          <p>
+            À la place, la dernière étape du pipeline <strong>exporte les marts en
+            JSON</strong>, et <strong>Astro</strong> compile ces JSON en une page
+            entièrement statique. Chaque chiffre affiché est figé au moment du
+            build&nbsp;: aucun calcul n'a lieu dans le navigateur, aucun chiffre
+            n'est recalculé une seconde fois d'une seconde façon. La page part sur
+            un CDN gratuit, se charge instantanément, reste lisible sans
+            JavaScript, et se laisse indexer par les moteurs.
+          </p>
+          <p>
+            Contrepartie assumée&nbsp;: pas d'interactivité serveur ni de
+            fraîcheur à la seconde. Pour un rapport quotidien, c'est exactement le
+            bon compromis — la fraîcheur vient du <em>rebuild</em>, pas d'un
+            serveur qui veille.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 · LE GARDE-FOU QUALITÉ -->
+    <section class="section">
+      <div class="wrap">
+        <p class="eyebrow"><span class="seq">/</span> Le fil rouge</p>
+        <h2 class="h2 cls__h">Prouver que les chiffres sont justes</h2>
+        <div class="prose measure">
+          <p>
+            Un pipeline automatisé qui publie des chiffres faux est pire qu'un
+            tableur&nbsp;: il inspire une fausse confiance. Chaque build exécute
+            donc une batterie de tests, et <strong>échoue plutôt que de publier
+            un chiffre douteux</strong>.
+          </p>
+          <p>
+            Les garde-fous de base d'abord&nbsp;: clés uniques et non nulles,
+            intégrité des relations entre faits et dimensions, et surtout des
+            contrôles de <strong>volumétrie</strong> qui font échouer le build si
+            une jointure perd la moindre ligne en route — la parade contre les
+            « pertes silencieuses », le bug le plus insidieux d'un entrepôt.
+          </p>
+          <p>
+            Le test central, lui, confronte <strong>deux classements construits
+            séparément</strong> à partir des mêmes matchs bruts&nbsp;: l'un
+            recalculé maison avec les règles FIFA, l'autre publié par l'API
+            elle-même. S'ils divergent d'une seule ligne, sur une seule place de
+            classement, tout s'arrête. C'est ce test qui transforme « je crois que
+            c'est juste » en « c'est vérifié à chaque exécution ».
+          </p>
+          <p>
+            Dernière subtilité, la plus intéressante&nbsp;: le projet croise
+            <strong>trois sources</strong> qui n'ont aucun identifiant commun.
+            Plutôt qu'un rapprochement flou par ressemblance de noms — qui peut
+            faire pointer silencieusement vers le mauvais pays — j'ai écrit une
+            table de correspondance <strong>explicite</strong>. Un nom non résolu
+            n'est pas deviné&nbsp;: il fait échouer le build, bruyamment.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 · CE QUE JE REFERAIS -->
+    <section class="section">
+      <div class="wrap">
+        <p class="eyebrow"><span class="seq">/</span> Honnêtement</p>
+        <h2 class="h2 cls__h">Ce que je referais autrement</h2>
+        <div class="prose measure">
+          <p>
+            Aucun projet n'est fini, seulement livré. Les angles que je reprendrais
+            si je le refaisais&nbsp;:
+          </p>
+          <ul class="cls__redo">
+            <li>
+              <strong>Le déploiement encore semi-manuel.</strong> L'ingestion et
+              les tests tournent seuls, mais la mise en ligne du site mérite d'être
+              branchée de bout en bout sur le pipeline plutôt que déclenchée à la
+              main.
+            </li>
+            <li>
+              <strong>Le vrai xG sur les 48 équipes.</strong> Faute de source
+              gratuite couvrant tout le plateau, le xG mesuré ne concerne que
+              l'Espagne&nbsp;; ailleurs, le rapport s'en tient à des volumes de
+              jeu réels, sans jamais les maquiller en xG. Un tier payant lèverait
+              la limite — au prix de la gratuité.
+            </li>
+            <li>
+              <strong>Contractualiser tous les exports.</strong> La plupart des
+              fichiers JSON livrés au site ont un contrat de forme testé&nbsp;; un
+              ou deux y échappent encore et devraient rejoindre le lot.
+            </li>
+          </ul>
+          <p>
+            Rien de tout cela n'est bloquant&nbsp;: chaque limite est connue,
+            documentée, et n'entache pas la justesse de ce qui est publié. C'est,
+            au fond, la même discipline que le reste du projet — dire ce qu'on
+            sait, et signaler franchement ce qu'on ne sait pas.
+          </p>
+        </div>
+
+        <div class="cls__links">
+          <a class="cls__link" href={SITE.repo} rel="noopener">
+            <span class="cls__link-k mono">Code source</span>
+            <span class="cls__link-v">Le dépôt, les tests, l'historique des runs</span>
+          </a>
+          <a class="cls__link" href="/dbt-docs" rel="noopener">
+            <span class="cls__link-k mono">Modèle de données</span>
+            <span class="cls__link-v">Le lignage complet (dbt docs)</span>
+          </a>
+          <a class="cls__link" href="/#haut">
+            <span class="cls__link-k mono">Le rapport</span>
+            <span class="cls__link-v">L'Espagne méritait-elle son titre&nbsp;?</span>
+          </a>
+        </div>
+        <p class="cls__stack mono">{SITE.stack.join(" · ")}</p>
+      </div>
+    </section>
+  </article>
+</Base>
+
+<style>
+  .cls__hero { padding-bottom: 0; }
+  .cls__title { margin-top: 0.6rem; max-width: 20ch; }
+  .cls__lede { margin-top: 1.3rem; }
+  .cls__back { margin-top: 1.6rem; }
+  .cls__back a { color: var(--ink-faint); text-decoration: none; letter-spacing: 0.04em; }
+  .cls__back a:hover { color: var(--accent); }
+  .cls__h { margin-top: 0.5rem; margin-bottom: 1.4rem; }
+
+  /* pipeline flow strip */
+  .cls__flow {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem;
+    margin: 2rem 0 0; padding: 0; list-style: none;
+    font-size: var(--mono-sm); color: var(--ink-soft);
+  }
+  .cls__flow li:not([aria-hidden]) {
+    padding: 0.4rem 0.75rem; border: 1px solid var(--line-strong);
+    background: var(--paper-raised);
+  }
+  .cls__flow li[aria-hidden] { color: var(--accent); font-weight: 600; }
+
+  /* decision callout — the one-line "what I chose", set off from the prose */
+  .decision {
+    max-width: var(--measure); margin: 0 0 1.5rem;
+    padding: 1rem 1.25rem; background: var(--paper-raised);
+    border-left: 3px solid var(--accent);
+  }
+  .decision__k {
+    font-size: var(--mono-xs); letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-faint); margin: 0 0 0.4rem;
+  }
+  .decision__v { font-size: 1.15rem; line-height: 1.45; color: var(--ink); margin: 0; }
+
+  /* "what I'd redo" list */
+  .cls__redo { max-width: var(--measure); margin: 1.1rem 0 0; padding-left: 1.1rem; }
+  .cls__redo li { margin-top: 0.85rem; line-height: 1.6; }
+
+  /* closing link cards */
+  .cls__links {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+    margin-top: 2.5rem;
+  }
+  .cls__link {
+    display: flex; flex-direction: column; gap: 0.3rem;
+    padding: 1.1rem 1.25rem; text-decoration: none;
+    background: var(--paper-raised); border: 1px solid var(--line);
+    transition: border-color 0.15s;
+  }
+  .cls__link:hover { border-color: var(--accent); }
+  .cls__link-k {
+    font-size: var(--mono-xs); letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent);
+  }
+  .cls__link-v { font-size: var(--small); color: var(--ink-soft); line-height: 1.4; }
+  .cls__stack {
+    margin-top: 2rem; font-size: var(--mono-xs); letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+
+  @media (max-width: 640px) {
+    .cls__links { grid-template-columns: 1fr; }
+  }
+</style>
