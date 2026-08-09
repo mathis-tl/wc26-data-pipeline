@@ -1,55 +1,38 @@
 # État du projet — wc26-data-pipeline
 
 ## Objectif du dernier sprint
-« Le verdict à l'épreuve des chiffres réels (FBref, 48 équipes) » — session 1, backend/data uniquement, pas de dashboard.
+Clarté du récit (revue éditoriale du BACKLOG) puis lancement de la Phase vitrine — page making-of technique, en ligne.
 
 ## Réalisations terminées
-- Dépendance `soccerdata` ajoutée au groupe `analytics`.
-- `ingestion/fbref.py` : run-once (refuse de re-fetch sans `--force`), pull des 5 tables FBref (`INT-World Cup`, 2026) → `data/raw/fbref/team_basic_2026.csv` versionné (48 équipes × 13 colonnes).
-- `analytics/real_fbref.py` : réconciliation noms FBref ↔ `dim_teams` via mapping explicite (6 divergences : Bosnia–Herz, Cabo Verde, Côte d'Ivoire, IR Iran, Korea Republic, Türkiye) ; échoue bruyamment dans les deux sens en cas de nom non résolu.
-- `analytics/__main__.py` étendu : join réel FBref + `team_strength` du modèle → `dashboard/src/data/team_reality.json` (48 lignes : ranks/attack/defense modèle + possession/tirs/SoT/SoTA/GA/save%/CS/conversion réels).
-- ADR 0006 écrit (`docs/adr/0006-fbref-basic-stats-no-xg-2026.md`) : source réelle basique, absence de xG 2026 documentée, discipline ADR-0004 étendue.
-- Note `model_meta.json` nuancée : volumes de tir réels désormais disponibles, toujours aucun xG de tracking.
-- Tests : `tests/test_fbref_reconcile.py` (4 tests unitaires + 1 `contract` : 0 non-apparié contre le vrai `dim_teams`) ; contrat d'export étendu (`team_reality.json` dans `tests/test_export_contract.py`).
+- **Revue éditoriale du narratif** (`index.astro`) : les 5 leviers du BACKLOG — modèle nommé (« régression de Poisson ») dès sa 1ʳᵉ mention ; maillon manquant *buts → probabilité de match* écrit en §Méthode (sous-section « D'un match à une probabilité ») pile là où la simulation le consomme ; glossaire complété (« proba de victoire », « proba de titre ») ; 4 renvois « plus bas » → ancres `#methode` ; aparté non vérifiable « Suisse/Paraguay » retiré. **BACKLOG éditorial = clos.**
+- **Suites de la code-review** (0 bug de correctness, 3 nits faibles traités) : 6 `104` en dur → bindings `modelMeta.n_matches` / `metrics.matches_total` ; 3 règles de liens fusionnées en un idiome partagé.
+- **Phase vitrine — page making-of `/coulisses`** (nouvelle) : ELT vs ETL, DuckDB vs Postgres, statique vs serveur, garde-fous qualité, « ce que je referais ». Charte du site, lien discret dans le footer, ancres du header rendues absolues (`/#analyse`). **Déployée en prod, vérifiée 200.**
+- Ouverture de session : le dataviz non commité d'une session précédente (axes numériques, `table-layout: fixed`, paragraphe « 2026 en deux temps ») a été QA'é puis commité (`95dda5b`).
+- **Fix géométrie timeline** (`EditionTimeline.astro`, `4d21056`) : la ligne « moyenne 3.06 » se dessinait ~11 px trop bas (référentiel `.edt__plot` — padding + rangée d'années — au lieu de `.edt__cols`), faisant passer la barre or 2026 (2.96) **au-dessus** de la moyenne, visuellement faux. Libellés d'années sortis dans leur propre rangée → base commune barres/ligne ; barre 2026 désormais ~5 px sous la ligne. Vérifié au pixel + captures desktop/mobile ; étiquette « 2.96 » ré-ancrée à droite (plus de rognage mobile).
 
 ## Fichiers impactés
-- Nouveaux : `ingestion/fbref.py`, `analytics/real_fbref.py`, `tests/test_fbref_reconcile.py`, `docs/adr/0006-fbref-basic-stats-no-xg-2026.md`, `data/raw/fbref/team_basic_2026.csv`, `dashboard/src/data/team_reality.json`
-- Modifiés : `analytics/__main__.py`, `tests/test_export_contract.py`, `docs/adr/README.md`, `pyproject.toml`, `uv.lock`, `.gitignore` (ignore `downloaded_files/`)
-- Régénérés en effet de bord (re-run analytics) : `team_strength.json`, `rating_vs_finish.json`, `title_odds.json`, `title_progression.json`, `model_meta.json`, `data/ops/runs.jsonl` — bruit de dernier chiffre du solveur L-BFGS-B, sans rapport avec ce sprint.
+- `dashboard/src/pages/coulisses.astro` (nouveau)
+- `dashboard/src/pages/index.astro` (éditorial + bindings 104)
+- `dashboard/src/components/SiteHeader.astro`, `SiteFooter.astro` (raccord nav + lien footer)
+- `dashboard/src/components/{EditionTimeline,GroupTable,ScatterPlot,Takeaway,XgCurve}.astro` (dataviz, `95dda5b`)
 
 ## Décisions clés
-- FBref choisi comme source #3 malgré l'absence de xG 2026 (vérifié : 5 tables basiques seulement, aucune colonne « Expected ») — apporte une réalité-check sur 48 équipes là où SofaScore ne couvre que l'Espagne.
-- Mapping de noms explicite, pas de fuzzy matching — une dérive de nom doit échouer bruyamment, jamais se résoudre silencieusement vers le mauvais pays.
-- Champ `conversion` (G/Sh) choisi plutôt que tout terme évoquant le xG, même si c'est une donnée de tir réelle (discipline ADR-0004 étendue à FBref).
+- Revue édito faite **avant** la Phase vitrine (hors ordre « en tout dernier » du BACKLOG) — à ta demande explicite.
+- Article publié comme **page du site Astro statique** (self-hosted, illustre la thèse « statique ») plutôt que plateforme externe.
+- `104` → **bindings dynamiques** (pattern *compute-don't-assert* déjà en place pour `runnerUp`/`performanceRank`) pour ne jamais dériver au refresh cron nocturne.
+- Commits éditorial (`docs`) et durcissement (`refactor`) **séparés par séquençage** (staging interactif indispo, tout dans un fichier).
 
 ## Validations effectuées
-- `uv run python -m ingestion.fbref` : archive créée, re-run confirmé no-op (run-once).
-- `uv run python -m analytics` : tourne sans erreur, `team_reality.json` généré.
-- Vérification programmatique : 48 lignes, Espagne GA=1, save%=90.9, possession=64.1%, conversion=0.09, rank_defense=#1, rank_attack=#6.
-- `uv run pytest -q` : 52 passed. `uv run pytest -m contract -q` : 20 passed, 1 failed (`upsets.json` sans contrat — préexistant, confirmé via `git stash` avant ce sprint, non lié).
-- `uv run ruff check` + `uv run pyright` sur les fichiers touchés : propres.
-- **Session 2 (front)** : le composant dashboard « réalité vs modèle » (section
-  « Confirmé, à l'échelle du tournoi », Fig. 6 — scatter défense modèle × %
-  d'arrêts réel FBref, `Takeaway` avec `r ≈ 0.75`) et sa note d'honnêteté
-  (« aucun xG ne circule pour une compétition internationale 2026 ») étaient
-  **déjà présents dans `index.astro`**, non commités, à la reprise de cette
-  session — pas écrits par cette session, seulement retrouvés et validés.
-  `npm run build` : propre. QA `shoot.mjs` (desktop 1280 + mobile 390, reduced-motion) :
-  aucun débordement horizontal. Capture ciblée de la section Fig. 6 aux deux
-  largeurs : rendu correct, labels (ESP/POR/IRN/GHA/COL) lisibles, pas de
-  chevauchement.
+- `npm run build` : propre (2 pages : `/`, `/coulisses`).
+- `scripts/shoot.mjs` desktop 1280 + mobile 390 sur `/` et `/coulisses` : **aucun débordement horizontal** ; captures ciblées (glossaire 6 items, formule 3 lignes, table de groupes, Fig. 6/xG) rendues correctes.
+- `/code-review` (xhigh) : **0 bug de correctness**, 3 nits faibles — tous traités.
+- Vérif HTML généré : **0 `104` en dur** restant en source, 6 bindings rendent bien « 104 » ; liens dédupliqués calculent `underline` + `--line-strong`.
+- Déploiement Vercel prod : **READY** ; `dashboard-mathis7.vercel.app/coulisses` → **200**, contenu présent, lien footer `/coulisses` présent en prod.
 
 ## Risques / points ouverts
-- `upsets.json` n'a toujours pas de contrat d'export (gap préexistant, hors scope de ce sprint).
-- Rien n'est commité — modifications encore dans le working tree.
-
-## Backlog (reporté, pas ce sprint)
-- Revue éditoriale du texte narratif du dashboard (clarté du modèle statistique,
-  chiffres non expliqués à proximité) — documentée dans `docs/BACKLOG.md`,
-  **programmée en tout dernier**, après le reste de la roadmap produit.
+- `deploy.yml` existe mais le déploiement reste lancé à la main : à clarifier (workflow mort ou à brancher pour l'auto-deploy Git↔Vercel).
+- `upsets.json` toujours sans contrat d'export ; crédits photos « à compléter » dans le footer (`SiteFooter.astro:31` ; nom = `SITE.author` dans `lib/site.ts`).
+- Article **en ligne** mais promotion (post LinkedIn / lien CV) = part humaine, non faite.
 
 ## Prochaine étape exacte
-Session 2 (front/récit) est validée (composant + note d'honnêteté + build + QA
-desktop/mobile, voir ci-dessus) : plus de code à écrire pour ce sprint FBref.
-Reste à décider avec l'utilisateur : committer l'ensemble du sprint (backend +
-front), ou enchaîner sur autre chose avant de committer.
+`origin/main` réaligné sur la prod (push des 5 commits incl. le fix géométrie) et prod redéployée ce tour. Reprendre la Phase vitrine par le polish du `README` au niveau recruteur.
