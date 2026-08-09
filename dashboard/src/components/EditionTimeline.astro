@@ -26,20 +26,24 @@ const labelYears = new Set([1930, 1954, 1970, 1990, 2010, 2026]);
 ---
 
 <figure class="edt">
-  <div class="edt__plot" role="img" aria-label="Buts par match à chaque Coupe du Monde, de 1930 à 2026">
-    <span class="edt__avg" style={`bottom:${h(avg)}%`}>
-      <span class="edt__avg-lbl mono">moyenne {avg.toFixed(2)}</span>
-    </span>
-    <div class="edt__cols">
+  <div class="edt__plot">
+    <div class="edt__cols" role="img" aria-label="Buts par match à chaque Coupe du Monde, de 1930 à 2026">
+      <span class="edt__avg" style={`bottom:${h(avg)}%`}>
+        <span class="edt__avg-lbl mono">moyenne {avg.toFixed(2)}</span>
+      </span>
       {editions.map((e) => (
         <div class:list={["edt__col", { hi: e.is_current }]}>
           <span class="edt__bar" style={`height:${h(e.goals_per_match)}%`}>
             <span class="edt__val mono">{e.goals_per_match.toFixed(2)}</span>
           </span>
-          <span class:list={["edt__yr", "mono", { show: labelYears.has(e.year) }]}>
-            {`'` + String(e.year).slice(2)}
-          </span>
         </div>
+      ))}
+    </div>
+    <div class="edt__years" aria-hidden="true">
+      {editions.map((e) => (
+        <span class:list={["edt__yr", "mono", { show: labelYears.has(e.year), hi: e.is_current }]}>
+          {`'` + String(e.year).slice(2)}
+        </span>
       ))}
     </div>
   </div>
@@ -53,16 +57,16 @@ const labelYears = new Set([1930, 1954, 1970, 1990, 2010, 2026]);
   .edt { margin: 0 auto; max-width: var(--wide-fig); }
   .edt__plot { position: relative; padding-top: 1.2rem; }
   .edt__cols {
+    position: relative; /* the average line anchors here, on the bars' own baseline */
     display: grid;
-    /* minmax(0,1fr) lets the columns shrink below the year-label min-width so
-       the 23-column timeline always fits the viewport (no mobile overflow) */
+    /* minmax(0,1fr) lets the columns shrink so the 23-column timeline always fits */
     grid-template-columns: repeat(23, minmax(0, 1fr));
     align-items: end;
     gap: clamp(2px, 0.6vw, 6px);
     height: clamp(9rem, 26vw, 14rem);
     border-bottom: 1.5px solid var(--ink);
   }
-  .edt__col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 0; }
+  .edt__col { display: flex; align-items: flex-end; height: 100%; min-width: 0; }
   .edt__bar {
     position: relative; width: 100%;
     background: color-mix(in srgb, var(--accent) 78%, var(--paper));
@@ -74,18 +78,32 @@ const labelYears = new Set([1930, 1954, 1970, 1990, 2010, 2026]);
     font-size: 0.6rem; color: var(--ink-faint); opacity: 0; transition: opacity 0.15s;
     white-space: nowrap;
   }
-  .edt__col.hi .edt__val { opacity: 1; color: var(--gold); font-weight: 700; }
+  /* 2026 is the rightmost bar; right-anchor its always-on label so it can't clip
+     past the chart's right edge (a centred label overflowed on narrow screens) */
+  .edt__col.hi .edt__val { opacity: 1; color: var(--gold); font-weight: 700; left: auto; right: 0; transform: none; }
   .edt__col:hover .edt__bar { background: var(--accent); }
   .edt__col:hover .edt__val { opacity: 1; }
-  .edt__yr { margin-top: 0.4rem; font-size: 0.6rem; color: var(--ink-faint); opacity: 0; height: 0.9rem; overflow: visible; white-space: nowrap; }
+  /* year labels live in their own grid row, sharing the bars' 23 columns. Pulling
+     them out of each bar's column is what lets the bars and the average line share
+     one exact baseline: previously the label sat inside the column and lifted the
+     bar's baseline, so the average line (measured against the taller plot box)
+     drifted ABOVE the bars — making 2026 read as topping the mean it sits just
+     under. Now both are measured against .edt__cols. */
+  .edt__years {
+    display: grid;
+    grid-template-columns: repeat(23, minmax(0, 1fr));
+    gap: clamp(2px, 0.6vw, 6px);
+    margin-top: 0.4rem;
+  }
+  .edt__yr { text-align: center; font-size: 0.6rem; color: var(--ink-faint); opacity: 0; height: 0.9rem; white-space: nowrap; }
   .edt__yr.show { opacity: 1; }
-  .edt__col.hi .edt__yr.show { color: var(--gold); font-weight: 700; }
-  /* all-time average reference line */
+  .edt__yr.hi.show { color: var(--gold); font-weight: 700; }
+  /* all-time average reference line — bottom % is relative to .edt__cols, the
+     same box the bars are sized against, so it lines up with them exactly */
   .edt__avg { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--teal); z-index: 1; }
-  /* anchored at the LEFT end of the line, away from 2026's gold value label at
-     the right — the two used to collide (2.96 sat right under "moyenne 3.06",
-     making it look like 2026 topped the average when it sits just below it). A
-     paper chip keeps the teal label readable over the tall early-era bars. */
+  /* anchored at the LEFT end, away from 2026's gold value label at the right (the
+     two used to collide); a paper chip keeps the teal label readable over the
+     tall early-era bars. */
   .edt__avg-lbl {
     position: absolute; left: 0; top: -1.05rem;
     font-size: var(--mono-xs); color: var(--teal); letter-spacing: 0.04em;
@@ -95,8 +113,7 @@ const labelYears = new Set([1930, 1954, 1970, 1990, 2010, 2026]);
   @media (max-width: 560px) {
     .edt__val { display: none; }
     .edt__col.hi .edt__val { display: block; }
-    /* year labels collide at 23 columns on a phone — the caption carries the
-       range; keep only the bars as a sparkline shape */
-    .edt__yr { display: none; }
+    /* year labels collide at 23 columns on a phone — the caption carries the range */
+    .edt__years { display: none; }
   }
 </style>
