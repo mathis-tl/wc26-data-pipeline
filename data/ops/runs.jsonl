@@ -39,3 +39,7 @@
 {"run_id": "2026-08-15T06:35:41+00:00", "recorded_at": "2026-08-15T06:35:56+00:00", "stage": "ingestion", "dataset": "standings", "rows": 48, "duration_s": 0.0, "status": "ok"}
 {"run_id": "2026-08-15T06:35:41+00:00", "recorded_at": "2026-08-15T06:35:56+00:00", "stage": "ingestion", "dataset": "scorers", "rows": 30, "duration_s": 0.0, "status": "ok"}
 {"run_id": "2026-08-15T06:36:16+00:00", "recorded_at": "2026-08-15T06:36:17+00:00", "stage": "analytics", "dataset": "model+simulation", "rows": 23, "duration_s": 0.79, "status": "ok"}
+{"run_id": "2026-08-16T06:37:05+00:00", "recorded_at": "2026-08-16T06:37:20+00:00", "stage": "ingestion", "dataset": "matches", "rows": 104, "duration_s": 1.08, "status": "ok"}
+{"run_id": "2026-08-16T06:37:05+00:00", "recorded_at": "2026-08-16T06:37:20+00:00", "stage": "ingestion", "dataset": "standings", "rows": 48, "duration_s": 0.0, "status": "ok"}
+{"run_id": "2026-08-16T06:37:05+00:00", "recorded_at": "2026-08-16T06:37:20+00:00", "stage": "ingestion", "dataset": "scorers", "rows": 30, "duration_s": 0.0, "status": "ok"}
+{"run_id": "2026-08-16T06:37:42+00:00", "recorded_at": "2026-08-16T06:37:43+00:00", "stage": "analytics", "dataset": "model+simulation", "rows": 23, "duration_s": 0.81, "status": "ok"}
