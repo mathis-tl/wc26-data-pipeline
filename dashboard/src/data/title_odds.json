@@ -4,7 +4,7 @@
     "team_name": "Spain",
     "team_tla": "ESP",
     "crest": "https://crests.football-data.org/760.svg",
-    "title_prob": 0.4602
+    "title_prob": 0.4604
   },
   {
     "team_id": 818,
@@ -32,7 +32,7 @@
     "team_name": "France",
     "team_tla": "FRA",
     "crest": "https://crests.football-data.org/773.svg",
-    "title_prob": 0.067
+    "title_prob": 0.0669
   },
   {
     "team_id": 805,
@@ -60,7 +60,7 @@
     "team_name": "Morocco",
     "team_tla": "MAR",
     "crest": "https://crests.football-data.org/morocco.svg",
-    "title_prob": 0.0191
+    "title_prob": 0.019
   },
   {
     "team_id": 1930,
