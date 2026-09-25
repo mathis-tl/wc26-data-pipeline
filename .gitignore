@@ -27,10 +27,15 @@ dashboard/build/
 graphify-out/
 .DS_Store
 
-# Claude Code kit : on versionne commands/ settings.json CLAUDE.md PROGRESS.md,
-# mais pas les sauvegardes locales ni les overrides personnels
-.claude/backups/
-.claude/settings.local.json
+# Fichiers de travail (agent, notes de session) : gardés en local, hors dépôt
+.claude/
+CLAUDE.md
+PLAN.md
+PROGRESS.md
+setup-claude.sh
+SESSION_*.md
+docs/BACKLOG.md
+docs/NEXT_SESSION.md
 
 # Raw source photos (processed once into dashboard/public/photos, which IS versioned)
 /assets/
