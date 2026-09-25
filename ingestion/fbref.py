@@ -74,9 +74,7 @@ def run(force: bool = False) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
     archive = OUT / "team_basic_2026.csv"
     if archive.exists() and not force:
-        logger.info(
-            "archive already present at %s — skipping (pass --force to re-fetch)", archive
-        )
+        logger.info("archive already present at %s — skipping (pass --force to re-fetch)", archive)
         return 0
 
     import soccerdata as sd  # heavy optional dep — only imported on an actual fetch
@@ -88,7 +86,9 @@ def run(force: bool = False) -> int:
         df = _fetch_table(fb, stat_type)
         subset = cast(pd.DataFrame, df[[("team", ""), *columns]].copy())
         subset.columns = ["team", *columns.values()]
-        merged = subset if merged is None else merged.merge(subset, on="team", validate="one_to_one")
+        merged = (
+            subset if merged is None else merged.merge(subset, on="team", validate="one_to_one")
+        )
         logger.info("%s: %d teams, kept %s", stat_type, len(subset), list(columns.values()))
 
     _fetch_table(fb, UNUSED_TABLE)  # verifies the 5th table has the same shape, unused otherwise
@@ -105,9 +105,7 @@ def run(force: bool = False) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--force", action="store_true", help="re-fetch even if the archive exists"
-    )
+    parser.add_argument("--force", action="store_true", help="re-fetch even if the archive exists")
     args = parser.parse_args()
     return run(force=args.force)
 
