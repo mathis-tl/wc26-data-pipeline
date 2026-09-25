@@ -102,8 +102,28 @@ def run() -> None:
         # penalty-shootout match has equal regulation goals by construction
         # (that's why it went to penalties) but is a win/loss, not a draw.
         for team, opp, gf, ga_, xgf, xga, xp, win, draw in (
-            (h, a, gh, ga, lh, la, 3 * p_home + p_draw, m["winner"] == "HOME_TEAM", m["winner"] == "DRAW"),
-            (a, h, ga, gh, la, lh, 3 * p_away + p_draw, m["winner"] == "AWAY_TEAM", m["winner"] == "DRAW"),
+            (
+                h,
+                a,
+                gh,
+                ga,
+                lh,
+                la,
+                3 * p_home + p_draw,
+                m["winner"] == "HOME_TEAM",
+                m["winner"] == "DRAW",
+            ),
+            (
+                a,
+                h,
+                ga,
+                gh,
+                la,
+                lh,
+                3 * p_away + p_draw,
+                m["winner"] == "AWAY_TEAM",
+                m["winner"] == "DRAW",
+            ),
         ):
             d = agg[team]
             d["gf"] += gf
@@ -184,7 +204,9 @@ def run() -> None:
         # catches a dim_teams team that FBref's own 48 never covered.
         missing = {row["team_name"] for row in team_strength} - fbref_real.keys()
         if missing:
-            raise RuntimeError(f"dim_teams team(s) missing from FBref reality check: {sorted(missing)}")
+            raise RuntimeError(
+                f"dim_teams team(s) missing from FBref reality check: {sorted(missing)}"
+            )
         team_reality.sort(key=lambda x: x["rank_overall"])
         _write("team_reality.json", team_reality)
 
@@ -193,7 +215,9 @@ def run() -> None:
     for m in finished:
         if m["winner"] not in ("HOME_TEAM", "AWAY_TEAM"):
             continue
-        lh, la = goal_means(model, m["home_team_id"], m["away_team_id"], neutral=m["stage"] != "GROUP_STAGE")
+        lh, la = goal_means(
+            model, m["home_team_id"], m["away_team_id"], neutral=m["stage"] != "GROUP_STAGE"
+        )
         p_home, p_draw, p_away = outcome_probs(lh, la)
         win_p = p_home if m["winner"] == "HOME_TEAM" else p_away
         home_won = m["winner"] == "HOME_TEAM"
@@ -201,7 +225,9 @@ def run() -> None:
         loser_id = m["away_team_id"] if home_won else m["home_team_id"]
         wn, _, wc = meta(winner_id)
         ln, _, lc = meta(loser_id)
-        wg, lg = (m["home_goals"], m["away_goals"]) if home_won else (m["away_goals"], m["home_goals"])
+        wg, lg = (
+            (m["home_goals"], m["away_goals"]) if home_won else (m["away_goals"], m["home_goals"])
+        )
         score = f"{wg}–{lg}"
         # Regulation goals alone would show a shootout win as e.g. "0–0", which
         # reads as no result at all — append how it was actually decided.
@@ -352,7 +378,11 @@ def run() -> None:
                     else (m["penalty_away_goals"], m["penalty_home_goals"])
                 )
                 score += f" ({sp}–{op} t.a.b.)"
-            result = "V" if m["winner"] == ("HOME_TEAM" if home else "AWAY_TEAM") else ("N" if m["winner"] == "DRAW" else "D")
+            result = (
+                "V"
+                if m["winner"] == ("HOME_TEAM" if home else "AWAY_TEAM")
+                else ("N" if m["winner"] == "DRAW" else "D")
+            )
             path.append(
                 {
                     "stage": m["stage"],
