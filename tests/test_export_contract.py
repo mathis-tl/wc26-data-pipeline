@@ -105,6 +105,19 @@ CONTRACTS: dict[str, tuple[bool, set[str]]] = {
     ),
     "spain_final_shots.json": (False, {"opponent", "shots"}),
     "title_odds.json": (True, {"team_tla", "title_prob"}),
+    "upsets.json": (
+        True,
+        {
+            "match_id",
+            "stage",
+            "winner_name",
+            "winner_crest",
+            "loser_name",
+            "loser_crest",
+            "score",
+            "win_prob",
+        },
+    ),
     "title_progression.json": (False, {"levels", "teams"}),
     "model_meta.json": (
         False,
