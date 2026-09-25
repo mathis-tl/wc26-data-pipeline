@@ -3,6 +3,8 @@
 [![CI](https://github.com/mathis-tl/wc26-data-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/mathis-tl/wc26-data-pipeline/actions/workflows/ci.yml)
 [![Daily ingestion](https://github.com/mathis-tl/wc26-data-pipeline/actions/workflows/ingest.yml/badge.svg)](https://github.com/mathis-tl/wc26-data-pipeline/actions/workflows/ingest.yml)
 
+**🔗 Dashboard en ligne : [dashboard-alpha-one-24.vercel.app](https://dashboard-alpha-one-24.vercel.app)**
+
 End-to-end ELT pipeline on the 2026 FIFA World Cup: daily ingestion from football
 APIs, dimensional modeling with dbt + DuckDB, and a public dashboard built with
 Astro — orchestrated by GitHub Actions, on a 100% free stack.
