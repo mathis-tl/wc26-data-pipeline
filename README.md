@@ -1,16 +1,17 @@
 # World Cup 2026 Data Pipeline
 
 [![CI](https://github.com/mathis-tl/wc26-data-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/mathis-tl/wc26-data-pipeline/actions/workflows/ci.yml)
-[![Daily ingestion](https://github.com/mathis-tl/wc26-data-pipeline/actions/workflows/ingest.yml/badge.svg)](https://github.com/mathis-tl/wc26-data-pipeline/actions/workflows/ingest.yml)
 
-**🔗 Dashboard en ligne : [dashboard-alpha-one-24.vercel.app](https://dashboard-alpha-one-24.vercel.app)**
+**🔗 Live dashboard: [dashboard-alpha-one-24.vercel.app](https://dashboard-alpha-one-24.vercel.app)**
 
 End-to-end ELT pipeline on the 2026 FIFA World Cup: daily ingestion from football
 APIs, dimensional modeling with dbt + DuckDB, and a public dashboard built with
 Astro — orchestrated by GitHub Actions, on a 100% free stack.
 
-> 🚧 Built **during** the tournament. Daily archives land in [`data/raw/`](data/raw/)
-> and [`dashboard/src/data/`](dashboard/src/data/) via automated PRs; check the history.
+> ✅ **Tournament over — pipeline retired.** Built and run **during** the tournament:
+> the daily ingestion ran from 10 July to 29 August 2026, each run landing as an automated PR.
+> The full archive lives in [`data/raw/`](data/raw/) and [`dashboard/src/data/`](dashboard/src/data/);
+> the workflow is now disabled since the API no longer serves the competition.
 
 ## Architecture
 
